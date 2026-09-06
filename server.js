@@ -6,6 +6,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 const ZYFY_API_KEY = process.env.ZYFY_API_KEY;
+const ZYFY_BACKUP_API_KEY = process.env.ZYFY_BACKUP_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 app.use(express.json());
@@ -1857,47 +1858,101 @@ app.post("/api/check", async (req, res) => {
     });
   }
 
-  if (!ZYFY_API_KEY) {
+  if (!ZYFY_API_KEY && !ZYFY_BACKUP_API_KEY) {
     return res.status(500).json({
       ok:false,
-      error:"کلیلی پەیوەندی بە سەرچاوەی داتا لە Render دانەنراوە."
+      error:"هیچ کلیلی Zyfy لە Render دانەنراوە."
     });
   }
 
-  try {
+  async function callZyfy(apiKey){
     const url =
       `https://zyfy.uk/v1/vehicle/${encodeURIComponent(vrm)}`;
 
     const response = await fetch(url, {
       headers: {
-        "X-Api-Key": ZYFY_API_KEY,
+        "X-Api-Key": apiKey,
         "Accept":"application/json"
       }
     });
 
-    const text = await response.text();
+    const raw = await response.text();
 
     let data;
     try {
-      data = JSON.parse(text);
+      data = JSON.parse(raw);
     } catch {
-      data = {raw:text};
+      data = {raw};
     }
 
-    if (!response.ok) {
-      return res.status(response.status).json({
+    return {
+      ok: response.ok,
+      status: response.status,
+      data
+    };
+  }
+
+  function messageFrom(result){
+    return String(
+      result?.data?.message ||
+      result?.data?.error ||
+      result?.data?.detail ||
+      result?.data?.raw ||
+      ""
+    );
+  }
+
+  function shouldUseBackup(result){
+    if (!result || result.ok) return false;
+
+    const msg = messageFrom(result).toLowerCase();
+
+    return (
+      result.status === 429 ||
+      msg.includes("monthly request limit") ||
+      msg.includes("request limit reached") ||
+      msg.includes("monthly limit") ||
+      msg.includes("quota") ||
+      msg.includes("rate limit")
+    );
+  }
+
+  try {
+    let result = null;
+
+    if (ZYFY_API_KEY) {
+      result = await callZyfy(ZYFY_API_KEY);
+    }
+
+    if (
+      (!result || shouldUseBackup(result)) &&
+      ZYFY_BACKUP_API_KEY
+    ) {
+      console.log("Using Zyfy backup key for", vrm);
+      result = await callZyfy(ZYFY_BACKUP_API_KEY);
+    }
+
+    if (!result) {
+      return res.status(500).json({
+        ok:false,
+        error:"هیچ کلیلی Zyfy بەردەست نییە."
+      });
+    }
+
+    if (!result.ok) {
+      return res.status(result.status || 502).json({
         ok:false,
         error:
-          data?.message ||
-          data?.error ||
-          data?.detail ||
-          `هەڵە لە پشکنین: ${response.status}`
+          result?.data?.message ||
+          result?.data?.error ||
+          result?.data?.detail ||
+          `هەڵە لە پشکنین: ${result.status || 502}`
       });
     }
 
     return res.json({
       ok:true,
-      data
+      data:result.data
     });
 
   } catch (error) {
@@ -1909,7 +1964,6 @@ app.post("/api/check", async (req, res) => {
     });
   }
 });
-
 
 
 
