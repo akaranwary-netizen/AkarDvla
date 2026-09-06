@@ -109,6 +109,27 @@ button{
   cursor:pointer;
 }
 button:disabled{opacity:.6}
+.دوگمەی_بیمە{
+  display:block;
+  max-width:720px;
+  margin:14px auto 0;
+  background:#138a43;
+  color:#fff;
+  text-decoration:none;
+  padding:16px 20px;
+  border-radius:10px;
+  font-size:17px;
+  font-weight:800;
+  text-align:center;
+}
+.دوگمەی_بیمە:hover{opacity:.92}
+.تێبینی_بیمە{
+  max-width:720px;
+  margin:8px auto 0;
+  color:#ccd4db;
+  font-size:12px;
+  line-height:1.6;
+}
 
 .ناوەڕۆک{
   max-width:1120px;
@@ -242,6 +263,19 @@ footer{
   <div class="گەڕان">
     <input id="ژمارە" class="ژمارە" maxlength="8" placeholder="AB12 CDE">
     <button id="دوگمە" onclick="پشکنین()">پشکنینی ئۆتۆمبێل</button>
+  </div>
+
+  <a
+    class="دوگمەی_بیمە"
+    href="https://enquiry.navigate.mib.org.uk/checkyourvehicle"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    🛡️ پشکنینی بیمەی ئۆتۆمبێل
+  </a>
+
+  <div class="تێبینی_بیمە">
+    بۆ پشکنینی بیمەی ئۆتۆمبێلی خۆت یان ئۆتۆمبێلێک کە مافی یاسایی شۆفێرکردنی هەیە.
   </div>
 </section>
 
