@@ -685,7 +685,10 @@ footer{
 
 <script>
 
-let currentLang = localStorage.getItem("akar_language") || "ckb";
+const SUPPORTED_LANGS = ["ckb","en","ar","fa","tr","fr","de","es","ro","pl","ur","ps"];
+let currentLang = SUPPORTED_LANGS.includes(localStorage.getItem("akar_language"))
+  ? localStorage.getItem("akar_language")
+  : "ckb";
 
 const EN_TRANSLATIONS = {
   "پشکنینی ئۆتۆمبێلی بەریتانیا":"UK vehicle check",
@@ -819,26 +822,57 @@ const EN_TRANSLATIONS = {
   "دڵنیابەوە.":"you buy."
 };
 
-function translateTextNode(node){
-  if(currentLang !== "en") return;
-  if(node.nodeType !== Node.TEXT_NODE) return;
 
-  let txt = node.nodeValue;
-  if(!txt || !txt.trim()) return;
+function getTranslationDictionary(){
+  const dictionaries = {
+    en: EN_TRANSLATIONS,
+    ar: AR_TRANSLATIONS,
+    fa: FA_TRANSLATIONS,
+    tr: TR_TRANSLATIONS,
+    fr: FR_TRANSLATIONS,
+    de: DE_TRANSLATIONS,
+    es: ES_TRANSLATIONS,
+    ro: RO_TRANSLATIONS,
+    pl: PL_TRANSLATIONS,
+    ur: UR_TRANSLATIONS,
+    ps: PS_TRANSLATIONS
+  };
+  return dictionaries[currentLang] || EN_TRANSLATIONS;
+}
 
+function translateString(txt){
+  if(currentLang === "ckb") return txt;
+
+  const selected = getTranslationDictionary();
+
+  // Always use the complete Kurdish key list.
+  // If a chosen language does not yet have a special translation for a phrase,
+  // fall back to English rather than leaving Kurdish mixed into the page.
   const entries = Object.entries(EN_TRANSLATIONS)
     .sort(function(a,b){ return b[0].length - a[0].length; });
 
-  for(const [ckb,en] of entries){
+  for(const pair of entries){
+    const ckb = pair[0];
+    const english = pair[1];
     if(txt.includes(ckb)){
-      txt = txt.split(ckb).join(en);
+      const translated = selected[ckb] || english;
+      txt = txt.split(ckb).join(translated);
     }
   }
-  node.nodeValue = txt;
+  return txt;
+}
+
+function translateTextNode(node){
+  if(currentLang === "ckb") return;
+  if(node.nodeType !== Node.TEXT_NODE) return;
+
+  const txt = node.nodeValue;
+  if(!txt || !txt.trim()) return;
+  node.nodeValue = translateString(txt);
 }
 
 function translateElementTree(root=document.body){
-  if(currentLang !== "en") return;
+  if(currentLang === "ckb") return;
 
   const walker = document.createTreeWalker(
     root,
@@ -851,21 +885,11 @@ function translateElementTree(root=document.body){
     translateTextNode(node);
   }
 
-  document.documentElement.lang = "en";
-  document.documentElement.dir = "ltr";
-  document.body.dir = "ltr";
-
   document.querySelectorAll("[aria-label],[title]").forEach(function(el){
     ["aria-label","title"].forEach(function(attr){
       const original = el.getAttribute(attr);
       if(!original) return;
-      let translated = original;
-      const entries = Object.entries(EN_TRANSLATIONS)
-        .sort(function(a,b){ return b[0].length - a[0].length; });
-      entries.forEach(function(pair){
-        translated = translated.split(pair[0]).join(pair[1]);
-      });
-      el.setAttribute(attr, translated);
+      el.setAttribute(attr, translateString(original));
     });
   });
 
@@ -878,15 +902,17 @@ function translateElementTree(root=document.body){
 
 function applyLanguage(){
   applyLanguageDirection();
-  if(currentLang === "en"){
-    translateElementTree(document.body);
-  }else{
+
+  if(currentLang === "ckb"){
     document.documentElement.lang = "ckb";
     document.documentElement.dir = "rtl";
     document.body.dir = "rtl";
     const switcher = document.getElementById("languageSwitch");
     if(switcher) switcher.textContent = "🌐 " + (LANGUAGE_NAMES[currentLang] || "زمان");
+    return;
   }
+
+  translateElementTree(document.body);
 }
 
 const AR_TRANSLATIONS = {
@@ -1104,11 +1130,11 @@ document.addEventListener("DOMContentLoaded",()=>{
 const دۆزینەوە = id => document.getElementById(id);
 
 function وەرگێڕانی_بەها(v){
-  const notAvailable = currentLang === "en" ? "Not available" : "بەردەست نییە";
+  const notAvailable = currentLang === "ckb" ? "بەردەست نییە" : translateString("بەردەست نییە");
 
   if(v === null || v === undefined || v === "") return notAvailable;
-  if(v === true) return currentLang === "en" ? "Yes" : "بەڵێ";
-  if(v === false) return currentLang === "en" ? "No" : "نەخێر";
+  if(v === true) return currentLang === "ckb" ? "بەڵێ" : translateString("بەڵێ");
+  if(v === false) return currentLang === "ckb" ? "نەخێر" : translateString("نەخێر");
 
   const raw = String(v).trim();
   const key = raw.toLowerCase().replace(/[\s-]+/g,"_");
@@ -1207,7 +1233,7 @@ function بەها(v){
 }
 
 function بەروار(v){
-  if(!v) return currentLang === "en" ? "Not available" : "بەردەست نییە";
+  if(!v) return currentLang === "ckb" ? "بەردەست نییە" : translateString("بەردەست نییە");
   const d = new Date(v);
   if(isNaN(d)) return String(v);
   return d.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
@@ -1232,7 +1258,7 @@ function دانان(id,v){ دۆزینەوە(id).textContent = بەها(v); }
 function دانانی_بەروار(id,v){ دۆزینەوە(id).textContent = بەروار(v); }
 
 function ژمارە_لەگەڵ_یەکە(v,unit){
-  if(v === null || v === undefined || v === "") return currentLang === "en" ? "Not available" : "بەردەست نییە";
+  if(v === null || v === undefined || v === "") return currentLang === "ckb" ? "بەردەست نییە" : translateString("بەردەست نییە");
   const n = Number(v);
   if(Number.isNaN(n)) return String(v);
   return n.toLocaleString("en-GB") + unit;
@@ -1610,12 +1636,12 @@ async function پشکنین(){
     دۆزینەوە("ئەنجن").textContent =
       d.engineCapacityCc !== null && d.engineCapacityCc !== undefined
       ? Number(d.engineCapacityCc).toLocaleString("en-GB")+" cc"
-      : (currentLang === "en" ? "Not available" : "بەردەست نییە");
+      : (currentLang === "ckb" ? "بەردەست نییە" : translateString("بەردەست نییە"));
 
     دانان("ساڵ",d.yearOfManufacture);
     دۆزینەوە("تەمەن").textContent =
       d.vehicleAgeYears !== null && d.vehicleAgeYears !== undefined
-      ? d.vehicleAgeYears + (currentLang === "en" ? " years" : " ساڵ") : (currentLang === "en" ? "Not available" : "بەردەست نییە");
+      ? d.vehicleAgeYears + (currentLang === "en" ? " years" : " ساڵ") : (currentLang === "ckb" ? "بەردەست نییە" : translateString("بەردەست نییە"));
     دانان("یەکەم_تۆمار",d.monthOfFirstRegistration);
 
     دانانی_بەروار("V5C",وەرگرتن(d,[
@@ -1639,11 +1665,11 @@ async function پشکنین(){
 
     دۆزینەوە("ڕێژەی_MOT").textContent =
       s.motPassRate !== null && s.motPassRate !== undefined
-      ? Math.round(Number(s.motPassRate)*100)+"%" : (currentLang === "en" ? "Not available" : "بەردەست نییە");
+      ? Math.round(Number(s.motPassRate)*100)+"%" : (currentLang === "ckb" ? "بەردەست نییە" : translateString("بەردەست نییە"));
 
     دۆزینەوە("مایلیج").textContent =
       s.latestOdometerMiles !== null && s.latestOdometerMiles !== undefined
-      ? Number(s.latestOdometerMiles).toLocaleString("en-GB") + (currentLang === "en" ? " miles" : " مایل") : (currentLang === "en" ? "Not available" : "بەردەست نییە");
+      ? Number(s.latestOdometerMiles).toLocaleString("en-GB") + (currentLang === "en" ? " miles" : " مایل") : (currentLang === "ckb" ? "بەردەست نییە" : translateString("بەردەست نییە"));
 
     دۆزینەوە("مایلیج_ساڵانە").textContent =
       ژمارە_لەگەڵ_یەکە(
@@ -1657,7 +1683,7 @@ async function پشکنین(){
 
     دانان("Euro",s.euroEmissionStandard);
     const co2 = وەرگرتن(d,["signals.co2EmissionsGPerKm","signals.co2Emissions","co2EmissionsGPerKm","co2Emissions"]);
-    دۆزینەوە("CO2").textContent = co2 !== null && co2 !== undefined ? بەها(co2)+" g/km" : (currentLang === "en" ? "Not available" : "بەردەست نییە");
+    دۆزینەوە("CO2").textContent = co2 !== null && co2 !== undefined ? بەها(co2)+" g/km" : (currentLang === "ckb" ? "بەردەست نییە" : translateString("بەردەست نییە"));
     دانان("ULEZ",s.ulezCompliant);
     دانان("RDE",وەرگرتن(d,["signals.realDrivingEmissions","realDrivingEmissions"]));
 
@@ -1671,7 +1697,7 @@ async function پشکنین(){
       "signals.ncapSafetyRating.overallStars","signals.ncapSafetyRating.stars",
       "signals.ncapRating","ncapSafetyRating.overallStars"
     ]);
-    دۆزینەوە("NCAP").textContent = ncap !== null && ncap !== undefined ? بەها(ncap)+" ⭐" : (currentLang === "en" ? "Not available" : "بەردەست نییە");
+    دۆزینەوە("NCAP").textContent = ncap !== null && ncap !== undefined ? بەها(ncap)+" ⭐" : (currentLang === "ckb" ? "بەردەست نییە" : translateString("بەردەست نییە"));
 
     دانان("پێشنیار",summary.buyRecommendation);
     دانان("دۆخ",وەرگرتن(d,["summary.conditionBand","summary.condition","summary.vehicleCondition","signals.condition"]));
@@ -1714,7 +1740,7 @@ async function پشکنین(){
           '<div class="row"><span class="label">'+(currentLang === "en" ? "Date" : "بەروار")+'</span><span class="value">'+پاراستنی_دەق(بەروار(testDate))+'</span></div>'+
           '<div class="row"><span class="label">'+(currentLang === "en" ? "Result" : "ئەنجام")+'</span><span class="value">'+پاراستنی_دەق(وەرگێڕانی_بەها(resultText))+'</span></div>'+
           '<div class="row"><span class="label">'+(currentLang === "en" ? "Mileage" : "مایلیج")+'</span><span class="value">'+
-          (mileageVal !== null ? Number(mileageVal).toLocaleString("en-GB") + (currentLang === "en" ? " miles" : " مایل") : (currentLang === "en" ? "Not available" : "بەردەست نییە"))+
+          (mileageVal !== null ? Number(mileageVal).toLocaleString("en-GB") + (currentLang === "en" ? " miles" : " مایل") : (currentLang === "ckb" ? "بەردەست نییە" : translateString("بەردەست نییە")))+
           '</span></div>'+notesHtml+'</div>';
       }).join("");
     }else{
@@ -1735,7 +1761,7 @@ async function پشکنین(){
     دۆزینەوە("پەیام").textContent = error.message;
   }finally{
     دۆزینەوە("دوگمە").disabled = false;
-    دۆزینەوە("دوگمە").textContent = currentLang === "en" ? "Check vehicle" : "پشکنینی ئۆتۆمبێل";
+    دۆزینەوە("دوگمە").textContent = currentLang === "ckb" ? "پشکنینی ئۆتۆمبێل" : translateString("پشکنینی ئۆتۆمبێل");
   }
 }
 
