@@ -43,9 +43,16 @@ app.get("/", (req, res) => {
 <meta name="google-site-verification" content="qFWdo65b2VIDInQWb2JmLyN2mY8LqHA_u4fNw5dUP74" />
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="Akar's Car Check - پشکنینی ئۆتۆمبێلی بەریتانیا بۆ MOT، باج، مایلیج و زانیارییەکانی ئۆتۆمبێل.">
+<meta name="description" content="Check any UK vehicle registration for MOT, tax, mileage, fuel cost, Clean Air Zone information and market price guidance with Akar's Car Check." />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Akar's Car Check – Free UK MOT, Tax, Mileage & CAZ Check" />
+  <meta property="og:description" content="Check any UK vehicle registration for MOT, tax, mileage, fuel cost, Clean Air Zone information and market price guidance with Akar's Car Check." />
+  <meta property="og:url" content="https://dvlabyakar.onrender.com/" />
+  <meta property="og:site_name" content="Akar's Car Check" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
 <link rel="canonical" href="https://dvlabyakar.onrender.com/">
-<title>Akar's Car Check</title>
+<title>Akar's Car Check – Free UK MOT, Tax, Mileage & CAZ Check</title>
 
 <style>
 :root{
@@ -424,6 +431,7 @@ footer{
   .summary-main{align-items:flex-start;flex-direction:column}
 }
 </style>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Akar's Car Check","url":"https://dvlabyakar.onrender.com/","description":"Check any UK vehicle registration for MOT, tax, mileage, fuel cost, Clean Air Zone information and market price guidance with Akar's Car Check.","inLanguage":["ckb","en-GB"]}</script>
 </head>
 
 <body>
