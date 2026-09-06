@@ -834,6 +834,9 @@ const EXTRA_UI_ENGLISH = [
   "Retrieving live vehicle information...",
   "Vehicle check failed.",
   "Vehicle report",
+  "Needs further checking",
+  "Shows a good overall condition",
+  "Check carefully",
   "Estimating MPG and fuel costs...",
   "Fuel-cost estimate unavailable:",
   "Unknown error",
@@ -846,20 +849,54 @@ const EXTRA_UI_ENGLISH = [
   "Lowest asking price",
   "Typical asking price",
   "Highest asking price",
-  "Average",
-  "Lowest",
-  "Typical",
-  "Highest",
+  "Average","Lowest","Typical","Highest",
   "Similar listings unavailable:",
   "Diesel vehicle",
   "CAZ result for a normal private car:",
   "No charge",
   "Euro standard unavailable",
-  "year","years","mile","miles","miles/year",
-  "litre",
+  "year","years","mile","miles","miles/year","litre",
   "Issue type","Date","Result","Mileage",
-  "No additional recurring-issue information is available."
-];
+  "No additional recurring-issue information is available.",
+  "The data source did not return a full test-by-test MOT history for this vehicle.",
+  "Plug-in hybrid","LPG","CNG",
+  "Car","Motorcycle","Van","Truck","Bus",
+  "SORN","Unknown","Very low","Very high","Possible",
+  "Possible mileage tampering","Excellent","Very good","Very poor","Average",
+  "Good to buy","Consider carefully","Caution","Avoid","Recommended","Not recommended",
+  "Increasing","Decreasing","Stable","Anomaly","No anomaly",
+  "Advisory","Advisories","Dangerous","Major","Minor","Recall",
+  "Outstanding recall","Marked for export",
+  "Tyre","Light","Brake","Wipers","Washers","Seatbelts","Seats","Doors",
+  "Horn","Registration plate","Fuel system","Electrical","Engine","Chassis","Corrosion","Structure"
+]
+
+function buildLocalFallbackPack(){
+  if(currentLang === "ckb" || currentLang === "en") return {};
+
+  const localDictionaries = {
+    ar: typeof AR_TRANSLATIONS !== "undefined" ? AR_TRANSLATIONS : {},
+    fa: typeof FA_TRANSLATIONS !== "undefined" ? FA_TRANSLATIONS : {},
+    tr: typeof TR_TRANSLATIONS !== "undefined" ? TR_TRANSLATIONS : {},
+    fr: typeof FR_TRANSLATIONS !== "undefined" ? FR_TRANSLATIONS : {},
+    de: typeof DE_TRANSLATIONS !== "undefined" ? DE_TRANSLATIONS : {},
+    es: typeof ES_TRANSLATIONS !== "undefined" ? ES_TRANSLATIONS : {},
+    ro: typeof RO_TRANSLATIONS !== "undefined" ? RO_TRANSLATIONS : {},
+    pl: typeof PL_TRANSLATIONS !== "undefined" ? PL_TRANSLATIONS : {},
+    ur: typeof UR_TRANSLATIONS !== "undefined" ? UR_TRANSLATIONS : {},
+    ps: typeof PS_TRANSLATIONS !== "undefined" ? PS_TRANSLATIONS : {}
+  };
+
+  const source = localDictionaries[currentLang] || {};
+  const result = {};
+
+  Object.entries(source).forEach(function(pair){
+    const english = EN_TRANSLATIONS[pair[0]];
+    if(english) result[english] = pair[1];
+  });
+
+  return result;
+}
 
 async function loadLanguagePack(){
   if(currentLang === "ckb" || currentLang === "en"){
@@ -868,28 +905,54 @@ async function loadLanguagePack(){
     return;
   }
 
+  const cacheKey = "akar_full_language_pack_v3_" + currentLang;
+  try{
+    const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+    if(cached && typeof cached === "object" && Object.keys(cached).length > 80){
+      ACTIVE_LANGUAGE_PACK = cached;
+      languagePackReady = true;
+      return;
+    }
+  }catch{}
+
+  ACTIVE_LANGUAGE_PACK = buildLocalFallbackPack();
+
   const englishTexts = Array.from(new Set(
     Object.values(EN_TRANSLATIONS).concat(EXTRA_UI_ENGLISH)
   )).filter(Boolean);
 
-  try{
-    const response = await fetch("/api/language-pack",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({language:currentLang,texts:englishTexts})
-    });
-    const data = await response.json();
+  let lastError = null;
 
-    if(response.ok && data.ok && data.translations){
-      ACTIVE_LANGUAGE_PACK = data.translations;
-      languagePackReady = true;
-      return;
+  for(let attempt=0; attempt<3; attempt++){
+    try{
+      const response = await fetch("/api/language-pack",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({language:currentLang,texts:englishTexts})
+      });
+
+      const data = await response.json();
+
+      if(response.ok && data.ok && data.translations && typeof data.translations === "object"){
+        ACTIVE_LANGUAGE_PACK = Object.assign({}, ACTIVE_LANGUAGE_PACK, data.translations);
+        languagePackReady = true;
+
+        try{
+          localStorage.setItem(cacheKey, JSON.stringify(ACTIVE_LANGUAGE_PACK));
+        }catch{}
+
+        return;
+      }
+
+      lastError = data?.error || "Language pack request failed";
+    }catch(error){
+      lastError = error?.message || String(error);
     }
-  }catch(error){
-    console.error("Language pack load error:", error);
+
+    await new Promise(function(resolve){ setTimeout(resolve, 350 * (attempt + 1)); });
   }
 
-  ACTIVE_LANGUAGE_PACK = {};
+  console.error("Full language pack unavailable:", lastError);
   languagePackReady = true;
 }
 
@@ -1176,6 +1239,7 @@ function closeLanguageModal(){
 
 document.addEventListener("DOMContentLoaded",async ()=>{
   await applyLanguage();
+  setTimeout(refreshSelectedLanguage,500);
 
   if(!localStorage.getItem("akar_language_chosen")){
     setTimeout(openLanguageModal,250);
@@ -1260,17 +1324,19 @@ function وەرگێڕانی_بەها(v){
   };
 
   const map = currentLang !== "ckb" ? enMap : ckbMap;
-  if(map[key]) return map[key];
+  if(map[key]){
+    return currentLang === "ckb" ? map[key] : translateString(map[key]);
+  }
 
   if(currentLang !== "ckb"){
-    if(key.includes("above_average")) return "Above average";
-    if(key.includes("below_average")) return "Below average";
-    if(key.includes("consistent")) return "Consistent";
-    if(key.includes("inconsistent")) return "Inconsistent";
-    if(key.includes("valid")) return "Valid";
-    if(key.includes("expired")) return "Expired";
-    if(key.includes("taxed")) return "Taxed";
-    if(key.includes("untaxed")) return "Untaxed";
+    if(key.includes("above_average")) return translateString("Above average");
+    if(key.includes("below_average")) return translateString("Below average");
+    if(key.includes("consistent")) return translateString("Consistent");
+    if(key.includes("inconsistent")) return translateString("Inconsistent");
+    if(key.includes("valid")) return translateString("Valid");
+    if(key.includes("expired")) return translateString("Expired");
+    if(key.includes("taxed")) return translateString("Taxed");
+    if(key.includes("untaxed")) return translateString("Untaxed");
     return raw;
   }
 
@@ -1368,10 +1434,10 @@ function هەڵسەنگاندن(summary,s){
 
   score = Math.max(10,Math.min(95,Math.round(score)));
 
-  let text = currentLang !== "ckb" ? "Needs further checking" : "پێویستی بە پشکنینی زیاتر هەیە";
+  let text = currentLang !== "ckb" ? translateString("Needs further checking") : "پێویستی بە پشکنینی زیاتر هەیە";
   let colour = "#f7c76d";
-  if(score >= 80){ text = currentLang !== "ckb" ? "Shows a good overall condition" : "دۆخی باش پیشان دەدات"; colour = "#5dd39e"; }
-  if(score < 55){ text = currentLang !== "ckb" ? "Check carefully" : "بە وریاییەوە بپشکنە"; colour = "#ff7070"; }
+  if(score >= 80){ text = currentLang !== "ckb" ? translateString("Shows a good overall condition") : "دۆخی باش پیشان دەدات"; colour = "#5dd39e"; }
+  if(score < 55){ text = currentLang !== "ckb" ? translateString("Check carefully") : "بە وریاییەوە بپشکنە"; colour = "#ff7070"; }
 
   دۆزینەوە("نمرە").textContent = score;
   دۆزینەوە("دەقی_هەڵسەنگاندن").textContent = text;
@@ -1478,7 +1544,7 @@ async function دۆزینەوەی_هاوشێوە(d){
 
   loading.style.display = "block";
   loading.textContent = currentLang !== "ckb"
-    ? "Finding similar cars currently for sale..."
+    ? translateString("Finding similar cars currently for sale...")
     : "ئۆتۆمبێلی هاوشێوە دەگەڕێندرێت...";
   resultBox.innerHTML = "";
   if(summaryBox) summaryBox.style.display = "none";
@@ -1527,7 +1593,7 @@ async function دۆزینەوەی_هاوشێوە(d){
 
     if(!validCars.length){
       loading.textContent = currentLang !== "ckb"
-        ? "No usable asking-price data was found."
+        ? translateString("No usable asking-price data was found.")
         : "هیچ داتایەکی بەکارهاتووی نرخی داواکراو نەدۆزرایەوە.";
       return;
     }
@@ -1649,6 +1715,7 @@ function نیشاندانی_CAZ_بۆ_دیزڵ(d){
   }
 
   list.innerHTML = html;
+  setTimeout(refreshSelectedLanguage, 50);
 }
 
 
@@ -1789,7 +1856,7 @@ async function پشکنین(){
       }).join("");
     }else{
       دۆزینەوە("کێشە_دووبارە").innerHTML =
-        '<div class="muted">'+(currentLang !== "ckb" ? "No additional recurring-issue information is available." : "هیچ زانیارییەکی زیاتر بۆ کێشە دووبارەبووەکان بەردەست نییە.")+'</div>';
+        '<div class="muted">'+(currentLang !== "ckb" ? translateString("No additional recurring-issue information is available.") : "هیچ زانیارییەکی زیاتر بۆ کێشە دووبارەبووەکان بەردەست نییە.")+'</div>';
     }
 
     const motDetails = وەرگرتن(d,["motHistory","mot_history","signals.motHistory","motTests"]);
@@ -1813,7 +1880,7 @@ async function پشکنین(){
       }).join("");
     }else{
       دۆزینەوە("مێژووی_MOT").innerHTML =
-        '<div class="muted">'+(currentLang !== "ckb" ? "The data source did not return a full test-by-test MOT history for this vehicle." : "سەرچاوەی داتا مێژووی تەواوی هەر MOT بە جیاوازی بۆ ئەم ئۆتۆمبێلە نەگەڕاندووەتەوە.")+'</div>';
+        '<div class="muted">'+(currentLang !== "ckb" ? translateString("The data source did not return a full test-by-test MOT history for this vehicle.") : "سەرچاوەی داتا مێژووی تەواوی هەر MOT بە جیاوازی بۆ ئەم ئۆتۆمبێلە نەگەڕاندووەتەوە.")+'</div>';
     }
 
     خەمڵاندنی_سووتەمەنی_AI(d);
@@ -2003,8 +2070,8 @@ app.post("/api/language-pack", async (req, res) => {
     const models = ["gemini-3.5-flash-lite", "gemini-3.5-flash"];
 
     // Small batches make the response much more reliable than translating the whole page at once.
-    for(let offset=0; offset<texts.length; offset+=20){
-      const batch = texts.slice(offset,offset+20);
+    for(let offset=0; offset<texts.length; offset+=35){
+      const batch = texts.slice(offset,offset+35);
       let finished = false;
       let lastError = "Translation failed";
 
@@ -2037,8 +2104,7 @@ ${JSON.stringify(batch)}
               body:JSON.stringify({
                 contents:[{role:"user",parts:[{text:prompt}]}],
                 generationConfig:{
-                  responseMimeType:"application/json",
-                  maxOutputTokens:1800
+                  maxOutputTokens:5000
                 }
               })
             }
