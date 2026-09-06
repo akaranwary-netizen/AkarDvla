@@ -796,7 +796,7 @@ async function خەمڵاندنی_AI(d){
     loading.style.display = "none";
     resultBox.style.display = "block";
   }catch(error){
-    loading.textContent = "خەمڵاندنی AI لەم کاتەدا بەردەست نییە.";
+    loading.textContent = "خەمڵاندنی AI سەرکەوتوو نەبوو: " + (error?.message || "هەڵەی نەناسراو");
   }
 }
 
@@ -1087,7 +1087,7 @@ ${JSON.stringify(car, null, 2)}
 
   try {
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent",
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
       {
         method:"POST",
         headers:{
