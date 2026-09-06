@@ -691,537 +691,18 @@ let currentLang = SUPPORTED_LANGS.includes(localStorage.getItem("akar_language")
   ? localStorage.getItem("akar_language")
   : "ckb";
 
-const EN_TRANSLATIONS = {
-  "پشکنینی ئۆتۆمبێلی بەریتانیا":"UK vehicle check",
-  "پشکنینی زیرەکی ئۆتۆمبێل":"Smart vehicle check",
-  "پێش کڕین، دڵنیابەوە.":"Check before you buy.",
-  "ژمارەی تۆماری ئۆتۆمبێل بنووسە بۆ بینینی MOT، باج، مایلیج و زانیارییە گرنگەکان لە یەک شوێندا.":"Enter a vehicle registration to see MOT, tax, mileage and important vehicle information in one place.",
-  "پشکنینی ئۆتۆمبێل":"Check vehicle",
-  "زانیاری ڕاستەوخۆ لە سەرچاوەی داتا وەردەگیرێت.":"Live information is retrieved from the data source.",
-  "پشکنینی بیمەی ئۆتۆمبێل":"Check vehicle insurance",
-  "باجی ڕێگاوبان بدە":"Pay road tax",
-  "لۆگ بووک بگۆڕە":"Change log book",
-  "ڕاپۆرتی ئۆتۆمبێل":"Vehicle report",
-  "هەڵسەنگاندنی گشتی":"Overall assessment",
-  "زانیاری سەرەکی":"Vehicle details",
-  "مارکە":"Make",
-  "مۆدێل":"Model",
-  "ڕەنگ":"Colour",
-  "سووتەمەنی":"Fuel",
-  "قەبارەی ئەنجن":"Engine size",
-  "ساڵی دروستکردن":"Year of manufacture",
-  "تەمەنی ئۆتۆمبێل":"Vehicle age",
-  "یەکەم تۆمارکردن":"First registration",
-  "بۆ هەناردە نیشان کراوە؟":"Marked for export?",
-  "MOT و باج":"MOT & Tax",
-  "دۆخی MOT":"MOT status",
-  "بەرواری بەسەرچوونی MOT":"MOT expiry date",
-  "ڕۆژانی ماوە تا MOT":"Days until MOT",
-  "دۆخی باجی ڕێگا":"Tax status",
-  "بەرواری باجی داهاتوو":"Tax due date",
-  "ڕۆژانی ماوە تا باج":"Days until tax",
-  "دوا MOT":"Last MOT",
-  "ئەنجامی دوا MOT":"Last MOT result",
-  "کۆی MOT":"Total MOT tests",
-  "کۆی شکستهێنان":"Total MOT failures",
-  "کۆی تێبینی":"Total advisories",
-  "تێبینی لە دوا MOT":"Latest advisories",
-  "ڕێژەی سەرکەوتن":"MOT pass rate",
-  "مایلیج":"Mileage",
-  "دوا مایلیج":"Latest mileage",
-  "مایلیجی ساڵانە":"Typical annual mileage",
-  "ڕەوتی مایلیج":"Mileage trend",
-  "مەترسی دەستکاری مایلیج":"Mileage tampering risk",
-  "بەراورد بە ناوەندی بازاڕ":"Compared with average",
-  "ژینگە و ULEZ":"Emissions & ULEZ",
-  "ستانداردی Euro":"Euro standard",
-  "دەرچوونی CO₂":"CO₂ emissions",
-  "گونجاوە بۆ ULEZ؟":"ULEZ compliant?",
-  "هەڵسەنگاندنی مەترسی":"Risk assessment",
-  "مەترسی گشتی":"Overall risk",
-  "مەترسی MOT":"MOT risk",
-  "مەترسی نائاسایی مایلیج":"Mileage anomaly risk",
-  "گۆڕینی ڕەنگ نیشان دراوە؟":"Colour change indicated?",
-  "Recall هەیە؟":"Outstanding recall?",
-  "کورتەی پێشنیاری کڕین":"Buying summary",
-  "پێشنیاری کڕین":"Buying recommendation",
-  "دۆخی گشتی":"Overall condition",
-  "خزمەتگوزاری و چاککردنەوە":"Maintenance",
-  "کێشە دووبارەبووەکانی MOT":"Recurring MOT issues",
-  "جۆری کێشە":"Issue type",
-  "وردەکاری مێژووی MOT":"MOT history details",
-  "بەروار":"Date",
-  "ئەنجام":"Result",
-  "بەردەست نییە":"Not available",
-  "بەڵێ":"Yes",
-  "نەخێر":"No",
-  "بەنزین":"Petrol",
-  "دیزڵ":"Diesel",
-  "کارەبایی":"Electric",
-  "هایبرێد":"Hybrid",
-  "دروستە":"Valid",
-  "بەسەرچووە":"Expired",
-  "سەرکەوتوو":"Passed",
-  "شکستی هێنا":"Failed",
-  "باجی دراوە":"Taxed",
-  "باجی نەدراوە":"Untaxed",
-  "گونجاوە":"Compliant",
-  "گونجاو نییە":"Not compliant",
-  "نزم":"Low",
-  "مامناوەند":"Medium",
-  "بەرز":"High",
-  "هیچ":"None",
-  "باش":"Good",
-  "لاواز":"Poor",
-  "بە وردی بپشکنە":"Consider",
-  "باشە بۆ کڕین":"Good to buy",
-  "باشترە نەیکڕیت":"Avoid",
-  "ئاسایی و یەکسان":"Consistent",
-  "نایەکسان":"Inconsistent",
-  "لە ناوەند زیاتر":"Above average",
-  "لە ناوەند کەمتر":"Below average",
-  "سیستەمی سەسپێنشن":"Suspension",
-  "تایەرەکان":"Tyres",
-  "چراغەکان":"Lights",
-  "لاشی ئۆتۆمبێل":"Bodywork",
-  "ئەگزۆز":"Exhaust",
-  "برێکەکان":"Brakes",
-  "فەرمان":"Steering",
-  "بینین":"Visibility",
-  "شوشەی پێشەوە":"Windscreen",
-  "ئاوێنەکان":"Mirrors",
-  "دەرچوونی گاز":"Emissions",
-  "زمان هەڵبژێرە":"Choose your language",
-  "دوا V5C":"Latest V5C",
-  "دەرچوونی گاز لە شۆفێری ڕاستەقینە":"Real driving emissions",
-  "زانیارییەکان بە پێی ئەو داتایەی سەرچاوە بۆ ئەم ئۆتۆمبێلە دەگەڕێنێتەوە.":"Information is shown according to the data returned for this vehicle.",
-  "ئەم هەڵسەنگاندنە تەنها لەسەر ئەو داتایەیە کە API بۆ ئەم ئۆتۆمبێلە دەگەڕێنێتەوە.":"This assessment is based only on the data returned by the API for this vehicle.",
-  "ئەگەر خانەیەک بەردەست نەبێت «بەردەست نییە» پیشان دەدرێت.":"If a field is unavailable, “Not available” will be shown.",
-  "تێچووی سووتەمەنی":"Fuel cost",
-  "دوای پشکنینی ئۆتۆمبێل، MPG خەمڵێنرێت...":"After the vehicle check, MPG will be estimated...",
-  "MPG ـی خەمڵێنراو":"Estimated MPG",
-  "تێچووی 1 مایل":"Cost for 1 mile",
-  "تێچووی 100 مایل":"Cost for 100 miles",
-  "تێچووی 12,000 مایل":"Cost for 12,000 miles",
-  "ئەمە خەمڵاندنێکی AI ـە. تێچووی ڕاستەقینە بە نرخی سووتەمەنی، شێوازی شۆفێری، ترافیک و دۆخی ئۆتۆمبێل دەگۆڕێت.":"This is an AI estimate. Actual fuel cost varies with fuel price, driving style, traffic and vehicle condition.",
-  "ڕێنمای نرخی بازاڕ":"Market Price Guide",
-  "ئۆتۆمبێلی هاوشێوە دەگەڕێندرێت...":"Finding similar cars currently for sale...",
-  "ئەممانە نرخی داواکراوی ئۆتۆمبێلە هاوشێوەکانی ئێستای بازاڕن، نە نرخی فرۆشتنی دڵنیابوو.":"Based on current asking prices for similar cars. These are not confirmed sold prices.",
-  "ئەم بەراوردە لەسەر نرخی داواکراوی ئێستای ئۆتۆمبێلە هاوشێوەکانە؛ نرخی فرۆشتنی کۆتایی نییە.":"Based on current asking prices for similar cars. These are not confirmed sold prices.",
-  "ئەمە خەمڵاندنێکە. تێچووی ڕاستەقینە بە نرخی سووتەمەنی، شێوازی شۆفێری، ترافیک و دۆخی ئۆتۆمبێل دەگۆڕێت.":"This is an estimate. Actual fuel cost varies with fuel price, driving style, traffic and vehicle condition.",
-  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"Diesel Clean Air Zone Check",
-  "ئەم ئەنجامە بۆ ئۆتۆمبێلی تایبەتی ئاساییە و لەسەر یاساکانی CAZ و ستانداردی Euro ـی ئۆتۆمبێلەکە هەژمار دەکرێت. تاکسی، ڤان، مینیباس، ئۆتۆمبێلی بازرگانی و هەندێک بەخشین دەتوانن یاسای جیاواز هەبێت.":"This result is for a normal private car and is calculated from CAZ rules and the vehicle's Euro standard. Taxis, vans, minibuses, commercial vehicles and some exemptions can have different rules.",
-  "پارەی ناوچەی هەوای پاک بدە":"Pay Clean Air Zone charge",
-  "زمانەکەت هەڵبژێرە":"Choose your language",
-  "کوردی سۆرانی":"Sorani Kurdish",
-  "ئینگلیزی":"English",
-  "کوردی سۆرانی زمانی بنەڕەتییە":"Sorani Kurdish is the default language",
-  "ژمارەی تۆمار":"Registration number",
-  "ساڵ":"year",
-  "مایل":"miles",
-  "پێش کڕین،":"Check before",
-  "دڵنیابەوە.":"you buy."
-};
 
+const LANGUAGE_NAMES = {"ckb":"زمان","en":"Language","ar":"اللغة","fa":"زبان","tr":"Dil","fr":"Langue","de":"Sprache","es":"Idioma","ro":"Limbă","pl":"Język","ur":"زبان","ps":"ژبه"};
+const AI_TRANSLATE_LANGS = ["en","ar","fa","tr","fr","de","es","ro","pl","ur","ps"];
 
-
-let ACTIVE_LANGUAGE_PACK = {};
-let languagePackReady = false;
-
-const EXTRA_UI_ENGLISH = [
-  "Please enter a valid registration.",
-  "Checking...",
-  "Retrieving live vehicle information...",
-  "Vehicle check failed.",
-  "Vehicle report",
-  "Needs further checking",
-  "Shows a good overall condition",
-  "Check carefully",
-  "Estimating MPG and fuel costs...",
-  "Fuel-cost estimate unavailable:",
-  "Unknown error",
-  "Estimated from the available vehicle details.",
-  "Confidence:",
-  "Low","Medium","High",
-  "Finding similar cars currently for sale...",
-  "No similar asking prices were found.",
-  "No usable asking-price data was found.",
-  "Lowest asking price",
-  "Typical asking price",
-  "Highest asking price",
-  "Average","Lowest","Typical","Highest",
-  "Similar listings unavailable:",
-  "Diesel vehicle",
-  "CAZ result for a normal private car:",
-  "No charge",
-  "Euro standard unavailable",
-  "year","years","mile","miles","miles/year","litre",
-  "Issue type","Date","Result","Mileage",
-  "No additional recurring-issue information is available.",
-  "The data source did not return a full test-by-test MOT history for this vehicle.",
-  "Plug-in hybrid","LPG","CNG",
-  "Car","Motorcycle","Van","Truck","Bus",
-  "SORN","Unknown","Very low","Very high","Possible",
-  "Possible mileage tampering","Excellent","Very good","Very poor","Average",
-  "Good to buy","Consider carefully","Caution","Avoid","Recommended","Not recommended",
-  "Increasing","Decreasing","Stable","Anomaly","No anomaly",
-  "Advisory","Advisories","Dangerous","Major","Minor","Recall",
-  "Outstanding recall","Marked for export",
-  "Tyre","Light","Brake","Wipers","Washers","Seatbelts","Seats","Doors",
-  "Horn","Registration plate","Fuel system","Electrical","Engine","Chassis","Corrosion","Structure"
-]
-
-function buildLocalFallbackPack(){
-  if(currentLang === "ckb" || currentLang === "en") return {};
-
-  const localDictionaries = {
-    ar: typeof AR_TRANSLATIONS !== "undefined" ? AR_TRANSLATIONS : {},
-    fa: typeof FA_TRANSLATIONS !== "undefined" ? FA_TRANSLATIONS : {},
-    tr: typeof TR_TRANSLATIONS !== "undefined" ? TR_TRANSLATIONS : {},
-    fr: typeof FR_TRANSLATIONS !== "undefined" ? FR_TRANSLATIONS : {},
-    de: typeof DE_TRANSLATIONS !== "undefined" ? DE_TRANSLATIONS : {},
-    es: typeof ES_TRANSLATIONS !== "undefined" ? ES_TRANSLATIONS : {},
-    ro: typeof RO_TRANSLATIONS !== "undefined" ? RO_TRANSLATIONS : {},
-    pl: typeof PL_TRANSLATIONS !== "undefined" ? PL_TRANSLATIONS : {},
-    ur: typeof UR_TRANSLATIONS !== "undefined" ? UR_TRANSLATIONS : {},
-    ps: typeof PS_TRANSLATIONS !== "undefined" ? PS_TRANSLATIONS : {}
-  };
-
-  const source = localDictionaries[currentLang] || {};
-  const result = {};
-
-  Object.entries(source).forEach(function(pair){
-    const english = EN_TRANSLATIONS[pair[0]];
-    if(english) result[english] = pair[1];
-  });
-
-  return result;
-}
-
-async function loadLanguagePack(){
-  if(currentLang === "ckb" || currentLang === "en"){
-    ACTIVE_LANGUAGE_PACK = {};
-    languagePackReady = true;
-    return;
-  }
-
-  const cacheKey = "akar_full_language_pack_v3_" + currentLang;
-  try{
-    const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
-    if(cached && typeof cached === "object" && Object.keys(cached).length > 80){
-      ACTIVE_LANGUAGE_PACK = cached;
-      languagePackReady = true;
-      return;
-    }
-  }catch{}
-
-  ACTIVE_LANGUAGE_PACK = buildLocalFallbackPack();
-
-  const englishTexts = Array.from(new Set(
-    Object.values(EN_TRANSLATIONS).concat(EXTRA_UI_ENGLISH)
-  )).filter(Boolean);
-
-  let lastError = null;
-
-  for(let attempt=0; attempt<3; attempt++){
-    try{
-      const response = await fetch("/api/language-pack",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({language:currentLang,texts:englishTexts})
-      });
-
-      const data = await response.json();
-
-      if(response.ok && data.ok && data.translations && typeof data.translations === "object"){
-        ACTIVE_LANGUAGE_PACK = Object.assign({}, ACTIVE_LANGUAGE_PACK, data.translations);
-        languagePackReady = true;
-
-        try{
-          localStorage.setItem(cacheKey, JSON.stringify(ACTIVE_LANGUAGE_PACK));
-        }catch{}
-
-        return;
-      }
-
-      lastError = data?.error || "Language pack request failed";
-    }catch(error){
-      lastError = error?.message || String(error);
-    }
-
-    await new Promise(function(resolve){ setTimeout(resolve, 350 * (attempt + 1)); });
-  }
-
-  console.error("Full language pack unavailable:", lastError);
-  languagePackReady = true;
-}
-
-function translateString(txt){
-  if(currentLang === "ckb") return txt;
-
-  let out = String(txt ?? "");
-
-  // First convert every known Sorani phrase to canonical English.
-  const ckbEntries = Object.entries(EN_TRANSLATIONS)
-    .sort(function(a,b){ return b[0].length - a[0].length; });
-
-  for(const pair of ckbEntries){
-    if(out.includes(pair[0])){
-      out = out.split(pair[0]).join(pair[1]);
-    }
-  }
-
-  if(currentLang === "en") return out;
-
-  // Then convert canonical English into the selected language.
-  const targetEntries = Object.entries(ACTIVE_LANGUAGE_PACK)
-    .sort(function(a,b){ return b[0].length - a[0].length; });
-
-  for(const pair of targetEntries){
-    if(out.includes(pair[0])){
-      out = out.split(pair[0]).join(pair[1]);
-    }
-  }
-
-  return out;
-}
-
-function translateTextNode(node){
-  if(currentLang === "ckb") return;
-  if(node.nodeType !== Node.TEXT_NODE) return;
-  const txt = node.nodeValue;
-  if(!txt || !txt.trim()) return;
-  node.nodeValue = translateString(txt);
-}
-
-function translateElementTree(root=document.body){
-  if(currentLang === "ckb") return;
-
-  const walker = document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null);
-  let node;
-  while(node = walker.nextNode()){
-    const parent = node.parentElement;
-    if(parent && !["SCRIPT","STYLE","NOSCRIPT"].includes(parent.tagName)){
-      translateTextNode(node);
-    }
-  }
-
-  document.querySelectorAll("[aria-label],[title]").forEach(function(el){
-    ["aria-label","title"].forEach(function(attr){
-      const original = el.getAttribute(attr);
-      if(original) el.setAttribute(attr, translateString(original));
-    });
-  });
-
-  const input = document.getElementById("ژمارە");
-  if(input) input.placeholder = "AB12 CDE";
-
-  const switcher = document.getElementById("languageSwitch");
-  if(switcher) switcher.textContent = "🌐 " + (LANGUAGE_NAMES[currentLang] || "Language");
-}
-
-async function applyLanguage(){
-  applyLanguageDirection();
-
-  if(currentLang === "ckb"){
-    document.documentElement.lang = "ckb";
-    document.documentElement.dir = "rtl";
-    document.body.dir = "rtl";
-    const switcher = document.getElementById("languageSwitch");
-    if(switcher) switcher.textContent = "🌐 " + (LANGUAGE_NAMES[currentLang] || "زمان");
-    return;
-  }
-
-  if(!languagePackReady) await loadLanguagePack();
-  translateElementTree(document.body);
-}
-
-const AR_TRANSLATIONS = {
-  "زمان":"اللغة",
-  "زمانەکەت هەڵبژێرە":"اختر لغتك",
-  "کوردی سۆرانی":"الكردية السورانية",
-  "ئینگلیزی":"الإنجليزية",
-  "پشکنینی زیرەکی ئۆتۆمبێل":"فحص ذكي للمركبة",
-  "پێش کڕین،":"افحص قبل",
-  "دڵنیابەوە.":"الشراء.",
-  "پشکنینی ئۆتۆمبێل":"فحص المركبة",
-  "ژمارەی تۆمار":"رقم التسجيل",
-  "تێچووی سووتەمەنی":"تكلفة الوقود",
-  "ڕێنمای نرخی بازاڕ":"دليل سعر السوق",
-  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"فحص منطقة الهواء النظيف للديزل",
-  "پارەی ناوچەی هەوای پاک بدە":"دفع رسوم منطقة الهواء النظيف"
-};
-
-const FA_TRANSLATIONS = {
-  "زمان":"زبان",
-  "زمانەکەت هەڵبژێرە":"زبان خود را انتخاب کنید",
-  "کوردی سۆرانی":"کردی سورانی",
-  "ئینگلیزی":"انگلیسی",
-  "پشکنینی زیرەکی ئۆتۆمبێل":"بررسی هوشمند خودرو",
-  "پێش کڕین،":"قبل از خرید",
-  "دڵنیابەوە.":"بررسی کنید.",
-  "پشکنینی ئۆتۆمبێل":"بررسی خودرو",
-  "ژمارەی تۆمار":"شماره ثبت",
-  "تێچووی سووتەمەنی":"هزینه سوخت",
-  "ڕێنمای نرخی بازاڕ":"راهنمای قیمت بازار",
-  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"بررسی منطقه هوای پاک برای دیزل",
-  "پارەی ناوچەی هەوای پاک بدە":"پرداخت هزینه منطقه هوای پاک"
-};
-
-const TR_TRANSLATIONS = {
-  "زمان":"Dil",
-  "زمانەکەت هەڵبژێرە":"Dilinizi seçin",
-  "کوردی سۆرانی":"Soranice Kürtçe",
-  "ئینگلیزی":"İngilizce",
-  "پشکنینی زیرەکی ئۆتۆمبێل":"Akıllı araç kontrolü",
-  "پێش کڕین،":"Satın almadan önce",
-  "دڵنیابەوە.":"kontrol edin.",
-  "پشکنینی ئۆتۆمبێل":"Aracı kontrol et",
-  "ژمارەی تۆمار":"Plaka",
-  "تێچووی سووتەمەنی":"Yakıt maliyeti",
-  "ڕێنمای نرخی بازاڕ":"Piyasa fiyat rehberi",
-  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"Dizel Temiz Hava Bölgesi kontrolü",
-  "پارەی ناوچەی هەوای پاک بدە":"Temiz Hava Bölgesi ücretini öde"
-};
-
-const FR_TRANSLATIONS = {
-  "زمان":"Langue",
-  "زمانەکەت هەڵبژێرە":"Choisissez votre langue",
-  "کوردی سۆرانی":"Kurde sorani",
-  "ئینگلیزی":"Anglais",
-  "پشکنینی زیرەکی ئۆتۆمبێل":"Contrôle intelligent du véhicule",
-  "پێش کڕین،":"Vérifiez avant",
-  "دڵنیابەوە.":"d'acheter.",
-  "پشکنینی ئۆتۆمبێل":"Vérifier le véhicule",
-  "ژمارەی تۆمار":"Immatriculation",
-  "تێچووی سووتەمەنی":"Coût du carburant",
-  "ڕێنمای نرخی بازاڕ":"Guide du prix du marché",
-  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"Vérification de zone à faibles émissions diesel",
-  "پارەی ناوچەی هەوای پاک بدە":"Payer la zone à faibles émissions"
-};
-
-const DE_TRANSLATIONS = {
-  "زمان":"Sprache",
-  "زمانەکەت هەڵبژێرە":"Sprache auswählen",
-  "کوردی سۆرانی":"Sorani-Kurdisch",
-  "ئینگلیزی":"Englisch",
-  "پشکنینی زیرەکی ئۆتۆمبێل":"Intelligenter Fahrzeugcheck",
-  "پێش کڕین،":"Vor dem Kauf",
-  "دڵنیابەوە.":"prüfen.",
-  "پشکنینی ئۆتۆمبێل":"Fahrzeug prüfen",
-  "ژمارەی تۆمار":"Kennzeichen",
-  "تێچووی سووتەمەنی":"Kraftstoffkosten",
-  "ڕێنمای نرخی بازاڕ":"Marktpreis-Leitfaden",
-  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"Diesel-Umweltzonenprüfung",
-  "پارەی ناوچەی هەوای پاک بدە":"Umweltzonen-Gebühr zahlen"
-};
-
-const ES_TRANSLATIONS = {
-  "زمان":"Idioma",
-  "زمانەکەت هەڵبژێرە":"Elige tu idioma",
-  "کوردی سۆرانی":"Kurdo sorani",
-  "ئینگلیزی":"Inglés",
-  "پشکنینی زیرەکی ئۆتۆمبێل":"Comprobación inteligente del vehículo",
-  "پێش کڕین،":"Comprueba antes",
-  "دڵنیابەوە.":"de comprar.",
-  "پشکنینی ئۆتۆمبێل":"Comprobar vehículo",
-  "ژمارەی تۆمار":"Matrícula",
-  "تێچووی سووتەمەنی":"Coste de combustible",
-  "ڕێنمای نرخی بازاڕ":"Guía de precio de mercado",
-  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"Comprobación de zona de aire limpio para diésel",
-  "پارەی ناوچەی هەوای پاک بدە":"Pagar cargo de zona de aire limpio"
-};
-
-const RO_TRANSLATIONS = {
-  "زمان":"Limbă",
-  "زمانەکەت هەڵبژێرە":"Alege limba",
-  "کوردی سۆرانی":"Kurdă sorani",
-  "ئینگلیزی":"Engleză",
-  "پشکنینی زیرەکی ئۆتۆمبێل":"Verificare inteligentă a vehiculului",
-  "پێش کڕین،":"Verifică înainte",
-  "دڵنیابەوە.":"să cumperi.",
-  "پشکنینی ئۆتۆمبێل":"Verifică vehiculul",
-  "ژمارەی تۆمار":"Număr de înmatriculare",
-  "تێچووی سووتەمەنی":"Cost combustibil",
-  "ڕێنمای نرخی بازاڕ":"Ghid de preț de piață",
-  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"Verificare zonă cu aer curat pentru diesel",
-  "پارەی ناوچەی هەوای پاک بدە":"Plătește taxa pentru zona cu aer curat"
-};
-
-const PL_TRANSLATIONS = {
-  "زمان":"Język",
-  "زمانەکەت هەڵبژێرە":"Wybierz język",
-  "کوردی سۆرانی":"Kurdyjski sorani",
-  "ئینگلیزی":"Angielski",
-  "پشکنینی زیرەکی ئۆتۆمبێل":"Inteligentne sprawdzenie pojazdu",
-  "پێش کڕین،":"Sprawdź przed",
-  "دڵنیابەوە.":"zakupem.",
-  "پشکنینی ئۆتۆمبێل":"Sprawdź pojazd",
-  "ژمارەی تۆمار":"Numer rejestracyjny",
-  "تێچووی سووتەمەنی":"Koszt paliwa",
-  "ڕێنمای نرخی بازاڕ":"Przewodnik cen rynkowych",
-  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"Sprawdzenie strefy czystego powietrza dla diesla",
-  "پارەی ناوچەی هەوای پاک بدە":"Zapłać opłatę za strefę czystego powietrza"
-};
-
-const UR_TRANSLATIONS = {
-  "زمان":"زبان",
-  "زمانەکەت هەڵبژێرە":"اپنی زبان منتخب کریں",
-  "کوردی سۆرانی":"سورانی کردی",
-  "ئینگلیزی":"انگریزی",
-  "پشکنینی زیرەکی ئۆتۆمبێل":"سمارٹ گاڑی چیک",
-  "پێش کڕین،":"خریدنے سے پہلے",
-  "دڵنیابەوە.":"چیک کریں۔",
-  "پشکنینی ئۆتۆمبێل":"گاڑی چیک کریں",
-  "ژمارەی تۆمار":"رجسٹریشن نمبر",
-  "تێچووی سووتەمەنی":"ایندھن کی لاگت",
-  "ڕێنمای نرخی بازاڕ":"مارکیٹ قیمت گائیڈ",
-  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"ڈیزل کلین ایئر زون چیک",
-  "پارەی ناوچەی هەوای پاک بدە":"کلین ایئر زون چارج ادا کریں"
-};
-
-const PS_TRANSLATIONS = {
-  "زمان":"ژبه",
-  "زمانەکەت هەڵبژێرە":"خپله ژبه وټاکئ",
-  "کوردی سۆرانی":"سوراني کردي",
-  "ئینگلیزی":"انګلیسي",
-  "پشکنینی زیرەکی ئۆتۆمبێل":"هوښیار د موټر چک",
-  "پێش کڕین،":"له اخیستو مخکې",
-  "دڵنیابەوە.":"چک یې کړئ.",
-  "پشکنینی ئۆتۆمبێل":"موټر چک کړئ",
-  "ژمارەی تۆمار":"د ثبت شمېره",
-  "تێچووی سووتەمەنی":"د سون توکو لګښت",
-  "ڕێنمای نرخی بازاڕ":"د بازار د بیې لارښود",
-  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"د ډیزل پاکې هوا سیمې چک",
-  "پارەی ناوچەی هەوای پاک بدە":"د پاکې هوا سیمې فیس ورکړئ"
-};
-
-
-const LANGUAGE_NAMES = {
-  ckb:"زمان",
-  en:"Language",
-  ar:"اللغة",
-  fa:"زبان",
-  tr:"Dil",
-  fr:"Langue",
-  de:"Sprache",
-  es:"Idioma",
-  ro:"Limbă",
-  pl:"Język",
-  ur:"زبان",
-  ps:"ژبه"
-};
-
-
-function applyLanguageDirection(){
-  const rtl = ["ckb","ar","fa","ur","ps"].includes(currentLang);
-  document.documentElement.lang = currentLang === "ckb" ? "ckb" : currentLang;
-  document.documentElement.dir = rtl ? "rtl" : "ltr";
-}
+const translatedNodeState = new WeakMap();
+const translatedAttrState = new WeakMap();
+const clientTranslationCache = new Map();
+let translationRequestInFlight = false;
+let queuedTranslationRoot = null;
 
 function setLanguage(lang){
-  const supported = ["ckb","en","ar","fa","tr","fr","de","es","ro","pl","ur","ps"];
-  currentLang = supported.includes(lang) ? lang : "ckb";
+  currentLang = SUPPORTED_LANGS.includes(lang) ? lang : "ckb";
   localStorage.setItem("akar_language", currentLang);
   localStorage.setItem("akar_language_chosen", "1");
   location.reload();
@@ -1237,16 +718,173 @@ function closeLanguageModal(){
   if(modal) modal.classList.remove("show");
 }
 
-document.addEventListener("DOMContentLoaded",async ()=>{
-  await applyLanguage();
-  setTimeout(refreshSelectedLanguage,500);
+function applyLanguageDirection(){
+  const rtl = ["ckb","ar","fa","ur","ps"].includes(currentLang);
+  document.documentElement.lang = currentLang;
+  document.documentElement.dir = rtl ? "rtl" : "ltr";
+  if(document.body) document.body.dir = rtl ? "rtl" : "ltr";
+}
 
-  if(!localStorage.getItem("akar_language_chosen")){
-    setTimeout(openLanguageModal,250);
+function isTranslationCandidate(value){
+  const t = String(value || "").trim();
+  if(!t) return false;
+  if(t.length > 700) return false;
+  if(/^[\d\s£€$%.,:;+\-–—/()⭐✅⚠️]+$/.test(t)) return false;
+  if(/^[A-Z0-9]{2,12}$/.test(t)) return false;
+  if(/^https?:\/\//i.test(t)) return false;
+  return true;
+}
+
+async function requestAITranslations(strings){
+  const unique = Array.from(new Set(strings.filter(isTranslationCandidate)));
+  const output = new Map();
+  const missing = [];
+
+  unique.forEach(function(source){
+    const key = currentLang + "::" + source;
+    if(clientTranslationCache.has(key)){
+      output.set(source, clientTranslationCache.get(key));
+    }else{
+      missing.push(source);
+    }
+  });
+
+  for(let offset=0; offset<missing.length; offset+=40){
+    const batch = missing.slice(offset, offset+40);
+
+    const response = await fetch("/api/translate-ui", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        language:currentLang,
+        texts:batch
+      })
+    });
+
+    const data = await response.json().catch(function(){ return null; });
+    if(!response.ok || !data?.ok || !Array.isArray(data.translations)){
+      continue;
+    }
+
+    batch.forEach(function(source,index){
+      const translated = String(data.translations[index] ?? source);
+      const key = currentLang + "::" + source;
+      clientTranslationCache.set(key, translated);
+      output.set(source, translated);
+    });
   }
 
+  return output;
+}
 
-});
+async function translateVisibleUI(root=document.body){
+  if(currentLang === "ckb" || !AI_TRANSLATE_LANGS.includes(currentLang) || !root) return;
+
+  if(translationRequestInFlight){
+    queuedTranslationRoot = root;
+    return;
+  }
+
+  translationRequestInFlight = true;
+
+  try{
+    const textNodes = [];
+    const sourceTexts = [];
+
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode:function(node){
+        const parent = node.parentElement;
+        if(!parent) return NodeFilter.FILTER_REJECT;
+        if(["SCRIPT","STYLE","NOSCRIPT","SVG"].includes(parent.tagName)) return NodeFilter.FILTER_REJECT;
+        const value = String(node.nodeValue || "").trim();
+        if(!isTranslationCandidate(value)) return NodeFilter.FILTER_REJECT;
+
+        const previous = translatedNodeState.get(node);
+        if(previous === value) return NodeFilter.FILTER_REJECT;
+
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+
+    let node;
+    while(node = walker.nextNode()){
+      const source = String(node.nodeValue || "").trim();
+      textNodes.push({node, source});
+      sourceTexts.push(source);
+    }
+
+    const attrItems = [];
+    document.querySelectorAll("[aria-label],[title]").forEach(function(el){
+      const state = translatedAttrState.get(el) || {};
+      ["aria-label","title"].forEach(function(attr){
+        const source = el.getAttribute(attr);
+        if(!isTranslationCandidate(source)) return;
+        if(state[attr] === source) return;
+        attrItems.push({el,attr,source});
+        sourceTexts.push(source);
+      });
+    });
+
+    if(sourceTexts.length){
+      const translated = await requestAITranslations(sourceTexts);
+
+      textNodes.forEach(function(item){
+        const target = translated.get(item.source);
+        if(target){
+          item.node.nodeValue = item.node.nodeValue.replace(item.source, target);
+          translatedNodeState.set(item.node, String(item.node.nodeValue || "").trim());
+        }else{
+          translatedNodeState.set(item.node, item.source);
+        }
+      });
+
+      attrItems.forEach(function(item){
+        const target = translated.get(item.source);
+        if(target) item.el.setAttribute(item.attr, target);
+        const state = translatedAttrState.get(item.el) || {};
+        state[item.attr] = item.el.getAttribute(item.attr) || item.source;
+        translatedAttrState.set(item.el, state);
+      });
+    }
+
+    const input = document.getElementById("ژمارە");
+    if(input) input.placeholder = "AB12 CDE";
+
+    const switcher = document.getElementById("languageSwitch");
+    if(switcher) switcher.textContent = "🌐 " + (LANGUAGE_NAMES[currentLang] || "Language");
+
+  }catch(error){
+    console.error("AI UI translation error:", error);
+  }finally{
+    translationRequestInFlight = false;
+    if(queuedTranslationRoot){
+      const nextRoot = queuedTranslationRoot;
+      queuedTranslationRoot = null;
+      setTimeout(function(){ translateVisibleUI(nextRoot); }, 50);
+    }
+  }
+}
+
+function refreshSelectedLanguage(){
+  if(currentLang === "ckb") return;
+  translateVisibleUI(document.body);
+}
+
+function applyLanguage(){
+  applyLanguageDirection();
+
+  if(currentLang === "ckb"){
+    const switcher = document.getElementById("languageSwitch");
+    if(switcher) switcher.textContent = "🌐 زمان";
+    return;
+  }
+
+  translateVisibleUI(document.body);
+}
+
+function translateString(value){
+  return String(value ?? "");
+}
 
 
 const دۆزینەوە = id => document.getElementById(id);
@@ -1527,6 +1165,7 @@ async function خەمڵاندنی_سووتەمەنی_AI(d){
 
     loading.style.display = "none";
     resultBox.style.display = "block";
+    setTimeout(refreshSelectedLanguage,80);
     setTimeout(refreshSelectedLanguage, 50);
   }catch(error){
     loading.textContent =
@@ -1652,6 +1291,7 @@ async function دۆزینەوەی_هاوشێوە(d){
     }).join("");
 
     resultBox.innerHTML = summaryHtml + barsHtml;
+    setTimeout(refreshSelectedLanguage,80);
     setTimeout(refreshSelectedLanguage, 50);
 
   }catch(error){
@@ -1715,6 +1355,7 @@ function نیشاندانی_CAZ_بۆ_دیزڵ(d){
   }
 
   list.innerHTML = html;
+  setTimeout(refreshSelectedLanguage,80);
   setTimeout(refreshSelectedLanguage, 50);
 }
 
@@ -1889,6 +1530,10 @@ async function پشکنین(){
 
     دۆزینەوە("پەیام").style.display = "none";
     دۆزینەوە("ڕاپۆرت").style.display = "block";
+    setTimeout(refreshSelectedLanguage,100);
+    setTimeout(refreshSelectedLanguage,600);
+    setTimeout(refreshSelectedLanguage,1500);
+    setTimeout(refreshSelectedLanguage,3000);
     setTimeout(refreshSelectedLanguage,120);
     setTimeout(refreshSelectedLanguage,650);
     setTimeout(refreshSelectedLanguage,1200);
@@ -1909,6 +1554,8 @@ async function پشکنین(){
 دۆزینەوە("ژمارە").addEventListener("keydown",event=>{
   if(event.key==="Enter") پشکنین();
 });
+
+document.addEventListener("DOMContentLoaded",()=>{ applyLanguage(); });
 </script>
 
 </body>
@@ -2034,16 +1681,17 @@ app.post("/api/check", async (req, res) => {
 
 
 
-const UI_LANGUAGE_PACK_CACHE = new Map();
+const UI_TRANSLATION_CACHE = new Map();
 
-app.post("/api/language-pack", async (req, res) => {
+app.post("/api/translate-ui", async (req, res) => {
   try{
     const language = String(req.body?.language || "").trim();
     const texts = Array.isArray(req.body?.texts)
-      ? req.body.texts.map(function(v){ return String(v ?? "").trim(); }).filter(Boolean)
+      ? req.body.texts.map(function(v){ return String(v ?? "").slice(0,700); })
       : [];
 
     const languageNames = {
+      en:"English",
       ar:"Arabic",
       fa:"Persian (Farsi)",
       tr:"Turkish",
@@ -2056,43 +1704,58 @@ app.post("/api/language-pack", async (req, res) => {
       ps:"Pashto"
     };
 
-    const targetName = languageNames[language];
-    if(!targetName) return res.status(400).json({ok:false,error:"Unsupported language"});
-    if(!GEMINI_API_KEY) return res.status(503).json({ok:false,error:"Translation service unavailable"});
-    if(!texts.length) return res.json({ok:true,translations:{}});
-
-    const cacheKey = language + "::" + texts.join("\u241E");
-    if(UI_LANGUAGE_PACK_CACHE.has(cacheKey)){
-      return res.json({ok:true,translations:UI_LANGUAGE_PACK_CACHE.get(cacheKey)});
+    const targetLanguage = languageNames[language];
+    if(!targetLanguage){
+      return res.status(400).json({ok:false,error:"Unsupported language"});
     }
 
-    const translatedMap = {};
-    const models = ["gemini-3.5-flash-lite", "gemini-3.5-flash"];
+    if(!texts.length){
+      return res.json({ok:true,translations:[]});
+    }
 
-    // Small batches make the response much more reliable than translating the whole page at once.
-    for(let offset=0; offset<texts.length; offset+=35){
-      const batch = texts.slice(offset,offset+35);
-      let finished = false;
-      let lastError = "Translation failed";
+    if(!GEMINI_API_KEY){
+      return res.status(503).json({ok:false,error:"Translation service unavailable"});
+    }
 
-      for(const model of models){
-        try{
-          const prompt = `
-Translate this JSON array from English into ${targetName}.
+    const translations = new Array(texts.length);
+    const missingIndexes = [];
 
-STRICT RULES:
-- Return ONLY a JSON array of strings.
-- Same number of items, same order.
-- Translate every normal-language phrase completely.
-- Keep these technical abbreviations unchanged where appropriate:
-  MOT, ULEZ, CAZ, V5C, CO2, MPG, NCAP.
-- Keep vehicle makes/models, registrations, numbers, dates, prices, currency symbols and units unchanged.
-- No explanations.
+    texts.forEach(function(source,index){
+      const key = language + "::" + source;
+      if(UI_TRANSLATION_CACHE.has(key)){
+        translations[index] = UI_TRANSLATION_CACHE.get(key);
+      }else{
+        missingIndexes.push(index);
+      }
+    });
+
+    for(let offset=0; offset<missingIndexes.length; offset+=40){
+      const indexes = missingIndexes.slice(offset, offset+40);
+      const batch = indexes.map(function(i){ return texts[i]; });
+
+      const prompt = `
+Translate the following website UI text into ${targetLanguage}.
+
+Return ONLY a JSON array of strings in the same order and with the same number of items.
+
+Rules:
+- Translate every normal-language phrase fully.
+- Keep vehicle registration numbers unchanged.
+- Keep car makes and model names unchanged.
+- Keep technical abbreviations where appropriate: MOT, ULEZ, CAZ, V5C, CO2, MPG, NCAP.
+- Keep numbers, prices, dates, units, £ and percentages unchanged.
+- Do not add explanations.
+- Use natural wording suitable for a UK vehicle-check website.
 
 INPUT:
 ${JSON.stringify(batch)}
 `;
 
+      let completed = false;
+      let lastError = "Translation failed";
+
+      for(const model of ["gemini-3.5-flash-lite","gemini-3.5-flash"]){
+        try{
           const response = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
             {
@@ -2103,9 +1766,7 @@ ${JSON.stringify(batch)}
               },
               body:JSON.stringify({
                 contents:[{role:"user",parts:[{text:prompt}]}],
-                generationConfig:{
-                  maxOutputTokens:5000
-                }
+                generationConfig:{maxOutputTokens:5000}
               })
             }
           );
@@ -2134,12 +1795,15 @@ ${JSON.stringify(batch)}
             .replace(/```$/,"")
             .trim();
 
-          let arr;
-          try{ arr = JSON.parse(modelText); }
-          catch{
+          let arr = null;
+          try{
+            arr = JSON.parse(modelText);
+          }catch{
             const first = modelText.indexOf("[");
             const last = modelText.lastIndexOf("]");
-            if(first >= 0 && last > first) arr = JSON.parse(modelText.slice(first,last+1));
+            if(first >= 0 && last > first){
+              try{ arr = JSON.parse(modelText.slice(first,last+1)); }catch{}
+            }
           }
 
           if(!Array.isArray(arr) || arr.length !== batch.length){
@@ -2147,28 +1811,30 @@ ${JSON.stringify(batch)}
             continue;
           }
 
-          batch.forEach(function(source,i){
-            translatedMap[source] = String(arr[i] ?? source);
+          indexes.forEach(function(originalIndex,j){
+            const value = String(arr[j] ?? texts[originalIndex]);
+            translations[originalIndex] = value;
+            UI_TRANSLATION_CACHE.set(language + "::" + texts[originalIndex], value);
           });
 
-          finished = true;
+          completed = true;
           break;
         }catch(error){
           lastError = error?.message || String(error);
         }
       }
 
-      if(!finished){
-        console.error("Language-pack batch failed:",language,lastError);
-        // Fall back to English for this batch rather than breaking the page.
-        batch.forEach(function(source){ translatedMap[source] = source; });
+      if(!completed){
+        console.error("UI translation batch failed:", language, lastError);
+        indexes.forEach(function(originalIndex){
+          translations[originalIndex] = texts[originalIndex];
+        });
       }
     }
 
-    UI_LANGUAGE_PACK_CACHE.set(cacheKey,translatedMap);
-    return res.json({ok:true,translations:translatedMap});
+    return res.json({ok:true,translations});
   }catch(error){
-    console.error("Language pack error:",error);
+    console.error("UI translate error:", error);
     return res.status(500).json({ok:false,error:"Translation failed"});
   }
 });
