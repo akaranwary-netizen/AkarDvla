@@ -15,6 +15,26 @@ function پاککردنەوەی_ژمارە(value) {
     .replace(/[^A-Z0-9]/g, "");
 }
 
+
+app.get("/robots.txt", (req, res) => {
+  res.type("text/plain").send(`User-agent: *
+Allow: /
+
+Sitemap: https://dvlabyakar.onrender.com/sitemap.xml
+`);
+});
+
+app.get("/sitemap.xml", (req, res) => {
+  res.type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://dvlabyakar.onrender.com/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>`);
+});
+
 app.get("/", (req, res) => {
   res.type("html").send(`<!doctype html>
 <html lang="ckb" dir="rtl">
@@ -22,408 +42,385 @@ app.get("/", (req, res) => {
 <meta name="google-site-verification" content="qFWdo65b2VIDInQWb2JmLyN2mY8LqHA_u4fNw5dUP74" />
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Akar's Car Check - پشکنینی ئۆتۆمبێلی بەریتانیا بۆ MOT، باج، مایلیج و زانیارییەکانی ئۆتۆمبێل.">
+<link rel="canonical" href="https://dvlabyakar.onrender.com/">
 <title>Akar's Car Check</title>
 
 <style>
 :root{
-  --ڕەش:#101820;
-  --زەرد:#ffd400;
-  --شین:#1769e0;
-  --پاشبنەما:#f4f6f8;
-  --خاکستەری:#68717c;
-  --سەوز:#138a43;
-  --پرتەقاڵی:#c97800;
-  --سوور:#c92828;
+  --bg:#070809;
+  --panel:#111419;
+  --panel2:#171a20;
+  --gold:#d7b36a;
+  --gold2:#f4d99a;
+  --text:#f7f7f7;
+  --muted:#9da4ad;
+  --line:#252a31;
+  --green:#5dd39e;
+  --amber:#f7c76d;
+  --red:#ff7070;
 }
 *{box-sizing:border-box}
+html{scroll-behavior:smooth}
 body{
   margin:0;
   font-family:Arial,Tahoma,sans-serif;
-  background:var(--پاشبنەما);
-  color:#17202a;
+  background:
+    radial-gradient(circle at 20% 0%,rgba(215,179,106,.10),transparent 34%),
+    linear-gradient(180deg,#050607 0%,#0b0d10 45%,#08090b 100%);
+  color:var(--text);
 }
-header{
-  background:var(--ڕەش);
-  color:#fff;
-  padding:18px 20px;
+.topbar{
+  position:sticky;top:0;z-index:20;
+  background:rgba(6,7,9,.82);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(255,255,255,.05);
 }
-.سەرەوە{
-  max-width:1120px;
-  margin:auto;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+.topbar-inner{
+  max-width:1180px;margin:auto;padding:18px 22px;
+  display:flex;justify-content:space-between;align-items:center;
 }
-.ناونیشان{
-  font-size:24px;
-  font-weight:900;
-  direction:ltr;
+.brand{direction:ltr;font-weight:900;font-size:22px;letter-spacing:.5px}
+.brand span{color:var(--gold)}
+.tag{
+  border:1px solid #2d3239;background:#111319;color:#d8dce1;
+  border-radius:999px;padding:8px 12px;font-size:12px
 }
-.ناونیشان span{color:var(--زەرد)}
+.hero{
+  min-height:590px;position:relative;overflow:hidden;display:flex;align-items:center
+}
+.hero::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,rgba(7,8,9,.99),rgba(7,8,9,.83) 46%,rgba(7,8,9,.15));
+}
+.hero-art{
+  position:absolute;right:-3%;bottom:15px;width:min(760px,62vw);
+  filter:drop-shadow(0 35px 50px #000);opacity:.96
+}
+.hero-inner{
+  position:relative;z-index:2;width:100%;max-width:1180px;
+  margin:auto;padding:86px 22px 108px
+}
+.eyebrow{
+  display:inline-block;color:var(--gold2);
+  border:1px solid rgba(215,179,106,.25);
+  background:rgba(215,179,106,.08);
+  padding:8px 12px;border-radius:999px;font-size:12px;font-weight:800
+}
+.hero h1{
+  max-width:670px;margin:20px 0 12px;
+  font-size:clamp(40px,7vw,72px);line-height:1.02;font-weight:900
+}
+.hero h1 span{color:var(--gold2)}
+.hero p{
+  max-width:620px;color:#b7bdc6;font-size:17px;line-height:1.8;margin:0 0 28px
+}
+.search-wrap{
+  max-width:670px;background:rgba(18,21,26,.90);
+  border:1px solid rgba(215,179,106,.18);border-radius:20px;
+  padding:14px;display:flex;gap:12px;direction:ltr;
+  box-shadow:0 20px 60px rgba(0,0,0,.35);backdrop-filter:blur(14px)
+}
+.plate-input{
+  flex:1;min-width:0;background:#f7d33c;color:#111;border:0;border-radius:12px;
+  padding:17px;text-align:center;font-size:25px;font-weight:900;
+  letter-spacing:3px;text-transform:uppercase;outline:none;
+  box-shadow:inset 0 0 0 2px #111
+}
+.primary-btn{
+  border:0;border-radius:12px;padding:0 24px;font-weight:900;font-size:15px;
+  cursor:pointer;background:linear-gradient(135deg,var(--gold2),var(--gold));
+  color:#16120b;box-shadow:0 12px 30px rgba(215,179,106,.18)
+}
+.primary-btn:disabled{opacity:.55;cursor:wait}
+.hero-note{margin-top:12px;color:#7f8791;font-size:12px}
 
-.بەشی_سەرەکی{
-  background:var(--ڕەش);
-  color:#fff;
-  text-align:center;
-  padding:52px 20px 88px;
+.quick-actions{
+  max-width:1180px;margin:-44px auto 0;position:relative;z-index:5;
+  padding:0 22px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px
 }
-.بەشی_سەرەکی h1{
-  margin:0 0 12px;
-  font-size:43px;
+.quick-action{
+  text-decoration:none;color:#f4f4f4;
+  background:linear-gradient(145deg,rgba(20,23,28,.97),rgba(11,13,16,.97));
+  border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:17px;
+  display:flex;justify-content:center;align-items:center;gap:9px;font-weight:800;
+  box-shadow:0 20px 55px rgba(0,0,0,.25)
 }
-.بەشی_سەرەکی p{
-  color:#ccd4db;
-  margin:0 0 28px;
-}
-.گەڕان{
-  max-width:720px;
-  margin:auto;
-  background:#fff;
-  padding:18px;
-  border-radius:14px;
-  display:flex;
-  gap:10px;
-  box-shadow:0 12px 35px #0004;
-  direction:ltr;
-}
-.ژمارە{
-  flex:1;
-  min-width:0;
-  background:var(--زەرد);
-  border:3px solid #111;
-  border-radius:7px;
-  padding:15px;
-  text-align:center;
-  font-size:27px;
-  font-weight:900;
-  text-transform:uppercase;
-  letter-spacing:3px;
-}
-button{
-  border:0;
-  border-radius:7px;
-  background:var(--شین);
-  color:#fff;
-  padding:0 28px;
-  font-size:16px;
-  font-weight:800;
-  cursor:pointer;
-}
-button:disabled{opacity:.6}
-.دوگمەی_بیمە{
-  display:block;
-  max-width:720px;
-  margin:14px auto 0;
-  background:#138a43;
-  color:#fff;
-  text-decoration:none;
-  padding:16px 20px;
-  border-radius:10px;
-  font-size:17px;
-  font-weight:800;
-  text-align:center;
-}
-.دوگمەی_بیمە:hover{opacity:.92}
-.دوگمەی_کار{
-  display:block;
-  max-width:720px;
-  margin:10px auto 0;
-  color:#fff;
-  text-decoration:none;
-  padding:16px 20px;
-  border-radius:10px;
-  font-size:17px;
-  font-weight:800;
-  text-align:center;
-}
-.دوگمەی_باج{background:#1769e0}
-.دوگمەی_فرۆشتن{background:#7a3db8}
-.دوگمەی_کار:hover{opacity:.92}
-.تێبینی_بیمە{
-  max-width:720px;
-  margin:8px auto 0;
-  color:#ccd4db;
-  font-size:12px;
-  line-height:1.6;
-}
+.quick-action.gold{color:var(--gold2);border-color:rgba(215,179,106,.25)}
+.quick-action:hover{transform:translateY(-2px);border-color:rgba(215,179,106,.28)}
 
-.ناوەڕۆک{
-  max-width:1120px;
-  margin:-42px auto 60px;
-  padding:0 18px;
+.content{max-width:1180px;margin:auto;padding:24px 22px 80px}
+.message{
+  display:none;border-radius:14px;padding:14px 16px;margin:4px 0 16px;
+  background:#13171c;border:1px solid var(--line);color:#dfe3e8
 }
-.پەیام{
-  display:none;
-  padding:15px;
-  border-radius:10px;
-  margin-bottom:16px;
-  background:#fff;
-}
-.هەڵە{
-  background:#fee2e2;
-  color:#991b1b;
-}
-.ڕاپۆرت{display:none}
+.message.error{background:#281316;border-color:#592328;color:#ffb7b7}
+.report{display:none}
 
-.کورتە,.کارت{
-  background:#fff;
-  border-radius:14px;
-  box-shadow:0 4px 18px #00000012;
+.summary{
+  background:linear-gradient(145deg,rgba(20,23,28,.96),rgba(11,13,16,.96));
+  border:1px solid rgba(215,179,106,.18);border-radius:22px;padding:22px;
+  display:grid;grid-template-columns:1.2fr .8fr;gap:18px;
+  box-shadow:0 25px 80px rgba(0,0,0,.30)
 }
-.کورتە{
-  padding:24px;
-  margin-bottom:18px;
+.summary-main{display:flex;align-items:center;gap:18px}
+.plate{
+  direction:ltr;background:#f7d33c;color:#111;border-radius:9px;
+  padding:12px 18px;font-size:23px;font-weight:900;letter-spacing:2px;
+  box-shadow:inset 0 0 0 2px #151515
 }
-.ڕیزی_سەرەوە{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:14px;
+.car-name{font-size:24px;font-weight:900;margin-bottom:5px}
+.car-sub{color:var(--muted);font-size:13px;direction:ltr;text-align:right}
+.scorebox{
+  border-right:1px solid var(--line);padding-right:20px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px
 }
-.تابلۆ{
-  background:var(--زەرد);
-  border:2px solid #111;
-  border-radius:5px;
-  padding:9px 16px;
-  font-weight:900;
-  font-size:23px;
-  letter-spacing:2px;
-  direction:ltr;
+.score{
+  min-width:78px;width:78px;height:78px;border-radius:50%;display:grid;place-items:center;
+  background:conic-gradient(var(--green) 0 68%,#272c33 68% 100%);position:relative
 }
-.ڕاستەوخۆ{
-  display:inline-block;
-  background:#dcfce7;
-  color:#166534;
-  border-radius:99px;
-  padding:4px 8px;
-  font-size:11px;
-  font-weight:900;
+.score::before{content:"";position:absolute;inset:7px;border-radius:50%;background:#12151a}
+.score strong{position:relative;font-size:20px}
+.score-text small{color:var(--muted)}
+.score-text b{display:block;margin-top:4px}
+
+.section-title{margin:30px 0 16px}
+.section-title h2{margin:0 0 5px;font-size:28px}
+.section-title p{margin:0;color:var(--muted);font-size:13px}
+
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{
+  background:linear-gradient(180deg,rgba(20,23,28,.96),rgba(13,15,18,.96));
+  border:1px solid rgba(255,255,255,.055);border-radius:18px;padding:20px;
+  box-shadow:0 12px 35px rgba(0,0,0,.16)
 }
-.تۆڕ{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:16px;
+.card:hover{border-color:rgba(215,179,106,.22)}
+.card.full{grid-column:1/-1}
+.card h3{margin:0 0 16px;font-size:16px;display:flex;align-items:center;gap:8px}
+.icon{
+  width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+  background:rgba(215,179,106,.1);border:1px solid rgba(215,179,106,.18)
 }
-.کارت{padding:22px}
-.کارت h3{margin:0 0 14px}
-.تەواو{grid-column:1/-1}
-.ڕیز{
-  display:flex;
-  justify-content:space-between;
-  gap:18px;
-  padding:10px 0;
-  border-bottom:1px solid #eee;
+.row{
+  display:flex;justify-content:space-between;gap:16px;padding:10px 0;
+  border-bottom:1px solid var(--line);font-size:13px
 }
-.ڕیز:last-child{border:0}
-.ناوی_خانە{color:var(--خاکستەری)}
-.بەها{
-  text-align:left;
-  font-weight:700;
-  max-width:60%;
-  direction:ltr;
+.row:last-child{border-bottom:0}
+.label{color:#8e96a0}
+.value{font-weight:700;text-align:left;direction:ltr;max-width:58%}
+.good{color:var(--green)}
+.warn{color:var(--amber)}
+.bad{color:var(--red)}
+.muted{color:var(--muted);line-height:1.7}
+.note{
+  margin-top:13px;background:rgba(215,179,106,.07);
+  border:1px solid rgba(215,179,106,.15);border-radius:12px;
+  color:#c7cbd1;padding:12px;line-height:1.65;font-size:12px
 }
-.سەوز{color:var(--سەوز)}
-.سوور{color:var(--سوور)}
-.پرتەقاڵی{color:var(--پرتەقاڵی)}
-.خاکستەری{color:var(--خاکستەری)}
-.بچووک{
-  font-size:13px;
-  color:var(--خاکستەری);
-  margin-top:7px;
-}
-.تێبینی{
-  margin-top:14px;
-  background:#fff7dd;
-  border-right:5px solid #e0a000;
-  padding:13px;
-  border-radius:5px;
-  line-height:1.6;
-}
-.تاقیکردنەوە{
-  padding:13px 0;
-  border-bottom:1px solid #eee;
-}
-.تاقیکردنەوە:last-child{border:0}
+.mot-item{padding:12px 0;border-bottom:1px solid var(--line)}
+.mot-item:last-child{border-bottom:0}
+.small{font-size:12px;color:#a8afb8;line-height:1.6}
+
 footer{
-  text-align:center;
-  color:#77808a;
-  font-size:13px;
-  padding:30px 20px;
+  border-top:1px solid rgba(255,255,255,.05);
+  text-align:center;color:#717984;font-size:12px;padding:28px 22px 40px
 }
 
-@media(max-width:720px){
-  .بەشی_سەرەکی h1{font-size:31px}
-  .گەڕان{flex-direction:column}
-  button{padding:16px}
-  .تۆڕ{grid-template-columns:1fr}
-  .تەواو{grid-column:auto}
-  .ڕیزی_سەرەوە{flex-direction:column;align-items:flex-start}
-  .بەها{max-width:55%}
+@media(max-width:900px){
+  .hero{min-height:560px}
+  .hero-art{width:780px;right:-300px;opacity:.55}
+  .hero::after{background:linear-gradient(90deg,rgba(7,8,9,.99),rgba(7,8,9,.88) 60%,rgba(7,8,9,.55))}
+  .summary{grid-template-columns:1fr}
+  .scorebox{border-right:0;border-top:1px solid var(--line);padding:18px 0 0}
+  .grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:640px){
+  .tag{display:none}
+  .hero-inner{padding-top:64px}
+  .search-wrap{flex-direction:column}
+  .primary-btn{padding:16px}
+  .quick-actions{grid-template-columns:1fr;margin-top:-28px}
+  .grid{grid-template-columns:1fr}
+  .card.full{grid-column:auto}
+  .summary-main{align-items:flex-start;flex-direction:column}
 }
 </style>
 </head>
 
 <body>
 
-<header>
-  <div class="سەرەوە">
-    <div class="ناونیشان">AKAR'S <span>CAR CHECK</span></div>
-    <small>پشکنینی ئۆتۆمبێلی بەریتانیا</small>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">AKAR'S <span>CAR CHECK</span></div>
+    <div class="tag">پشکنینی ئۆتۆمبێلی بەریتانیا</div>
   </div>
 </header>
 
-<section class="بەشی_سەرەکی">
-  <h1>پێش کڕین، ئۆتۆمبێلەکە بپشکنە 🚘</h1>
-  <p>ژمارەی تۆماری ئۆتۆمبێل بنووسە بۆ بینینی زانیاری ڕاستەوخۆ.</p>
+<section class="hero">
+  <svg class="hero-art" viewBox="0 0 1100 520" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <linearGradient id="carBody" x1="0" x2="1">
+        <stop offset="0%" stop-color="#4f535b"/>
+        <stop offset="45%" stop-color="#171a1e"/>
+        <stop offset="100%" stop-color="#353940"/>
+      </linearGradient>
+      <linearGradient id="glass" x1="0" x2="1">
+        <stop offset="0%" stop-color="#1b2a33"/>
+        <stop offset="100%" stop-color="#070a0d"/>
+      </linearGradient>
+      <linearGradient id="goldLine" x1="0" x2="1">
+        <stop offset="0%" stop-color="#8d7446"/>
+        <stop offset="50%" stop-color="#f0d18d"/>
+        <stop offset="100%" stop-color="#8d7446"/>
+      </linearGradient>
+    </defs>
+    <ellipse cx="570" cy="440" rx="430" ry="36" fill="#000" opacity=".65"/>
+    <path d="M160 365 C200 282 300 240 420 222 L552 129 C590 100 660 89 744 102 L834 126 C886 140 932 174 964 225 L1007 298 C1024 327 1024 359 1005 382 C982 409 945 422 902 424 L260 424 C212 424 180 406 160 382 Z" fill="url(#carBody)"/>
+    <path d="M440 226 L575 145 C604 126 647 116 699 118 L796 137 C831 144 861 163 888 195 L911 226 Z" fill="url(#glass)"/>
+    <path d="M579 145 L572 226" stroke="#8c9298" stroke-width="4" opacity=".5"/>
+    <path d="M320 287 C497 252 743 250 933 273" fill="none" stroke="url(#goldLine)" stroke-width="3" opacity=".7"/>
+    <path d="M230 348 C391 326 737 318 979 338" fill="none" stroke="#70757d" stroke-width="3" opacity=".4"/>
+    <circle cx="355" cy="413" r="73" fill="#08090a"/>
+    <circle cx="355" cy="413" r="48" fill="#252a31"/>
+    <circle cx="355" cy="413" r="25" fill="#b49a63"/>
+    <circle cx="355" cy="413" r="10" fill="#111"/>
+    <circle cx="844" cy="413" r="73" fill="#08090a"/>
+    <circle cx="844" cy="413" r="48" fill="#252a31"/>
+    <circle cx="844" cy="413" r="25" fill="#b49a63"/>
+    <circle cx="844" cy="413" r="10" fill="#111"/>
+    <path d="M925 281 L996 304 L1001 333 L928 320 Z" fill="#f4e3b5" opacity=".9"/>
+    <path d="M165 323 L222 307 L240 332 L173 345 Z" fill="#f35757" opacity=".85"/>
+  </svg>
 
-  <div class="گەڕان">
-    <input id="ژمارە" class="ژمارە" maxlength="8" placeholder="AB12 CDE">
-    <button id="دوگمە" onclick="پشکنین()">پشکنینی ئۆتۆمبێل</button>
+  <div class="hero-inner">
+    <div class="eyebrow">✦ پشکنینی زیرەکی ئۆتۆمبێل</div>
+    <h1>پێش کڕین، <span>دڵنیابەوە.</span></h1>
+    <p>ژمارەی تۆماری ئۆتۆمبێل بنووسە بۆ بینینی MOT، باج، مایلیج و زانیارییە گرنگەکان لە یەک شوێندا.</p>
+
+    <div class="search-wrap">
+      <input id="ژمارە" class="plate-input" maxlength="8" placeholder="AB12 CDE" aria-label="ژمارەی تۆمار">
+      <button id="دوگمە" class="primary-btn" onclick="پشکنین()">پشکنینی ئۆتۆمبێل</button>
+    </div>
+    <div class="hero-note">زانیاری ڕاستەوخۆ لە سەرچاوەی داتا وەردەگیرێت.</div>
   </div>
-
-  <a
-    class="دوگمەی_بیمە"
-    href="https://enquiry.navigate.mib.org.uk/checkyourvehicle"
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-    🛡️ پشکنینی بیمەی ئۆتۆمبێل
-  </a>
-
-  <div class="تێبینی_بیمە">
-    بۆ پشکنینی بیمەی ئۆتۆمبێلی خۆت یان ئۆتۆمبێلێک کە مافی یاسایی شۆفێرکردنی هەیە.
-  </div>
-
-  <a
-    class="دوگمەی_کار دوگمەی_باج"
-    href="https://www.gov.uk/vehicle-tax"
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-    💷 باجی ڕێگاوبان بدە
-  </a>
-
-  <a
-    class="دوگمەی_کار دوگمەی_فرۆشتن"
-    href="https://www.gov.uk/sold-bought-vehicle"
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-    🚗 لۆگ بووک بگۆڕە
-  </a>
 </section>
 
-<main class="ناوەڕۆک">
+<div class="quick-actions">
+  <a class="quick-action gold" href="https://enquiry.navigate.mib.org.uk/checkyourvehicle" target="_blank" rel="noopener noreferrer">🛡️ پشکنینی بیمەی ئۆتۆمبێل</a>
+  <a class="quick-action" href="https://www.gov.uk/vehicle-tax" target="_blank" rel="noopener noreferrer">💷 باجی ڕێگاوبان بدە</a>
+  <a class="quick-action" href="https://www.gov.uk/sold-bought-vehicle" target="_blank" rel="noopener noreferrer">🚗 لۆگ بووک بگۆڕە</a>
+</div>
 
-<div id="پەیام" class="پەیام"></div>
+<main class="content">
+  <div id="پەیام" class="message"></div>
 
-<section id="ڕاپۆرت" class="ڕاپۆرت">
-
-  <div class="کورتە">
-    <div class="ڕیزی_سەرەوە">
-      <div>
-        <h2 id="سەردێڕ" style="margin:0">ڕاپۆرتی ئۆتۆمبێل</h2>
-        <div class="بچووک">
-          زانیاری ڕاستەوخۆ <span class="ڕاستەوخۆ">ڕاستەوخۆ</span>
+  <section id="ڕاپۆرت" class="report">
+    <div class="summary">
+      <div class="summary-main">
+        <div id="تابلۆ" class="plate">—</div>
+        <div>
+          <div id="سەردێڕ" class="car-name">ڕاپۆرتی ئۆتۆمبێل</div>
+          <div id="کورتەی_ئۆتۆمبێل" class="car-sub">—</div>
         </div>
       </div>
-      <div id="تابلۆ" class="تابلۆ">—</div>
-    </div>
-  </div>
 
-  <div class="تۆڕ">
-
-    <div class="کارت">
-      <h3>🚗 زانیاری سەرەکیی ئۆتۆمبێل</h3>
-
-      <div class="ڕیز"><span class="ناوی_خانە">مارکە</span><span id="مارکە" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">مۆدێل</span><span id="مۆدێل" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">ڕەنگ</span><span id="ڕەنگ" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">جۆری سووتەمەنی</span><span id="سووتەمەنی" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">قەبارەی ئەنجن</span><span id="ئەنجن" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">ساڵی دروستکردن</span><span id="ساڵ" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">تەمەنی ئۆتۆمبێل</span><span id="تەمەن" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">یەکەم جار تۆمارکراوە</span><span id="یەکەم_تۆمار" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">دوا بەرواری V5C</span><span id="V5C" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">بۆ هەناردە نیشان کراوە؟</span><span id="هەناردە" class="بەها">—</span></div>
-    </div>
-
-    <div class="کارت">
-      <h3>🔧 پشکنینی ساڵانەی MOT و باج</h3>
-
-      <div class="ڕیز"><span class="ناوی_خانە">دۆخی MOT</span><span id="MOT" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">بەرواری بەسەرچوونی MOT</span><span id="MOT_بەسەرچوون" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">چەند ڕۆژ ماوە تا MOT</span><span id="MOT_ڕۆژ" class="بەها">—</span></div>
-
-      <div class="ڕیز"><span class="ناوی_خانە">دۆخی باجی ڕێگا</span><span id="باج" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">بەرواری باجی داهاتوو</span><span id="باج_بەروار" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">چەند ڕۆژ ماوە تا باج</span><span id="باج_ڕۆژ" class="بەها">—</span></div>
-
-      <div class="ڕیز"><span class="ناوی_خانە">بەرواری دوا MOT</span><span id="دوا_MOT_بەروار" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">ئەنجامی دوا MOT</span><span id="دوا_MOT_ئەنجام" class="بەها">—</span></div>
-
-      <div class="ڕیز"><span class="ناوی_خانە">کۆی هەموو تاقیکردنەوەکانی MOT</span><span id="کۆی_MOT" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">کۆی شکستهێنانەکان</span><span id="شکست" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">کۆی تێبینییەکان</span><span id="تێبینی_کۆ" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">تێبینی لە دوا MOT</span><span id="تێبینی_دوا" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">ڕێژەی سەرکەوتنی MOT</span><span id="ڕێژەی_MOT" class="بەها">—</span></div>
-    </div>
-
-    <div class="کارت">
-      <h3>📈 زانیاری مایلیج</h3>
-
-      <div class="ڕیز"><span class="ناوی_خانە">دوا مایلیج</span><span id="مایلیج" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">مایلیجی ئاسایی لە ساڵێکدا</span><span id="مایلیج_ساڵانە" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">ڕەوتی مایلیج</span><span id="ڕەوتی_مایلیج" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">مەترسی دەستکاریکردنی مایلیج</span><span id="مەترسی_مایلیج" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">بەراورد بە ناوەندی ئۆتۆمبێلە هاوشێوەکان</span><span id="بەراوردی_مایلیج" class="بەها">—</span></div>
-    </div>
-
-    <div class="کارت">
-      <h3>🌱 ژینگە، دەرچوونی گاز و ULEZ</h3>
-
-      <div class="ڕیز"><span class="ناوی_خانە">ستانداردی Euro</span><span id="Euro" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">دەرچوونی CO₂</span><span id="CO2" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">گونجاوە بۆ ULEZ؟</span><span id="ULEZ" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">دەرچوونی گاز لە شۆفێری ڕاستەقینەدا</span><span id="RDE" class="بەها">—</span></div>
-    </div>
-
-    <div class="کارت">
-      <h3>⚠️ هەڵسەنگاندنی مەترسی</h3>
-
-      <div class="ڕیز"><span class="ناوی_خانە">ئاستی مەترسی گشتی ئۆتۆمبێل</span><span id="مەترسی_گشتی" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">ئاستی مەترسی MOT</span><span id="مەترسی_MOT" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">مەترسی نائاساییبوونی مایلیج</span><span id="مەترسی_نائاسایی" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">نیشانەی گۆڕینی ڕەنگ هەیە؟</span><span id="گۆڕینی_ڕەنگ" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">بانگهێشتی چاککردنەوەی کارگەیی هەیە؟</span><span id="Recall" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">هەڵسەنگاندنی پاراستنی NCAP</span><span id="NCAP" class="بەها">—</span></div>
-    </div>
-
-    <div class="کارت">
-      <h3>⭐ کورتەی پێشنیاری کڕین</h3>
-
-      <div class="ڕیز"><span class="ناوی_خانە">پێشنیاری کڕین</span><span id="پێشنیار" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">دۆخی گشتی ئۆتۆمبێل</span><span id="دۆخ" class="بەها">—</span></div>
-      <div class="ڕیز"><span class="ناوی_خانە">مەترسی خزمەتگوزاری و چاککردنەوە</span><span id="چاککردنەوە" class="بەها">—</span></div>
-
-      <div class="تێبینی">
-        ئەم ڕاپۆرتە تەنها ئەو زانیاریانە پیشان دەدات کە سەرچاوەی داتا بۆ ئەم ئۆتۆمبێلە دەیانگەڕێنێتەوە.
-        ئەگەر زانیارییەک بەردەست نەبێت، «بەردەست نییە» پیشان دەدرێت.
+      <div class="scorebox">
+        <div class="score-text">
+          <small>هەڵسەنگاندنی گشتی</small>
+          <b id="دەقی_هەڵسەنگاندن">—</b>
+        </div>
+        <div id="دایرەی_هەڵسەنگاندن" class="score"><strong id="نمرە">—</strong></div>
       </div>
     </div>
 
-    <div class="کارت تەواو">
-      <h3>🛠️ کێشە و شکستهێنانە دووبارەبووەکانی MOT</h3>
-      <div id="کێشە_دووبارە"></div>
+    <div class="section-title">
+      <h2>ڕاپۆرتی ئۆتۆمبێل</h2>
+      <p>زانیارییەکان بە پێی ئەو داتایەی سەرچاوە بۆ ئەم ئۆتۆمبێلە دەگەڕێنێتەوە.</p>
     </div>
 
-    <div class="کارت تەواو">
-      <h3>📋 وردەکاری مێژووی MOT</h3>
-      <div id="مێژووی_MOT"></div>
-    </div>
+    <div class="grid">
 
-  </div>
-</section>
+      <div class="card">
+        <h3><span class="icon">🚘</span> زانیاری سەرەکی</h3>
+        <div class="row"><span class="label">مارکە</span><span id="مارکە" class="value">—</span></div>
+        <div class="row"><span class="label">مۆدێل</span><span id="مۆدێل" class="value">—</span></div>
+        <div class="row"><span class="label">ڕەنگ</span><span id="ڕەنگ" class="value">—</span></div>
+        <div class="row"><span class="label">سووتەمەنی</span><span id="سووتەمەنی" class="value">—</span></div>
+        <div class="row"><span class="label">قەبارەی ئەنجن</span><span id="ئەنجن" class="value">—</span></div>
+        <div class="row"><span class="label">ساڵی دروستکردن</span><span id="ساڵ" class="value">—</span></div>
+        <div class="row"><span class="label">تەمەنی ئۆتۆمبێل</span><span id="تەمەن" class="value">—</span></div>
+        <div class="row"><span class="label">یەکەم تۆمارکردن</span><span id="یەکەم_تۆمار" class="value">—</span></div>
+        <div class="row"><span class="label">دوا V5C</span><span id="V5C" class="value">—</span></div>
+        <div class="row"><span class="label">بۆ هەناردە نیشان کراوە؟</span><span id="هەناردە" class="value">—</span></div>
+      </div>
+
+      <div class="card">
+        <h3><span class="icon">🧾</span> MOT و باج</h3>
+        <div class="row"><span class="label">دۆخی MOT</span><span id="MOT" class="value">—</span></div>
+        <div class="row"><span class="label">بەرواری بەسەرچوونی MOT</span><span id="MOT_بەسەرچوون" class="value">—</span></div>
+        <div class="row"><span class="label">ڕۆژانی ماوە تا MOT</span><span id="MOT_ڕۆژ" class="value">—</span></div>
+        <div class="row"><span class="label">دۆخی باجی ڕێگا</span><span id="باج" class="value">—</span></div>
+        <div class="row"><span class="label">بەرواری باجی داهاتوو</span><span id="باج_بەروار" class="value">—</span></div>
+        <div class="row"><span class="label">ڕۆژانی ماوە تا باج</span><span id="باج_ڕۆژ" class="value">—</span></div>
+        <div class="row"><span class="label">دوا MOT</span><span id="دوا_MOT_بەروار" class="value">—</span></div>
+        <div class="row"><span class="label">ئەنجامی دوا MOT</span><span id="دوا_MOT_ئەنجام" class="value">—</span></div>
+        <div class="row"><span class="label">کۆی MOT</span><span id="کۆی_MOT" class="value">—</span></div>
+        <div class="row"><span class="label">کۆی شکستهێنان</span><span id="شکست" class="value">—</span></div>
+        <div class="row"><span class="label">کۆی تێبینی</span><span id="تێبینی_کۆ" class="value">—</span></div>
+        <div class="row"><span class="label">تێبینی لە دوا MOT</span><span id="تێبینی_دوا" class="value">—</span></div>
+        <div class="row"><span class="label">ڕێژەی سەرکەوتن</span><span id="ڕێژەی_MOT" class="value">—</span></div>
+      </div>
+
+      <div class="card">
+        <h3><span class="icon">📈</span> مایلیج</h3>
+        <div class="row"><span class="label">دوا مایلیج</span><span id="مایلیج" class="value">—</span></div>
+        <div class="row"><span class="label">مایلیجی ساڵانە</span><span id="مایلیج_ساڵانە" class="value">—</span></div>
+        <div class="row"><span class="label">ڕەوتی مایلیج</span><span id="ڕەوتی_مایلیج" class="value">—</span></div>
+        <div class="row"><span class="label">مەترسی دەستکاری مایلیج</span><span id="مەترسی_مایلیج" class="value">—</span></div>
+        <div class="row"><span class="label">بەراورد بە ناوەندی بازاڕ</span><span id="بەراوردی_مایلیج" class="value">—</span></div>
+      </div>
+
+      <div class="card">
+        <h3><span class="icon">🌿</span> ژینگە و ULEZ</h3>
+        <div class="row"><span class="label">ستانداردی Euro</span><span id="Euro" class="value">—</span></div>
+        <div class="row"><span class="label">دەرچوونی CO₂</span><span id="CO2" class="value">—</span></div>
+        <div class="row"><span class="label">گونجاوە بۆ ULEZ؟</span><span id="ULEZ" class="value">—</span></div>
+        <div class="row"><span class="label">دەرچوونی گاز لە شۆفێری ڕاستەقینە</span><span id="RDE" class="value">—</span></div>
+      </div>
+
+      <div class="card">
+        <h3><span class="icon">⚠️</span> هەڵسەنگاندنی مەترسی</h3>
+        <div class="row"><span class="label">مەترسی گشتی</span><span id="مەترسی_گشتی" class="value">—</span></div>
+        <div class="row"><span class="label">مەترسی MOT</span><span id="مەترسی_MOT" class="value">—</span></div>
+        <div class="row"><span class="label">مەترسی نائاسایی مایلیج</span><span id="مەترسی_نائاسایی" class="value">—</span></div>
+        <div class="row"><span class="label">گۆڕینی ڕەنگ نیشان دراوە؟</span><span id="گۆڕینی_ڕەنگ" class="value">—</span></div>
+        <div class="row"><span class="label">Recall هەیە؟</span><span id="Recall" class="value">—</span></div>
+        <div class="row"><span class="label">NCAP</span><span id="NCAP" class="value">—</span></div>
+      </div>
+
+      <div class="card">
+        <h3><span class="icon">⭐</span> کورتەی پێشنیاری کڕین</h3>
+        <div class="row"><span class="label">پێشنیاری کڕین</span><span id="پێشنیار" class="value">—</span></div>
+        <div class="row"><span class="label">دۆخی گشتی</span><span id="دۆخ" class="value">—</span></div>
+        <div class="row"><span class="label">خزمەتگوزاری و چاککردنەوە</span><span id="چاککردنەوە" class="value">—</span></div>
+        <div class="note">
+          ئەم هەڵسەنگاندنە تەنها لەسەر ئەو داتایەیە کە API بۆ ئەم ئۆتۆمبێلە دەگەڕێنێتەوە.
+          ئەگەر خانەیەک بەردەست نەبێت «بەردەست نییە» پیشان دەدرێت.
+        </div>
+      </div>
+
+      <div class="card full">
+        <h3><span class="icon">🛠️</span> کێشە دووبارەبووەکانی MOT</h3>
+        <div id="کێشە_دووبارە"></div>
+      </div>
+
+      <div class="card full">
+        <h3><span class="icon">📋</span> وردەکاری مێژووی MOT</h3>
+        <div id="مێژووی_MOT"></div>
+      </div>
+
+    </div>
+  </section>
 </main>
 
 <footer>© 2026 Akar's Car Check</footer>
@@ -442,11 +439,7 @@ function بەروار(v){
   if(!v) return "بەردەست نییە";
   const d = new Date(v);
   if(isNaN(d)) return String(v);
-  return d.toLocaleDateString("en-GB", {
-    day:"numeric",
-    month:"short",
-    year:"numeric"
-  });
+  return d.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
 }
 
 function وەرگرتن(obj, paths){
@@ -455,8 +448,7 @@ function وەرگرتن(obj, paths){
     let cur = obj;
     for(const p of parts){
       if(cur === null || cur === undefined || !(p in cur)){
-        cur = undefined;
-        break;
+        cur = undefined; break;
       }
       cur = cur[p];
     }
@@ -465,15 +457,10 @@ function وەرگرتن(obj, paths){
   return null;
 }
 
-function دانان(id, v){
-  دۆزینەوە(id).textContent = بەها(v);
-}
+function دانان(id,v){ دۆزینەوە(id).textContent = بەها(v); }
+function دانانی_بەروار(id,v){ دۆزینەوە(id).textContent = بەروار(v); }
 
-function دانانی_بەروار(id, v){
-  دۆزینەوە(id).textContent = بەروار(v);
-}
-
-function ژمارە_لەگەڵ_یەکە(v, unit){
+function ژمارە_لەگەڵ_یەکە(v,unit){
   if(v === null || v === undefined || v === "") return "بەردەست نییە";
   const n = Number(v);
   if(Number.isNaN(n)) return String(v);
@@ -482,17 +469,64 @@ function ژمارە_لەگەڵ_یەکە(v, unit){
 
 function پاراستنی_دەق(text){
   return String(text)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
+    .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
+
+function ڕەنگی_بەها(id,v){
+  const el = دۆزینەوە(id);
+  if(!el) return;
+  el.classList.remove("good","warn","bad");
+  const x = String(v ?? "").toLowerCase();
+
+  if(["valid","taxed","pass","passed","low","good","consistent","compliant","none","no","نەخێر"].some(k=>x.includes(k))){
+    el.classList.add("good");
+  }else if(["high","poor","fail","failed","expired","untaxed","avoid","possible"].some(k=>x.includes(k))){
+    el.classList.add("bad");
+  }else if(["medium","fair","consider","average","amber"].some(k=>x.includes(k))){
+    el.classList.add("warn");
+  }
+}
+
+function هەڵسەنگاندن(summary,s){
+  let score = 75;
+
+  const vr = String(summary.vehicleRiskLevel || "").toLowerCase();
+  const mr = String(summary.motRiskLevel || "").toLowerCase();
+  const mm = String(summary.mileageAnomalyRisk || "").toLowerCase();
+  const maintenance = String(summary.maintenanceBand || summary.maintenanceRisk || "").toLowerCase();
+
+  if(vr==="low") score += 8;
+  if(vr==="medium") score -= 5;
+  if(vr==="high") score -= 20;
+
+  if(mr==="low") score += 6;
+  if(mr==="medium") score -= 4;
+  if(mr==="high") score -= 15;
+
+  if(mm && mm!=="none" && mm!=="low") score -= 12;
+  if(maintenance==="poor") score -= 10;
+  if(maintenance==="good") score += 5;
+
+  if(Number(s.motPassRate) >= .8) score += 5;
+  if(Number(s.motPassRate) < .6 && s.motPassRate !== null && s.motPassRate !== undefined) score -= 8;
+
+  score = Math.max(10,Math.min(95,Math.round(score)));
+
+  let text = "پێویستی بە پشکنینی زیاتر هەیە";
+  let colour = "#f7c76d";
+  if(score >= 80){ text = "دۆخی باش پیشان دەدات"; colour = "#5dd39e"; }
+  if(score < 55){ text = "بە وریاییەوە بپشکنە"; colour = "#ff7070"; }
+
+  دۆزینەوە("نمرە").textContent = score;
+  دۆزینەوە("دەقی_هەڵسەنگاندن").textContent = text;
+  دۆزینەوە("دەقی_هەڵسەنگاندن").style.color = colour;
+  دۆزینەوە("دایرەی_هەڵسەنگاندن").style.background =
+    "conic-gradient("+colour+" 0 "+score+"%,#272c33 "+score+"% 100%)";
 }
 
 async function پشکنین(){
-  const vrm = دۆزینەوە("ژمارە").value
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g,"");
+  const vrm = دۆزینەوە("ژمارە").value.toUpperCase().replace(/[^A-Z0-9]/g,"");
 
   if(vrm.length < 2){
     alert("تکایە ژمارەی تۆماری دروست بنووسە.");
@@ -501,22 +535,19 @@ async function پشکنین(){
 
   دۆزینەوە("دوگمە").disabled = true;
   دۆزینەوە("دوگمە").textContent = "لە پشکنین دایە...";
-
-  دۆزینەوە("پەیام").className = "پەیام";
+  دۆزینەوە("پەیام").className = "message";
   دۆزینەوە("پەیام").style.display = "block";
   دۆزینەوە("پەیام").textContent = "زانیاری ڕاستەوخۆ وەردەگیرێت...";
-
   دۆزینەوە("ڕاپۆرت").style.display = "none";
 
   try{
-    const response = await fetch("/api/check", {
+    const response = await fetch("/api/check",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({registration:vrm})
     });
 
     const result = await response.json();
-
     if(!response.ok || !result.ok){
       throw new Error(result.error || "پشکنینی ئۆتۆمبێل سەرکەوتوو نەبوو.");
     }
@@ -525,258 +556,138 @@ async function پشکنین(){
     const s = d.signals || {};
     const summary = d.summary || {};
 
-    دۆزینەوە("تابلۆ").textContent =
-      بەها(d.registration || d.registrationNumber || d.vrm || vrm);
+    const reg = d.registration || d.registrationNumber || d.vrm || vrm;
+    دۆزینەوە("تابلۆ").textContent = reg;
+    دۆزینەوە("سەردێڕ").textContent = [d.make,d.model].filter(Boolean).join(" ") || "ڕاپۆرتی ئۆتۆمبێل";
+    دۆزینەوە("کورتەی_ئۆتۆمبێل").textContent =
+      [d.fuelType,d.engineCapacityCc ? (d.engineCapacityCc+" cc") : null,d.colour,d.yearOfManufacture].filter(Boolean).join(" · ") || "—";
 
-    دۆزینەوە("سەردێڕ").textContent =
-      [d.make,d.model].filter(Boolean).join(" ") || "ڕاپۆرتی ئۆتۆمبێل";
-
-    دانان("مارکە", d.make);
-    دانان("مۆدێل", d.model);
-    دانان("ڕەنگ", d.colour);
-    دانان("سووتەمەنی", d.fuelType);
+    دانان("مارکە",d.make);
+    دانان("مۆدێل",d.model);
+    دانان("ڕەنگ",d.colour);
+    دانان("سووتەمەنی",d.fuelType);
 
     دۆزینەوە("ئەنجن").textContent =
       d.engineCapacityCc !== null && d.engineCapacityCc !== undefined
-        ? Number(d.engineCapacityCc).toLocaleString("en-GB") + " cc"
-        : "بەردەست نییە";
+      ? Number(d.engineCapacityCc).toLocaleString("en-GB")+" cc"
+      : "بەردەست نییە";
 
-    دانان("ساڵ", d.yearOfManufacture);
-
+    دانان("ساڵ",d.yearOfManufacture);
     دۆزینەوە("تەمەن").textContent =
       d.vehicleAgeYears !== null && d.vehicleAgeYears !== undefined
-        ? d.vehicleAgeYears + " ساڵ"
-        : "بەردەست نییە";
+      ? d.vehicleAgeYears+" ساڵ" : "بەردەست نییە";
+    دانان("یەکەم_تۆمار",d.monthOfFirstRegistration);
 
-    دانان("یەکەم_تۆمار", d.monthOfFirstRegistration);
-
-    دانانی_بەروار("V5C", وەرگرتن(d, [
-      "signals.latestV5CIssuedDate",
-      "signals.lastV5CIssuedDate",
-      "latestV5CIssuedDate",
-      "dateOfLastV5CIssued"
+    دانانی_بەروار("V5C",وەرگرتن(d,[
+      "signals.v5cLastIssued","signals.latestV5CIssuedDate",
+      "signals.lastV5CIssuedDate","latestV5CIssuedDate","dateOfLastV5CIssued"
     ]));
+    دانان("هەناردە",وەرگرتن(d,["signals.markedForExport","markedForExport"]));
 
-    دانان("هەناردە", وەرگرتن(d, [
-      "signals.markedForExport",
-      "markedForExport"
-    ]));
-
-    دانان("MOT", s.motStatus);
-    دانانی_بەروار("MOT_بەسەرچوون", s.motExpiryDate);
-    دانان("MOT_ڕۆژ", وەرگرتن(d, ["signals.motDaysRemaining","signals.daysToMotExpiry"]));
-
-    دانان("باج", s.taxStatus);
-    دانانی_بەروار("باج_بەروار", s.taxDueDate);
-    دانان("باج_ڕۆژ", وەرگرتن(d, ["signals.taxDaysRemaining","signals.daysToTaxDue"]));
-
-    دانانی_بەروار("دوا_MOT_بەروار", s.lastMotDate);
-    دانان("دوا_MOT_ئەنجام", s.lastMotResult);
-    دانان("کۆی_MOT", s.totalMotTests);
-    دانان("شکست", s.totalMotFailures);
-
-    دانان("تێبینی_کۆ", وەرگرتن(d, [
-      "signals.totalMotAdvisories",
-      "signals.totalAdvisories",
-      "summary.totalMotAdvisories"
-    ]));
-
-    دانان("تێبینی_دوا", وەرگرتن(d, [
-      "signals.latestMotAdvisoryCount",
-      "signals.latestAdvisoryCount"
-    ]));
+    دانان("MOT",s.motStatus);
+    دانانی_بەروار("MOT_بەسەرچوون",s.motExpiryDate);
+    دانان("MOT_ڕۆژ",وەرگرتن(d,["signals.motDaysRemaining","signals.daysToMotExpiry"]));
+    دانان("باج",s.taxStatus);
+    دانانی_بەروار("باج_بەروار",s.taxDueDate);
+    دانان("باج_ڕۆژ",وەرگرتن(d,["signals.taxDaysRemaining","signals.daysToTaxDue"]));
+    دانانی_بەروار("دوا_MOT_بەروار",s.lastMotDate);
+    دانان("دوا_MOT_ئەنجام",s.lastMotResult);
+    دانان("کۆی_MOT",s.totalMotTests);
+    دانان("شکست",s.totalMotFailures);
+    دانان("تێبینی_کۆ",وەرگرتن(d,["signals.totalMotAdvisories","signals.totalAdvisories","summary.totalMotAdvisories"]));
+    دانان("تێبینی_دوا",وەرگرتن(d,["signals.latestMotAdvisoryCount","signals.latestAdvisoryCount"]));
 
     دۆزینەوە("ڕێژەی_MOT").textContent =
       s.motPassRate !== null && s.motPassRate !== undefined
-        ? Math.round(Number(s.motPassRate) * 100) + "%"
-        : "بەردەست نییە";
+      ? Math.round(Number(s.motPassRate)*100)+"%" : "بەردەست نییە";
 
     دۆزینەوە("مایلیج").textContent =
       s.latestOdometerMiles !== null && s.latestOdometerMiles !== undefined
-        ? Number(s.latestOdometerMiles).toLocaleString("en-GB") + " مایل"
-        : "بەردەست نییە";
+      ? Number(s.latestOdometerMiles).toLocaleString("en-GB")+" مایل" : "بەردەست نییە";
 
     دۆزینەوە("مایلیج_ساڵانە").textContent =
       ژمارە_لەگەڵ_یەکە(
-        وەرگرتن(d, [
-          "signals.typicalAnnualMileage",
-          "signals.annualMileage",
-          "summary.typicalAnnualMileage"
-        ]),
-        " مایل لە ساڵێکدا"
+        وەرگرتن(d,["signals.typicalAnnualMileageMiles","signals.typicalAnnualMileage","signals.annualMileage","summary.typicalAnnualMileage"]),
+        " مایل/ساڵ"
       );
 
-    دانان("ڕەوتی_مایلیج", s.odometerTrend);
-    دانان("مەترسی_مایلیج", summary.mileageAnomalyRisk);
-    دانان("بەراوردی_مایلیج", وەرگرتن(d, [
-      "signals.mileageVsFleetAverage",
-      "summary.mileageVsFleetAverage"
-    ]));
+    دانان("ڕەوتی_مایلیج",s.odometerTrend);
+    دانان("مەترسی_مایلیج",summary.mileageAnomalyRisk);
+    دانان("بەراوردی_مایلیج",وەرگرتن(d,["signals.odometerVsFleetAverage","signals.mileageVsFleetAverage","summary.mileageVsFleetAverage"]));
 
-    دانان("Euro", s.euroEmissionStandard);
+    دانان("Euro",s.euroEmissionStandard);
+    const co2 = وەرگرتن(d,["signals.co2EmissionsGPerKm","signals.co2Emissions","co2EmissionsGPerKm","co2Emissions"]);
+    دۆزینەوە("CO2").textContent = co2 !== null && co2 !== undefined ? بەها(co2)+" g/km" : "بەردەست نییە";
+    دانان("ULEZ",s.ulezCompliant);
+    دانان("RDE",وەرگرتن(d,["signals.realDrivingEmissions","realDrivingEmissions"]));
 
-    const co2 = وەرگرتن(d, [
-      "signals.co2EmissionsGPerKm",
-      "signals.co2Emissions",
-      "co2EmissionsGPerKm",
-      "co2Emissions"
+    دانان("مەترسی_گشتی",summary.vehicleRiskLevel);
+    دانان("مەترسی_MOT",summary.motRiskLevel);
+    دانان("مەترسی_نائاسایی",summary.mileageAnomalyRisk);
+    دانان("گۆڕینی_ڕەنگ",summary.colourChangeIndicated);
+    دانان("Recall",وەرگرتن(d,["signals.hasOutstandingRecall","signals.outstandingRecall","summary.outstandingRecall"]));
+
+    const ncap = وەرگرتن(d,[
+      "signals.ncapSafetyRating.overallStars","signals.ncapSafetyRating.stars",
+      "signals.ncapRating","ncapSafetyRating.overallStars"
     ]);
+    دۆزینەوە("NCAP").textContent = ncap !== null && ncap !== undefined ? بەها(ncap)+" ⭐" : "بەردەست نییە";
 
-    دۆزینەوە("CO2").textContent =
-      co2 !== null && co2 !== undefined
-        ? بەها(co2) + " گرام/کیلۆمەتر"
-        : "بەردەست نییە";
+    دانان("پێشنیار",summary.buyRecommendation);
+    دانان("دۆخ",وەرگرتن(d,["summary.conditionBand","summary.condition","summary.vehicleCondition","signals.condition"]));
+    دانان("چاککردنەوە",وەرگرتن(d,["summary.maintenanceBand","summary.maintenanceRisk","signals.maintenanceRisk","summary.maintenanceCondition"]));
 
-    دانان("ULEZ", s.ulezCompliant);
+    ["MOT","باج","دوا_MOT_ئەنجام","ڕەوتی_مایلیج","مەترسی_مایلیج","ULEZ","مەترسی_گشتی","مەترسی_MOT","مەترسی_نائاسایی","پێشنیار","دۆخ","چاککردنەوە"].forEach(id=>{
+      ڕەنگی_بەها(id,دۆزینەوە(id).textContent);
+    });
 
-    دانان("RDE", وەرگرتن(d, [
-      "signals.realDrivingEmissions",
-      "realDrivingEmissions"
-    ]));
+    هەڵسەنگاندن(summary,s);
 
-    دانان("مەترسی_گشتی", summary.vehicleRiskLevel);
-    دانان("مەترسی_MOT", summary.motRiskLevel);
-    دانان("مەترسی_نائاسایی", summary.mileageAnomalyRisk);
-    دانان("گۆڕینی_ڕەنگ", summary.colourChangeIndicated);
-
-    دانان("Recall", وەرگرتن(d, [
-      "signals.hasOutstandingRecall",
-      "signals.outstandingRecall",
-      "summary.outstandingRecall"
-    ]));
-
-    const ncap = وەرگرتن(d, [
-      "signals.ncapSafetyRating.overallStars",
-      "signals.ncapSafetyRating.stars",
-      "signals.ncapRating",
-      "ncapSafetyRating.overallStars"
-    ]);
-
-    دۆزینەوە("NCAP").textContent =
-      ncap !== null && ncap !== undefined
-        ? بەها(ncap) + " ئەستێرە ⭐"
-        : "بەردەست نییە";
-
-    دانان("پێشنیار", summary.buyRecommendation);
-    دانان("دۆخ", وەرگرتن(d, [
-      "summary.condition",
-      "summary.vehicleCondition",
-      "signals.condition"
-    ]));
-
-    دانان("چاککردنەوە", وەرگرتن(d, [
-      "summary.maintenanceRisk",
-      "signals.maintenanceRisk",
-      "summary.maintenanceCondition"
-    ]));
-
-    const clusters = وەرگرتن(d, [
-      "signals.failureClusters",
-      "summary.failureClusters"
-    ]);
-
+    const clusters = وەرگرتن(d,["signals.failureClusters","summary.failureClusters"]);
     if(Array.isArray(clusters) && clusters.length){
-      دۆزینەوە("کێشە_دووبارە").innerHTML =
-        clusters.map(item => {
-          if(typeof item === "string"){
-            return '<div class="ڕیز"><span class="ناوی_خانە">جۆری کێشە</span><span class="بەها">'+پاراستنی_دەق(item)+'</span></div>';
-          }
-
-          const name =
-            item.category ||
-            item.name ||
-            item.type ||
-            "کێشە";
-
-          const count =
-            item.count ??
-            item.total ??
-            item.occurrences ??
-            "—";
-
-          return '<div class="ڕیز"><span class="ناوی_خانە">'+پاراستنی_دەق(name)+'</span><span class="بەها">'+پاراستنی_دەق(count)+'</span></div>';
-        }).join("");
+      دۆزینەوە("کێشە_دووبارە").innerHTML = clusters.map(item=>{
+        if(typeof item==="string"){
+          return '<div class="row"><span class="label">جۆری کێشە</span><span class="value">'+پاراستنی_دەق(item)+'</span></div>';
+        }
+        const name = item.category || item.name || item.type || "کێشە";
+        const count = item.count ?? item.total ?? item.occurrences ?? "—";
+        return '<div class="row"><span class="label">'+پاراستنی_دەق(name)+'</span><span class="value">'+پاراستنی_دەق(count)+'</span></div>';
+      }).join("");
     }else{
       دۆزینەوە("کێشە_دووبارە").innerHTML =
-        '<div class="خاکستەری">هیچ زانیارییەکی زیاتر بۆ کێشە دووبارەبووەکان بەردەست نییە.</div>';
+        '<div class="muted">هیچ زانیارییەکی زیاتر بۆ کێشە دووبارەبووەکان بەردەست نییە.</div>';
     }
 
-    const motDetails = وەرگرتن(d, [
-      "motHistory",
-      "mot_history",
-      "signals.motHistory",
-      "motTests"
-    ]);
-
+    const motDetails = وەرگرتن(d,["motHistory","mot_history","signals.motHistory","motTests"]);
     if(Array.isArray(motDetails) && motDetails.length){
-      دۆزینەوە("مێژووی_MOT").innerHTML = motDetails.map(test => {
-        const testDate =
-          test.testDate ||
-          test.test_date ||
-          test.date ||
-          "—";
+      دۆزینەوە("مێژووی_MOT").innerHTML = motDetails.map(test=>{
+        const testDate = test.testDate || test.test_date || test.date || "—";
+        const resultText = test.result || test.testResult || "—";
+        const mileageVal = test.odometerMiles ?? test.odometer ?? test.mileage ?? null;
+        const notes = test.advisories || test.defects || test.rfrAndComments || [];
+        const notesHtml = Array.isArray(notes) ? notes.map(a=>{
+          const t = typeof a==="string" ? a : (a.text || a.comment || a.description || "");
+          return t ? '<div class="small">• '+پاراستنی_دەق(t)+'</div>' : "";
+        }).join("") : "";
 
-        const resultText =
-          test.result ||
-          test.testResult ||
-          "—";
-
-        const mileageVal =
-          test.odometerMiles ??
-          test.odometer ??
-          test.mileage ??
-          null;
-
-        const notes =
-          test.advisories ||
-          test.defects ||
-          test.rfrAndComments ||
-          [];
-
-        const notesHtml = Array.isArray(notes)
-          ? notes.map(a => {
-              const text = typeof a === "string"
-                ? a
-                : (a.text || a.comment || a.description || JSON.stringify(a));
-              return '<div class="بچووک">• '+پاراستنی_دەق(text)+'</div>';
-            }).join("")
-          : "";
-
-        return '<div class="تاقیکردنەوە">' +
-          '<div class="ڕیز">' +
-            '<span class="ناوی_خانە">بەرواری تاقیکردنەوە</span>' +
-            '<span class="بەها">'+پاراستنی_دەق(بەروار(testDate))+'</span>' +
-          '</div>' +
-          '<div class="ڕیز">' +
-            '<span class="ناوی_خانە">ئەنجام</span>' +
-            '<span class="بەها">'+پاراستنی_دەق(resultText)+'</span>' +
-          '</div>' +
-          '<div class="ڕیز">' +
-            '<span class="ناوی_خانە">مایلیج</span>' +
-            '<span class="بەها">'+
-              (mileageVal !== null
-                ? Number(mileageVal).toLocaleString("en-GB") + " مایل"
-                : "بەردەست نییە")+
-            '</span>' +
-          '</div>' +
-          notesHtml +
-        '</div>';
+        return '<div class="mot-item">'+
+          '<div class="row"><span class="label">بەروار</span><span class="value">'+پاراستنی_دەق(بەروار(testDate))+'</span></div>'+
+          '<div class="row"><span class="label">ئەنجام</span><span class="value">'+پاراستنی_دەق(resultText)+'</span></div>'+
+          '<div class="row"><span class="label">مایلیج</span><span class="value">'+
+          (mileageVal !== null ? Number(mileageVal).toLocaleString("en-GB")+" مایل" : "بەردەست نییە")+
+          '</span></div>'+notesHtml+'</div>';
       }).join("");
     }else{
       دۆزینەوە("مێژووی_MOT").innerHTML =
-        '<div class="خاکستەری">سەرچاوەی داتا بۆ ئەم ئۆتۆمبێلە وردەکاری هەر تاقیکردنەوەی MOT بە جیاوازی نەگەڕاندووەتەوە.</div>';
+        '<div class="muted">سەرچاوەی داتا مێژووی تەواوی هەر MOT بە جیاوازی بۆ ئەم ئۆتۆمبێلە نەگەڕاندووەتەوە.</div>';
     }
 
     دۆزینەوە("پەیام").style.display = "none";
     دۆزینەوە("ڕاپۆرت").style.display = "block";
-
-    دۆزینەوە("ڕاپۆرت").scrollIntoView({
-      behavior:"smooth",
-      block:"start"
-    });
+    دۆزینەوە("ڕاپۆرت").scrollIntoView({behavior:"smooth",block:"start"});
 
   }catch(error){
-    دۆزینەوە("پەیام").className = "پەیام هەڵە";
+    دۆزینەوە("پەیام").className = "message error";
     دۆزینەوە("پەیام").textContent = error.message;
   }finally{
     دۆزینەوە("دوگمە").disabled = false;
@@ -784,10 +695,8 @@ async function پشکنین(){
   }
 }
 
-دۆزینەوە("ژمارە").addEventListener("keydown", event => {
-  if(event.key === "Enter"){
-    پشکنین();
-  }
+دۆزینەوە("ژمارە").addEventListener("keydown",event=>{
+  if(event.key==="Enter") پشکنین();
 });
 </script>
 
