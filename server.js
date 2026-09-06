@@ -681,7 +681,14 @@ const EN_TRANSLATIONS = {
   "دەرچوونی گاز":"Emissions",
   "AI نرخی ئۆتۆمبێلەکە خەمڵێنێت...":"AI is estimating the vehicle value...",
   "خەمڵاندنی AI لەم کاتەدا بەردەست نییە.":"AI valuation is currently unavailable.",
-  "زمان هەڵبژێرە":"Choose your language"
+  "زمان هەڵبژێرە":"Choose your language",
+  "دوا V5C":"Latest V5C",
+  "دەرچوونی گاز لە شۆفێری ڕاستەقینە":"Real driving emissions",
+  "زانیارییەکان بە پێی ئەو داتایەی سەرچاوە بۆ ئەم ئۆتۆمبێلە دەگەڕێنێتەوە.":"Information is shown according to the data returned for this vehicle.",
+  "ئەم هەڵسەنگاندنە تەنها لەسەر ئەو داتایەیە کە API بۆ ئەم ئۆتۆمبێلە دەگەڕێنێتەوە.":"This assessment is based only on the data returned by the API for this vehicle.",
+  "ئەگەر خانەیەک بەردەست نەبێت «بەردەست نییە» پیشان دەدرێت.":"If a field is unavailable, “Not available” will be shown.",
+  "دوای پشکنینی ئۆتۆمبێل، AI نرخەکە خەمڵێنێت...":"After the vehicle check, AI will estimate the selling price.",
+  "نرخی ڕاستەقینە دەتوانێت بە پێی مۆدێل، سپێک، دۆخ، شوێن و بازاڕ جیاواز بێت.":"The actual price can vary depending on model, specification, condition, location and market."
 };
 
 function translateTextNode(node){
@@ -760,161 +767,99 @@ document.addEventListener("DOMContentLoaded",()=>{
     setTimeout(openLanguageModal,250);
   }
 
-  const observer = new MutationObserver(mutations=>{
-    if(currentLang !== "en") return;
 
-    for(const mutation of mutations){
-      for(const node of mutation.addedNodes){
-        if(node.nodeType === Node.TEXT_NODE){
-          translateTextNode(node);
-        }else if(node.nodeType === Node.ELEMENT_NODE){
-          translateElementTree(node);
-        }
-      }
-
-      if(mutation.type === "characterData"){
-        translateTextNode(mutation.target);
-      }
-    }
-  });
-
-  observer.observe(document.body,{
-    childList:true,
-    subtree:true,
-    characterData:true
-  });
 });
 
 
 const دۆزینەوە = id => document.getElementById(id);
 
 function وەرگێڕانی_بەها(v){
-  if(v === null || v === undefined || v === "") return "بەردەست نییە";
-  if(v === true) return "بەڵێ";
-  if(v === false) return "نەخێر";
+  const notAvailable = currentLang === "en" ? "Not available" : "بەردەست نییە";
+
+  if(v === null || v === undefined || v === "") return notAvailable;
+  if(v === true) return currentLang === "en" ? "Yes" : "بەڵێ";
+  if(v === false) return currentLang === "en" ? "No" : "نەخێر";
 
   const raw = String(v).trim();
   const key = raw.toLowerCase().replace(/[\s-]+/g,"_");
 
-  const map = {
-    // Fuel
-    petrol:"بەنزین",
-    diesel:"دیزڵ",
-    electric:"کارەبایی",
-    hybrid:"هایبرێد",
-    phev:"هایبرێدی شەحنکراو",
-    lpg:"گازی LPG",
-    cng:"گازی CNG",
-
-    // Vehicle type
-    car:"ئۆتۆمبێل",
-    motorcycle:"ماتۆڕ",
-    van:"ڤان",
-    truck:"لۆری",
-    bus:"پاس",
-
-    // General status
-    valid:"دروستە",
-    expired:"بەسەرچووە",
-    pass:"سەرکەوتوو",
-    passed:"سەرکەوتوو",
-    fail:"شکستی هێنا",
-    failed:"شکستی هێنا",
-    taxed:"باجی دراوە",
-    untaxed:"باجی نەدراوە",
-    sorn:"SORN کراوە",
-    compliant:"گونجاوە",
-    non_compliant:"گونجاو نییە",
-    unknown:"نادیارە",
-    unavailable:"بەردەست نییە",
-
-    // Risk
-    low:"نزم",
-    medium:"مامناوەند",
-    high:"بەرز",
-    very_low:"زۆر نزم",
-    very_high:"زۆر بەرز",
-    none:"هیچ",
-    possible:"ئەگەری هەیە",
-    possible_clocking:"ئەگەری دەستکاری مایلیج هەیە",
-
-    // Condition / maintenance
-    excellent:"زۆر باش",
-    very_good:"زۆر باش",
-    good:"باش",
-    fair:"مامناوەند",
-    poor:"لاواز",
-    very_poor:"زۆر لاواز",
-    average:"ناوەند",
-    above_average:"لە ناوەند زیاتر",
-    below_average:"لە ناوەند کەمتر",
-
-    // Buying recommendation
-    buy:"باشە بۆ کڕین",
-    consider:"بە وردی بپشکنە",
-    caution:"بە وریاییەوە",
-    avoid:"باشترە نەیکڕیت",
-    recommended:"پێشنیار دەکرێت",
-    not_recommended:"پێشنیار ناکرێت",
-
-    // Mileage / odometer
-    consistent:"ئاسایی و یەکسان",
-    inconsistent:"نایەکسان",
-    increasing:"زیاد دەبێت",
-    decreasing:"کەم دەبێت",
-    stable:"جێگیرە",
-    anomaly:"نائاساییە",
-    no_anomaly:"هیچ نائاساییەک نییە",
-
-    // Boolean-ish strings
-    yes:"بەڵێ",
-    no:"نەخێر",
-    true:"بەڵێ",
-    false:"نەخێر",
-
-    // Common MOT/admin terms
-    advisory:"تێبینی",
-    advisories:"تێبینییەکان",
-    dangerous:"مەترسیدار",
-    major:"گەورە",
-    minor:"بچووک",
-    recall:"بانگهێشتی چاککردنەوە",
-    outstanding_recall:"بانگهێشتی چاککردنەوە هەیە",
-    marked_for_export:"بۆ هەناردە نیشان کراوە",
-
-    // Common MOT issue categories
-    suspension:"سیستەمی سەسپێنشن",
-    tyres:"تایەرەکان",
-    tyre:"تایەر",
-    lights:"چراغەکان",
-    light:"چراغ",
-    bodywork:"لاشی ئۆتۆمبێل",
-    exhaust:"ئەگزۆز",
-    brakes:"برێکەکان",
-    brake:"برێک",
-    steering:"فەرمان",
-    visibility:"بینین",
-    windscreen:"شوشەی پێشەوە",
-    wipers:"وایپەرەکان",
-    washers:"شوشتنەوەی شوشە",
-    seatbelts:"کەمەربەندی سەلامەتی",
-    seats:"کورسییەکان",
-    doors:"دەرگاکان",
-    mirrors:"ئاوێنەکان",
-    horn:"هۆرن",
-    registration_plate:"تابلۆی ژمارە",
-    emissions:"دەرچوونی گاز",
-    fuel_system:"سیستەمی سووتەمەنی",
-    electrical:"سیستەمی کارەبایی",
-    engine:"ئەنجن",
-    chassis:"شاسی",
-    corrosion:"گەنین / زەنگ",
-    structure:"پێکهاتەی لاشە"
+  const enMap = {
+    petrol:"Petrol", diesel:"Diesel", electric:"Electric", hybrid:"Hybrid",
+    phev:"Plug-in hybrid", lpg:"LPG", cng:"CNG",
+    car:"Car", motorcycle:"Motorcycle", van:"Van", truck:"Truck", bus:"Bus",
+    valid:"Valid", expired:"Expired", pass:"Passed", passed:"Passed",
+    fail:"Failed", failed:"Failed", taxed:"Taxed", untaxed:"Untaxed",
+    sorn:"SORN", compliant:"Compliant", non_compliant:"Not compliant",
+    unknown:"Unknown", unavailable:"Not available",
+    low:"Low", medium:"Medium", high:"High", very_low:"Very low", very_high:"Very high",
+    none:"None", possible:"Possible", possible_clocking:"Possible mileage tampering",
+    excellent:"Excellent", very_good:"Very good", good:"Good", fair:"Fair",
+    poor:"Poor", very_poor:"Very poor", average:"Average",
+    above_average:"Above average", below_average:"Below average",
+    buy:"Good to buy", consider:"Consider carefully", caution:"Caution",
+    avoid:"Avoid", recommended:"Recommended", not_recommended:"Not recommended",
+    consistent:"Consistent", inconsistent:"Inconsistent", increasing:"Increasing",
+    decreasing:"Decreasing", stable:"Stable", anomaly:"Anomaly", no_anomaly:"No anomaly",
+    yes:"Yes", no:"No", true:"Yes", false:"No",
+    advisory:"Advisory", advisories:"Advisories", dangerous:"Dangerous",
+    major:"Major", minor:"Minor", recall:"Recall",
+    outstanding_recall:"Outstanding recall", marked_for_export:"Marked for export",
+    suspension:"Suspension", tyres:"Tyres", tyre:"Tyre", lights:"Lights", light:"Light",
+    bodywork:"Bodywork", exhaust:"Exhaust", brakes:"Brakes", brake:"Brake",
+    steering:"Steering", visibility:"Visibility", windscreen:"Windscreen",
+    wipers:"Wipers", washers:"Washers", seatbelts:"Seatbelts", seats:"Seats",
+    doors:"Doors", mirrors:"Mirrors", horn:"Horn", registration_plate:"Registration plate",
+    emissions:"Emissions", fuel_system:"Fuel system", electrical:"Electrical",
+    engine:"Engine", chassis:"Chassis", corrosion:"Corrosion", structure:"Structure"
   };
 
+  const ckbMap = {
+    petrol:"بەنزین", diesel:"دیزڵ", electric:"کارەبایی", hybrid:"هایبرێد",
+    phev:"هایبرێدی شەحنکراو", lpg:"گازی LPG", cng:"گازی CNG",
+    car:"ئۆتۆمبێل", motorcycle:"ماتۆڕ", van:"ڤان", truck:"لۆری", bus:"پاس",
+    valid:"دروستە", expired:"بەسەرچووە", pass:"سەرکەوتوو", passed:"سەرکەوتوو",
+    fail:"شکستی هێنا", failed:"شکستی هێنا", taxed:"باجی دراوە", untaxed:"باجی نەدراوە",
+    sorn:"SORN کراوە", compliant:"گونجاوە", non_compliant:"گونجاو نییە",
+    unknown:"نادیارە", unavailable:"بەردەست نییە",
+    low:"نزم", medium:"مامناوەند", high:"بەرز", very_low:"زۆر نزم", very_high:"زۆر بەرز",
+    none:"هیچ", possible:"ئەگەری هەیە", possible_clocking:"ئەگەری دەستکاری مایلیج هەیە",
+    excellent:"زۆر باش", very_good:"زۆر باش", good:"باش", fair:"مامناوەند",
+    poor:"لاواز", very_poor:"زۆر لاواز", average:"ناوەند",
+    above_average:"لە ناوەند زیاتر", below_average:"لە ناوەند کەمتر",
+    buy:"باشە بۆ کڕین", consider:"بە وردی بپشکنە", caution:"بە وریاییەوە",
+    avoid:"باشترە نەیکڕیت", recommended:"پێشنیار دەکرێت", not_recommended:"پێشنیار ناکرێت",
+    consistent:"ئاسایی و یەکسان", inconsistent:"نایەکسان", increasing:"زیاد دەبێت",
+    decreasing:"کەم دەبێت", stable:"جێگیرە", anomaly:"نائاساییە", no_anomaly:"هیچ نائاساییەک نییە",
+    yes:"بەڵێ", no:"نەخێر", true:"بەڵێ", false:"نەخێر",
+    advisory:"تێبینی", advisories:"تێبینییەکان", dangerous:"مەترسیدار",
+    major:"گەورە", minor:"بچووک", recall:"بانگهێشتی چاککردنەوە",
+    outstanding_recall:"بانگهێشتی چاککردنەوە هەیە", marked_for_export:"بۆ هەناردە نیشان کراوە",
+    suspension:"سیستەمی سەسپێنشن", tyres:"تایەرەکان", tyre:"تایەر",
+    lights:"چراغەکان", light:"چراغ", bodywork:"لاشی ئۆتۆمبێل", exhaust:"ئەگزۆز",
+    brakes:"برێکەکان", brake:"برێک", steering:"فەرمان", visibility:"بینین",
+    windscreen:"شوشەی پێشەوە", wipers:"وایپەرەکان", washers:"شوشتنەوەی شوشە",
+    seatbelts:"کەمەربەندی سەلامەتی", seats:"کورسییەکان", doors:"دەرگاکان",
+    mirrors:"ئاوێنەکان", horn:"هۆرن", registration_plate:"تابلۆی ژمارە",
+    emissions:"دەرچوونی گاز", fuel_system:"سیستەمی سووتەمەنی",
+    electrical:"سیستەمی کارەبایی", engine:"ئەنجن", chassis:"شاسی",
+    corrosion:"گەنین / زەنگ", structure:"پێکهاتەی لاشە"
+  };
+
+  const map = currentLang === "en" ? enMap : ckbMap;
   if(map[key]) return map[key];
 
-  // Translate a few compound API values automatically.
+  if(currentLang === "en"){
+    if(key.includes("above_average")) return "Above average";
+    if(key.includes("below_average")) return "Below average";
+    if(key.includes("consistent")) return "Consistent";
+    if(key.includes("inconsistent")) return "Inconsistent";
+    if(key.includes("valid")) return "Valid";
+    if(key.includes("expired")) return "Expired";
+    if(key.includes("taxed")) return "Taxed";
+    if(key.includes("untaxed")) return "Untaxed";
+    return raw;
+  }
+
   if(key.includes("above_average")) return "لە ناوەند زیاتر";
   if(key.includes("below_average")) return "لە ناوەند کەمتر";
   if(key.includes("consistent")) return "ئاسایی و یەکسان";
@@ -932,7 +877,7 @@ function بەها(v){
 }
 
 function بەروار(v){
-  if(!v) return "بەردەست نییە";
+  if(!v) return currentLang === "en" ? "Not available" : "بەردەست نییە";
   const d = new Date(v);
   if(isNaN(d)) return String(v);
   return d.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
@@ -957,7 +902,7 @@ function دانان(id,v){ دۆزینەوە(id).textContent = بەها(v); }
 function دانانی_بەروار(id,v){ دۆزینەوە(id).textContent = بەروار(v); }
 
 function ژمارە_لەگەڵ_یەکە(v,unit){
-  if(v === null || v === undefined || v === "") return "بەردەست نییە";
+  if(v === null || v === undefined || v === "") return currentLang === "en" ? "Not available" : "بەردەست نییە";
   const n = Number(v);
   if(Number.isNaN(n)) return String(v);
   return n.toLocaleString("en-GB") + unit;
@@ -1009,10 +954,10 @@ function هەڵسەنگاندن(summary,s){
 
   score = Math.max(10,Math.min(95,Math.round(score)));
 
-  let text = "پێویستی بە پشکنینی زیاتر هەیە";
+  let text = currentLang === "en" ? "Needs further checking" : "پێویستی بە پشکنینی زیاتر هەیە";
   let colour = "#f7c76d";
-  if(score >= 80){ text = "دۆخی باش پیشان دەدات"; colour = "#5dd39e"; }
-  if(score < 55){ text = "بە وریاییەوە بپشکنە"; colour = "#ff7070"; }
+  if(score >= 80){ text = currentLang === "en" ? "Shows a good overall condition" : "دۆخی باش پیشان دەدات"; colour = "#5dd39e"; }
+  if(score < 55){ text = currentLang === "en" ? "Check carefully" : "بە وریاییەوە بپشکنە"; colour = "#ff7070"; }
 
   دۆزینەوە("نمرە").textContent = score;
   دۆزینەوە("دەقی_هەڵسەنگاندن").textContent = text;
@@ -1033,7 +978,7 @@ async function خەمڵاندنی_AI(d){
   const resultBox = دۆزینەوە("AI_ئەنجام");
 
   loading.style.display = "block";
-  loading.textContent = "AI نرخی ئۆتۆمبێلەکە خەمڵێنێت...";
+  loading.textContent = currentLang === "en" ? "AI is estimating the vehicle value..." : "AI نرخی ئۆتۆمبێلەکە خەمڵێنێت...";
   resultBox.style.display = "none";
 
   try{
@@ -1063,7 +1008,8 @@ async function خەمڵاندنی_AI(d){
         conditionBand:d.summary?.conditionBand ?? null,
         maintenanceBand:d.summary?.maintenanceBand ?? null,
         mileageAnomalyRisk:d.summary?.mileageAnomalyRisk ?? null,
-        buyRecommendation:d.summary?.buyRecommendation ?? null
+        buyRecommendation:d.summary?.buyRecommendation ?? null,
+        language:currentLang
       })
     });
 
@@ -1079,7 +1025,7 @@ async function خەمڵاندنی_AI(d){
     };
 
     دۆزینەوە("AI_نرخی_تایبەت").textContent = range(v.privateSaleLowGbp, v.privateSaleHighGbp);
-دۆزینەوە("AI_هۆکار").textContent = v.reasonSorani || "AI خەمڵاندنێکی نزیکەیی بۆ نرخەکە کردووە.";
+دۆزینەوە("AI_هۆکار").textContent = v.reasonSorani || (currentLang === "en" ? "AI produced an approximate selling-price estimate." : "AI خەمڵاندنێکی نزیکەیی بۆ نرخەکە کردووە.");
 
     loading.style.display = "none";
     resultBox.style.display = "block";
@@ -1092,15 +1038,15 @@ async function پشکنین(){
   const vrm = دۆزینەوە("ژمارە").value.toUpperCase().replace(/[^A-Z0-9]/g,"");
 
   if(vrm.length < 2){
-    alert("تکایە ژمارەی تۆماری دروست بنووسە.");
+    alert(currentLang === "en" ? "Please enter a valid registration." : "تکایە ژمارەی تۆماری دروست بنووسە.");
     return;
   }
 
   دۆزینەوە("دوگمە").disabled = true;
-  دۆزینەوە("دوگمە").textContent = "لە پشکنین دایە...";
+  دۆزینەوە("دوگمە").textContent = currentLang === "en" ? "Checking..." : "لە پشکنین دایە...";
   دۆزینەوە("پەیام").className = "message";
   دۆزینەوە("پەیام").style.display = "block";
-  دۆزینەوە("پەیام").textContent = "زانیاری ڕاستەوخۆ وەردەگیرێت...";
+  دۆزینەوە("پەیام").textContent = currentLang === "en" ? "Retrieving live vehicle information..." : "زانیاری ڕاستەوخۆ وەردەگیرێت...";
   دۆزینەوە("ڕاپۆرت").style.display = "none";
 
   try{
@@ -1112,7 +1058,7 @@ async function پشکنین(){
 
     const result = await response.json();
     if(!response.ok || !result.ok){
-      throw new Error(result.error || "پشکنینی ئۆتۆمبێل سەرکەوتوو نەبوو.");
+      throw new Error(result.error || (currentLang === "en" ? "Vehicle check failed." : "پشکنینی ئۆتۆمبێل سەرکەوتوو نەبوو."));
     }
 
     const d = result.data || {};
@@ -1138,7 +1084,7 @@ async function پشکنین(){
     دانان("ساڵ",d.yearOfManufacture);
     دۆزینەوە("تەمەن").textContent =
       d.vehicleAgeYears !== null && d.vehicleAgeYears !== undefined
-      ? d.vehicleAgeYears+" ساڵ" : "بەردەست نییە";
+      ? d.vehicleAgeYears + (currentLang === "en" ? " years" : " ساڵ") : (currentLang === "en" ? "Not available" : "بەردەست نییە");
     دانان("یەکەم_تۆمار",d.monthOfFirstRegistration);
 
     دانانی_بەروار("V5C",وەرگرتن(d,[
@@ -1166,12 +1112,12 @@ async function پشکنین(){
 
     دۆزینەوە("مایلیج").textContent =
       s.latestOdometerMiles !== null && s.latestOdometerMiles !== undefined
-      ? Number(s.latestOdometerMiles).toLocaleString("en-GB")+" مایل" : "بەردەست نییە";
+      ? Number(s.latestOdometerMiles).toLocaleString("en-GB") + (currentLang === "en" ? " miles" : " مایل") : (currentLang === "en" ? "Not available" : "بەردەست نییە");
 
     دۆزینەوە("مایلیج_ساڵانە").textContent =
       ژمارە_لەگەڵ_یەکە(
         وەرگرتن(d,["signals.typicalAnnualMileageMiles","signals.typicalAnnualMileage","signals.annualMileage","summary.typicalAnnualMileage"]),
-        " مایل/ساڵ"
+        (currentLang === "en" ? " miles/year" : " مایل/ساڵ")
       );
 
     دانان("ڕەوتی_مایلیج",s.odometerTrend);
@@ -1210,7 +1156,7 @@ async function پشکنین(){
     if(Array.isArray(clusters) && clusters.length){
       دۆزینەوە("کێشە_دووبارە").innerHTML = clusters.map(item=>{
         if(typeof item==="string"){
-          return '<div class="row"><span class="label">جۆری کێشە</span><span class="value">'+پاراستنی_دەق(item)+'</span></div>';
+          return '<div class="row"><span class="label">'+(currentLang === "en" ? "Issue type" : "جۆری کێشە")+'</span><span class="value">'+پاراستنی_دەق(وەرگێڕانی_بەها(item))+'</span></div>';
         }
         const name = item.category || item.name || item.type || "کێشە";
         const count = item.count ?? item.total ?? item.occurrences ?? "—";
@@ -1218,7 +1164,7 @@ async function پشکنین(){
       }).join("");
     }else{
       دۆزینەوە("کێشە_دووبارە").innerHTML =
-        '<div class="muted">هیچ زانیارییەکی زیاتر بۆ کێشە دووبارەبووەکان بەردەست نییە.</div>';
+        '<div class="muted">'+(currentLang === "en" ? "No additional recurring-issue information is available." : "هیچ زانیارییەکی زیاتر بۆ کێشە دووبارەبووەکان بەردەست نییە.")+'</div>';
     }
 
     const motDetails = وەرگرتن(d,["motHistory","mot_history","signals.motHistory","motTests"]);
@@ -1234,15 +1180,15 @@ async function پشکنین(){
         }).join("") : "";
 
         return '<div class="mot-item">'+
-          '<div class="row"><span class="label">بەروار</span><span class="value">'+پاراستنی_دەق(بەروار(testDate))+'</span></div>'+
-          '<div class="row"><span class="label">ئەنجام</span><span class="value">'+پاراستنی_دەق(وەرگێڕانی_بەها(resultText))+'</span></div>'+
-          '<div class="row"><span class="label">مایلیج</span><span class="value">'+
-          (mileageVal !== null ? Number(mileageVal).toLocaleString("en-GB")+" مایل" : "بەردەست نییە")+
+          '<div class="row"><span class="label">'+(currentLang === "en" ? "Date" : "بەروار")+'</span><span class="value">'+پاراستنی_دەق(بەروار(testDate))+'</span></div>'+
+          '<div class="row"><span class="label">'+(currentLang === "en" ? "Result" : "ئەنجام")+'</span><span class="value">'+پاراستنی_دەق(وەرگێڕانی_بەها(resultText))+'</span></div>'+
+          '<div class="row"><span class="label">'+(currentLang === "en" ? "Mileage" : "مایلیج")+'</span><span class="value">'+
+          (mileageVal !== null ? Number(mileageVal).toLocaleString("en-GB") + (currentLang === "en" ? " miles" : " مایل") : (currentLang === "en" ? "Not available" : "بەردەست نییە"))+
           '</span></div>'+notesHtml+'</div>';
       }).join("");
     }else{
       دۆزینەوە("مێژووی_MOT").innerHTML =
-        '<div class="muted">سەرچاوەی داتا مێژووی تەواوی هەر MOT بە جیاوازی بۆ ئەم ئۆتۆمبێلە نەگەڕاندووەتەوە.</div>';
+        '<div class="muted">'+(currentLang === "en" ? "The data source did not return a full test-by-test MOT history for this vehicle." : "سەرچاوەی داتا مێژووی تەواوی هەر MOT بە جیاوازی بۆ ئەم ئۆتۆمبێلە نەگەڕاندووەتەوە.")+'</div>';
     }
 
     خەمڵاندنی_AI(d);
@@ -1256,7 +1202,7 @@ async function پشکنین(){
     دۆزینەوە("پەیام").textContent = error.message;
   }finally{
     دۆزینەوە("دوگمە").disabled = false;
-    دۆزینەوە("دوگمە").textContent = "پشکنینی ئۆتۆمبێل";
+    دۆزینەوە("دوگمە").textContent = currentLang === "en" ? "Check vehicle" : "پشکنینی ئۆتۆمبێل";
   }
 }
 
@@ -1354,7 +1300,7 @@ Rules:
 - If trim/spec/service history is missing, use a wider range.
 - Return GBP amounts as whole-number integers.
 - Estimate only the likely private-sale price range.
-- Write the explanation in Kurdish Sorani.
+- If vehicle details contain "language":"en", write the explanation in English. Otherwise write it in Kurdish Sorani.
 - Return ONLY valid JSON in exactly this structure:
 
 {
