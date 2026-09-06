@@ -6,6 +6,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 const ZYFY_API_KEY = process.env.ZYFY_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 app.use(express.json());
 
@@ -221,6 +222,45 @@ body{
 .mot-item:last-child{border-bottom:0}
 .small{font-size:12px;color:#a8afb8;line-height:1.6}
 
+
+.valuation-card{
+  grid-column:1/-1;
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 85% 15%,rgba(244,217,154,.13),transparent 30%),
+    linear-gradient(145deg,rgba(27,25,20,.98),rgba(13,15,18,.98));
+  border:1px solid rgba(215,179,106,.30);
+}
+.valuation-card::before{
+  content:"AI";
+  position:absolute;
+  left:-8px;
+  top:-15px;
+  font-size:95px;
+  font-weight:900;
+  color:rgba(215,179,106,.035);
+  direction:ltr;
+}
+.value-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+  margin-top:12px;
+}
+.value-box{
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:14px;
+  padding:16px;
+  text-align:center;
+}
+.value-box small{display:block;color:var(--muted);margin-bottom:8px}
+.value-box strong{display:block;direction:ltr;color:var(--gold2);font-size:21px}
+.ai-reason{margin-top:14px;color:#c7cbd1;line-height:1.75;font-size:13px}
+.ai-loading{color:var(--gold2);padding:8px 0}
+@media(max-width:640px){.value-grid{grid-template-columns:1fr}}
+
 footer{
   border-top:1px solid rgba(255,255,255,.05);
   text-align:center;color:#717984;font-size:12px;padding:28px 22px 40px
@@ -409,7 +449,37 @@ footer{
         </div>
       </div>
 
-      <div class="card full">
+      
+      <div class="card valuation-card">
+        <h3><span class="icon">💎</span> خەمڵاندنی نرخی ئۆتۆمبێل بە AI</h3>
+        <div id="AI_بارکردن" class="ai-loading">دوای پشکنینی ئۆتۆمبێل، AI نرخەکە خەمڵێنێت...</div>
+
+        <div id="AI_ئەنجام" style="display:none">
+          <div class="value-grid">
+            <div class="value-box">
+              <small>فرۆشتنی تایبەت</small>
+              <strong id="AI_نرخی_تایبەت">—</strong>
+            </div>
+            <div class="value-box">
+              <small>نرخی فرۆشیار</small>
+              <strong id="AI_نرخی_فرۆشیار">—</strong>
+            </div>
+            <div class="value-box">
+              <small>بەدڵگۆڕکێ / Part-exchange</small>
+              <strong id="AI_نرخی_گۆڕینەوە">—</strong>
+            </div>
+          </div>
+
+          <div id="AI_هۆکار" class="ai-reason"></div>
+
+          <div class="note">
+            ئەمە خەمڵاندنێکی AI ـە، نە نرخی فەرمی یان دڵنیای بازاڕ.
+            نرخی ڕاستەقینە دەتوانێت بە پێی مۆدێل، سپێک، دۆخ، شوێن و بازاڕ جیاواز بێت.
+          </div>
+        </div>
+      </div>
+
+<div class="card full">
         <h3><span class="icon">🛠️</span> کێشە دووبارەبووەکانی MOT</h3>
         <div id="کێشە_دووبارە"></div>
       </div>
@@ -428,11 +498,147 @@ footer{
 <script>
 const دۆزینەوە = id => document.getElementById(id);
 
-function بەها(v){
+function وەرگێڕانی_بەها(v){
   if(v === null || v === undefined || v === "") return "بەردەست نییە";
   if(v === true) return "بەڵێ";
   if(v === false) return "نەخێر";
-  return String(v);
+
+  const raw = String(v).trim();
+  const key = raw.toLowerCase().replace(/[\s-]+/g,"_");
+
+  const map = {
+    // Fuel
+    petrol:"بەنزین",
+    diesel:"دیزڵ",
+    electric:"کارەبایی",
+    hybrid:"هایبرێد",
+    phev:"هایبرێدی شەحنکراو",
+    lpg:"گازی LPG",
+    cng:"گازی CNG",
+
+    // Vehicle type
+    car:"ئۆتۆمبێل",
+    motorcycle:"ماتۆڕ",
+    van:"ڤان",
+    truck:"لۆری",
+    bus:"پاس",
+
+    // General status
+    valid:"دروستە",
+    expired:"بەسەرچووە",
+    pass:"سەرکەوتوو",
+    passed:"سەرکەوتوو",
+    fail:"شکستی هێنا",
+    failed:"شکستی هێنا",
+    taxed:"باجی دراوە",
+    untaxed:"باجی نەدراوە",
+    sorn:"SORN کراوە",
+    compliant:"گونجاوە",
+    non_compliant:"گونجاو نییە",
+    unknown:"نادیارە",
+    unavailable:"بەردەست نییە",
+
+    // Risk
+    low:"نزم",
+    medium:"مامناوەند",
+    high:"بەرز",
+    very_low:"زۆر نزم",
+    very_high:"زۆر بەرز",
+    none:"هیچ",
+    possible:"ئەگەری هەیە",
+    possible_clocking:"ئەگەری دەستکاری مایلیج هەیە",
+
+    // Condition / maintenance
+    excellent:"زۆر باش",
+    very_good:"زۆر باش",
+    good:"باش",
+    fair:"مامناوەند",
+    poor:"لاواز",
+    very_poor:"زۆر لاواز",
+    average:"ناوەند",
+    above_average:"لە ناوەند زیاتر",
+    below_average:"لە ناوەند کەمتر",
+
+    // Buying recommendation
+    buy:"باشە بۆ کڕین",
+    consider:"بە وردی بپشکنە",
+    caution:"بە وریاییەوە",
+    avoid:"باشترە نەیکڕیت",
+    recommended:"پێشنیار دەکرێت",
+    not_recommended:"پێشنیار ناکرێت",
+
+    // Mileage / odometer
+    consistent:"ئاسایی و یەکسان",
+    inconsistent:"نایەکسان",
+    increasing:"زیاد دەبێت",
+    decreasing:"کەم دەبێت",
+    stable:"جێگیرە",
+    anomaly:"نائاساییە",
+    no_anomaly:"هیچ نائاساییەک نییە",
+
+    // Boolean-ish strings
+    yes:"بەڵێ",
+    no:"نەخێر",
+    true:"بەڵێ",
+    false:"نەخێر",
+
+    // Common MOT/admin terms
+    advisory:"تێبینی",
+    advisories:"تێبینییەکان",
+    dangerous:"مەترسیدار",
+    major:"گەورە",
+    minor:"بچووک",
+    recall:"بانگهێشتی چاککردنەوە",
+    outstanding_recall:"بانگهێشتی چاککردنەوە هەیە",
+    marked_for_export:"بۆ هەناردە نیشان کراوە",
+
+    // Common MOT issue categories
+    suspension:"سیستەمی سەسپێنشن",
+    tyres:"تایەرەکان",
+    tyre:"تایەر",
+    lights:"چراغەکان",
+    light:"چراغ",
+    bodywork:"لاشی ئۆتۆمبێل",
+    exhaust:"ئەگزۆز",
+    brakes:"برێکەکان",
+    brake:"برێک",
+    steering:"فەرمان",
+    visibility:"بینین",
+    windscreen:"شوشەی پێشەوە",
+    wipers:"وایپەرەکان",
+    washers:"شوشتنەوەی شوشە",
+    seatbelts:"کەمەربەندی سەلامەتی",
+    seats:"کورسییەکان",
+    doors:"دەرگاکان",
+    mirrors:"ئاوێنەکان",
+    horn:"هۆرن",
+    registration_plate:"تابلۆی ژمارە",
+    emissions:"دەرچوونی گاز",
+    fuel_system:"سیستەمی سووتەمەنی",
+    electrical:"سیستەمی کارەبایی",
+    engine:"ئەنجن",
+    chassis:"شاسی",
+    corrosion:"گەنین / زەنگ",
+    structure:"پێکهاتەی لاشە"
+  };
+
+  if(map[key]) return map[key];
+
+  // Translate a few compound API values automatically.
+  if(key.includes("above_average")) return "لە ناوەند زیاتر";
+  if(key.includes("below_average")) return "لە ناوەند کەمتر";
+  if(key.includes("consistent")) return "ئاسایی و یەکسان";
+  if(key.includes("inconsistent")) return "نایەکسان";
+  if(key.includes("valid")) return "دروستە";
+  if(key.includes("expired")) return "بەسەرچووە";
+  if(key.includes("taxed")) return "باجی دراوە";
+  if(key.includes("untaxed")) return "باجی نەدراوە";
+
+  return raw;
+}
+
+function بەها(v){
+  return وەرگێڕانی_بەها(v);
 }
 
 function بەروار(v){
@@ -523,6 +729,75 @@ function هەڵسەنگاندن(summary,s){
   دۆزینەوە("دەقی_هەڵسەنگاندن").style.color = colour;
   دۆزینەوە("دایرەی_هەڵسەنگاندن").style.background =
     "conic-gradient("+colour+" 0 "+score+"%,#272c33 "+score+"% 100%)";
+}
+
+
+function پۆند(v){
+  const n = Number(v);
+  if(!Number.isFinite(n)) return "—";
+  return "£" + Math.round(n).toLocaleString("en-GB");
+}
+
+async function خەمڵاندنی_AI(d){
+  const loading = دۆزینەوە("AI_بارکردن");
+  const resultBox = دۆزینەوە("AI_ئەنجام");
+
+  loading.style.display = "block";
+  loading.textContent = "AI نرخی ئۆتۆمبێلەکە خەمڵێنێت...";
+  resultBox.style.display = "none";
+
+  try{
+    const response = await fetch("/api/value",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        registration:d.registration || d.registrationNumber || d.vrm || null,
+        make:d.make || null,
+        model:d.model || null,
+        yearOfManufacture:d.yearOfManufacture || null,
+        monthOfFirstRegistration:d.monthOfFirstRegistration || null,
+        vehicleAgeYears:d.vehicleAgeYears || null,
+        fuelType:d.fuelType || null,
+        engineCapacityCc:d.engineCapacityCc || null,
+        colour:d.colour || null,
+        latestOdometerMiles:d.signals?.latestOdometerMiles ?? null,
+        typicalAnnualMileageMiles:d.signals?.typicalAnnualMileageMiles ?? d.signals?.typicalAnnualMileage ?? null,
+        motPassRate:d.signals?.motPassRate ?? null,
+        totalMotTests:d.signals?.totalMotTests ?? null,
+        totalMotFailures:d.signals?.totalMotFailures ?? null,
+        totalAdvisoryCount:d.signals?.totalAdvisoryCount ?? d.signals?.totalAdvisories ?? null,
+        latestAdvisoryCount:d.signals?.latestAdvisoryCount ?? d.signals?.latestMotAdvisoryCount ?? null,
+        odometerTrend:d.signals?.odometerTrend ?? null,
+        vehicleRiskLevel:d.summary?.vehicleRiskLevel ?? null,
+        motRiskLevel:d.summary?.motRiskLevel ?? null,
+        conditionBand:d.summary?.conditionBand ?? null,
+        maintenanceBand:d.summary?.maintenanceBand ?? null,
+        mileageAnomalyRisk:d.summary?.mileageAnomalyRisk ?? null,
+        buyRecommendation:d.summary?.buyRecommendation ?? null
+      })
+    });
+
+    const result = await response.json();
+    if(!response.ok || !result.ok){
+      throw new Error(result.error || "AI valuation failed");
+    }
+
+    const v = result.valuation || {};
+    const range = (a,b) => {
+      if(a === null || a === undefined || b === null || b === undefined) return "—";
+      return پۆند(a) + " – " + پۆند(b);
+    };
+
+    دۆزینەوە("AI_نرخی_تایبەت").textContent = range(v.privateSaleLowGbp, v.privateSaleHighGbp);
+    دۆزینەوە("AI_نرخی_فرۆشیار").textContent = range(v.dealerRetailLowGbp, v.dealerRetailHighGbp);
+    دۆزینەوە("AI_نرخی_گۆڕینەوە").textContent = range(v.partExchangeLowGbp, v.partExchangeHighGbp);
+    دۆزینەوە("AI_هۆکار").textContent = v.reasonSorani || "AI خەمڵاندنێکی نزیکەیی بۆ نرخەکە کردووە.";
+
+    loading.style.display = "none";
+    resultBox.style.display = "block";
+  }catch(error){
+    loading.textContent = "خەمڵاندنی AI لەم کاتەدا بەردەست نییە.";
+  }
 }
 
 async function پشکنین(){
@@ -651,7 +926,7 @@ async function پشکنین(){
         }
         const name = item.category || item.name || item.type || "کێشە";
         const count = item.count ?? item.total ?? item.occurrences ?? "—";
-        return '<div class="row"><span class="label">'+پاراستنی_دەق(name)+'</span><span class="value">'+پاراستنی_دەق(count)+'</span></div>';
+        return '<div class="row"><span class="label">'+پاراستنی_دەق(وەرگێڕانی_بەها(name))+'</span><span class="value">'+پاراستنی_دەق(count)+'</span></div>';
       }).join("");
     }else{
       دۆزینەوە("کێشە_دووبارە").innerHTML =
@@ -672,7 +947,7 @@ async function پشکنین(){
 
         return '<div class="mot-item">'+
           '<div class="row"><span class="label">بەروار</span><span class="value">'+پاراستنی_دەق(بەروار(testDate))+'</span></div>'+
-          '<div class="row"><span class="label">ئەنجام</span><span class="value">'+پاراستنی_دەق(resultText)+'</span></div>'+
+          '<div class="row"><span class="label">ئەنجام</span><span class="value">'+پاراستنی_دەق(وەرگێڕانی_بەها(resultText))+'</span></div>'+
           '<div class="row"><span class="label">مایلیج</span><span class="value">'+
           (mileageVal !== null ? Number(mileageVal).toLocaleString("en-GB")+" مایل" : "بەردەست نییە")+
           '</span></div>'+notesHtml+'</div>';
@@ -681,6 +956,8 @@ async function پشکنین(){
       دۆزینەوە("مێژووی_MOT").innerHTML =
         '<div class="muted">سەرچاوەی داتا مێژووی تەواوی هەر MOT بە جیاوازی بۆ ئەم ئۆتۆمبێلە نەگەڕاندووەتەوە.</div>';
     }
+
+    خەمڵاندنی_AI(d);
 
     دۆزینەوە("پەیام").style.display = "none";
     دۆزینەوە("ڕاپۆرت").style.display = "block";
@@ -763,6 +1040,131 @@ app.post("/api/check", async (req, res) => {
     return res.status(500).json({
       ok:false,
       error:"نەتوانرا پەیوەندی بە سەرچاوەی زانیاری بکرێت."
+    });
+  }
+});
+
+
+app.post("/api/value", async (req, res) => {
+  if (!GEMINI_API_KEY) {
+    return res.status(500).json({
+      ok:false,
+      error:"GEMINI_API_KEY لە Render دانەنراوە."
+    });
+  }
+
+  const car = req.body || {};
+
+  const prompt = `
+Estimate the value of this used vehicle in the United Kingdom.
+
+Rules:
+- This is an approximate AI estimate only, not a professional valuation.
+- Do not claim access to live Auto Trader, CAP, Glass's, auction or dealer sales data.
+- Use the supplied vehicle details plus general UK used-car market knowledge.
+- Be conservative.
+- If trim/spec/service history is missing, use a wider range.
+- Return GBP amounts as whole-number integers.
+- Dealer retail should normally be higher than private sale.
+- Part-exchange should normally be lower than private sale.
+- Write the explanation in Kurdish Sorani.
+- Return ONLY valid JSON in exactly this structure:
+
+{
+  "privateSaleLowGbp": 0,
+  "privateSaleHighGbp": 0,
+  "dealerRetailLowGbp": 0,
+  "dealerRetailHighGbp": 0,
+  "partExchangeLowGbp": 0,
+  "partExchangeHighGbp": 0,
+  "confidence": "low|medium|high",
+  "reasonSorani": "..."
+}
+
+Vehicle details:
+${JSON.stringify(car, null, 2)}
+`;
+
+  try {
+    const response = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent",
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "x-goog-api-key":GEMINI_API_KEY
+        },
+        body:JSON.stringify({
+          contents:[{
+            role:"user",
+            parts:[{text:prompt}]
+          }],
+          generationConfig:{
+            responseMimeType:"application/json",
+            maxOutputTokens:700
+          }
+        })
+      }
+    );
+
+    const raw = await response.text();
+    let data = null;
+    try{ data = JSON.parse(raw); }catch{}
+
+    if(!response.ok){
+      console.error("Gemini API error:", raw);
+      return res.status(response.status).json({
+        ok:false,
+        error:"Gemini نەتوانی نرخەکە بخەمڵێنێت."
+      });
+    }
+
+    const modelText =
+      data?.candidates?.[0]?.content?.parts
+        ?.map(p => p?.text || "")
+        .join("")
+        .trim();
+
+    if(!modelText){
+      return res.status(502).json({
+        ok:false,
+        error:"وەڵامێکی دروست لە Gemini وەرنەگیرا."
+      });
+    }
+
+    let valuation;
+    try{
+      valuation = JSON.parse(modelText);
+    }catch{
+      const cleaned = modelText
+        .replace(/^```json\s*/i,"")
+        .replace(/^```\s*/,"")
+        .replace(/```$/,"")
+        .trim();
+      valuation = JSON.parse(cleaned);
+    }
+
+    const fields = [
+      "privateSaleLowGbp",
+      "privateSaleHighGbp",
+      "dealerRetailLowGbp",
+      "dealerRetailHighGbp",
+      "partExchangeLowGbp",
+      "partExchangeHighGbp"
+    ];
+
+    for(const field of fields){
+      const n = Number(valuation[field]);
+      valuation[field] = Number.isFinite(n) ? Math.max(0, Math.round(n)) : null;
+    }
+
+    return res.json({ ok:true, valuation });
+
+  } catch (error) {
+    console.error("Gemini valuation error:", error);
+    return res.status(500).json({
+      ok:false,
+      error:"هەڵەیەک لە خەمڵاندنی نرخی AI ڕوویدا."
     });
   }
 });
