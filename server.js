@@ -441,13 +441,18 @@ footer{
     <h2>زمان هەڵبژێرە</h2>
     <p>زمانەکەت هەڵبژێرە</p>
 
-    <button class="language-choice default" onclick="setLanguage('ckb')">
-      کوردی سۆرانی
-    </button>
-
-    <button class="language-choice" onclick="setLanguage('en')">
-      English
-    </button>
+    <button type="button" onclick="setLanguage('ckb')">کوردی سۆرانی</button>
+      <button type="button" onclick="setLanguage('en')">English</button>
+      <button type="button" onclick="setLanguage('ar')">العربية</button>
+      <button type="button" onclick="setLanguage('fa')">فارسی</button>
+      <button type="button" onclick="setLanguage('tr')">Türkçe</button>
+      <button type="button" onclick="setLanguage('fr')">Français</button>
+      <button type="button" onclick="setLanguage('de')">Deutsch</button>
+      <button type="button" onclick="setLanguage('es')">Español</button>
+      <button type="button" onclick="setLanguage('ro')">Română</button>
+      <button type="button" onclick="setLanguage('pl')">Polski</button>
+      <button type="button" onclick="setLanguage('ur')">اردو</button>
+      <button type="button" onclick="setLanguage('ps')">پښتو</button>
 
     <div class="language-note">کوردی سۆرانی زمانی بنەڕەتییە</div>
   </div>
@@ -868,10 +873,11 @@ function translateElementTree(root=document.body){
   if(input) input.placeholder = "AB12 CDE";
 
   const switcher = document.getElementById("languageSwitch");
-  if(switcher) switcher.textContent = "🌐 Language";
+  if(switcher) switcher.textContent = "🌐 " + (LANGUAGE_NAMES[currentLang] || "Language");
 }
 
 function applyLanguage(){
+  applyLanguageDirection();
   if(currentLang === "en"){
     translateElementTree(document.body);
   }else{
@@ -879,12 +885,196 @@ function applyLanguage(){
     document.documentElement.dir = "rtl";
     document.body.dir = "rtl";
     const switcher = document.getElementById("languageSwitch");
-    if(switcher) switcher.textContent = "🌐 زمان";
+    if(switcher) switcher.textContent = "🌐 " + (LANGUAGE_NAMES[currentLang] || "زمان");
   }
 }
 
+const AR_TRANSLATIONS = {
+  "زمان":"اللغة",
+  "زمانەکەت هەڵبژێرە":"اختر لغتك",
+  "کوردی سۆرانی":"الكردية السورانية",
+  "ئینگلیزی":"الإنجليزية",
+  "پشکنینی زیرەکی ئۆتۆمبێل":"فحص ذكي للمركبة",
+  "پێش کڕین،":"افحص قبل",
+  "دڵنیابەوە.":"الشراء.",
+  "پشکنینی ئۆتۆمبێل":"فحص المركبة",
+  "ژمارەی تۆمار":"رقم التسجيل",
+  "تێچووی سووتەمەنی":"تكلفة الوقود",
+  "ڕێنمای نرخی بازاڕ":"دليل سعر السوق",
+  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"فحص منطقة الهواء النظيف للديزل",
+  "پارەی ناوچەی هەوای پاک بدە":"دفع رسوم منطقة الهواء النظيف"
+};
+
+const FA_TRANSLATIONS = {
+  "زمان":"زبان",
+  "زمانەکەت هەڵبژێرە":"زبان خود را انتخاب کنید",
+  "کوردی سۆرانی":"کردی سورانی",
+  "ئینگلیزی":"انگلیسی",
+  "پشکنینی زیرەکی ئۆتۆمبێل":"بررسی هوشمند خودرو",
+  "پێش کڕین،":"قبل از خرید",
+  "دڵنیابەوە.":"بررسی کنید.",
+  "پشکنینی ئۆتۆمبێل":"بررسی خودرو",
+  "ژمارەی تۆمار":"شماره ثبت",
+  "تێچووی سووتەمەنی":"هزینه سوخت",
+  "ڕێنمای نرخی بازاڕ":"راهنمای قیمت بازار",
+  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"بررسی منطقه هوای پاک برای دیزل",
+  "پارەی ناوچەی هەوای پاک بدە":"پرداخت هزینه منطقه هوای پاک"
+};
+
+const TR_TRANSLATIONS = {
+  "زمان":"Dil",
+  "زمانەکەت هەڵبژێرە":"Dilinizi seçin",
+  "کوردی سۆرانی":"Soranice Kürtçe",
+  "ئینگلیزی":"İngilizce",
+  "پشکنینی زیرەکی ئۆتۆمبێل":"Akıllı araç kontrolü",
+  "پێش کڕین،":"Satın almadan önce",
+  "دڵنیابەوە.":"kontrol edin.",
+  "پشکنینی ئۆتۆمبێل":"Aracı kontrol et",
+  "ژمارەی تۆمار":"Plaka",
+  "تێچووی سووتەمەنی":"Yakıt maliyeti",
+  "ڕێنمای نرخی بازاڕ":"Piyasa fiyat rehberi",
+  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"Dizel Temiz Hava Bölgesi kontrolü",
+  "پارەی ناوچەی هەوای پاک بدە":"Temiz Hava Bölgesi ücretini öde"
+};
+
+const FR_TRANSLATIONS = {
+  "زمان":"Langue",
+  "زمانەکەت هەڵبژێرە":"Choisissez votre langue",
+  "کوردی سۆرانی":"Kurde sorani",
+  "ئینگلیزی":"Anglais",
+  "پشکنینی زیرەکی ئۆتۆمبێل":"Contrôle intelligent du véhicule",
+  "پێش کڕین،":"Vérifiez avant",
+  "دڵنیابەوە.":"d'acheter.",
+  "پشکنینی ئۆتۆمبێل":"Vérifier le véhicule",
+  "ژمارەی تۆمار":"Immatriculation",
+  "تێچووی سووتەمەنی":"Coût du carburant",
+  "ڕێنمای نرخی بازاڕ":"Guide du prix du marché",
+  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"Vérification de zone à faibles émissions diesel",
+  "پارەی ناوچەی هەوای پاک بدە":"Payer la zone à faibles émissions"
+};
+
+const DE_TRANSLATIONS = {
+  "زمان":"Sprache",
+  "زمانەکەت هەڵبژێرە":"Sprache auswählen",
+  "کوردی سۆرانی":"Sorani-Kurdisch",
+  "ئینگلیزی":"Englisch",
+  "پشکنینی زیرەکی ئۆتۆمبێل":"Intelligenter Fahrzeugcheck",
+  "پێش کڕین،":"Vor dem Kauf",
+  "دڵنیابەوە.":"prüfen.",
+  "پشکنینی ئۆتۆمبێل":"Fahrzeug prüfen",
+  "ژمارەی تۆمار":"Kennzeichen",
+  "تێچووی سووتەمەنی":"Kraftstoffkosten",
+  "ڕێنمای نرخی بازاڕ":"Marktpreis-Leitfaden",
+  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"Diesel-Umweltzonenprüfung",
+  "پارەی ناوچەی هەوای پاک بدە":"Umweltzonen-Gebühr zahlen"
+};
+
+const ES_TRANSLATIONS = {
+  "زمان":"Idioma",
+  "زمانەکەت هەڵبژێرە":"Elige tu idioma",
+  "کوردی سۆرانی":"Kurdo sorani",
+  "ئینگلیزی":"Inglés",
+  "پشکنینی زیرەکی ئۆتۆمبێل":"Comprobación inteligente del vehículo",
+  "پێش کڕین،":"Comprueba antes",
+  "دڵنیابەوە.":"de comprar.",
+  "پشکنینی ئۆتۆمبێل":"Comprobar vehículo",
+  "ژمارەی تۆمار":"Matrícula",
+  "تێچووی سووتەمەنی":"Coste de combustible",
+  "ڕێنمای نرخی بازاڕ":"Guía de precio de mercado",
+  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"Comprobación de zona de aire limpio para diésel",
+  "پارەی ناوچەی هەوای پاک بدە":"Pagar cargo de zona de aire limpio"
+};
+
+const RO_TRANSLATIONS = {
+  "زمان":"Limbă",
+  "زمانەکەت هەڵبژێرە":"Alege limba",
+  "کوردی سۆرانی":"Kurdă sorani",
+  "ئینگلیزی":"Engleză",
+  "پشکنینی زیرەکی ئۆتۆمبێل":"Verificare inteligentă a vehiculului",
+  "پێش کڕین،":"Verifică înainte",
+  "دڵنیابەوە.":"să cumperi.",
+  "پشکنینی ئۆتۆمبێل":"Verifică vehiculul",
+  "ژمارەی تۆمار":"Număr de înmatriculare",
+  "تێچووی سووتەمەنی":"Cost combustibil",
+  "ڕێنمای نرخی بازاڕ":"Ghid de preț de piață",
+  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"Verificare zonă cu aer curat pentru diesel",
+  "پارەی ناوچەی هەوای پاک بدە":"Plătește taxa pentru zona cu aer curat"
+};
+
+const PL_TRANSLATIONS = {
+  "زمان":"Język",
+  "زمانەکەت هەڵبژێرە":"Wybierz język",
+  "کوردی سۆرانی":"Kurdyjski sorani",
+  "ئینگلیزی":"Angielski",
+  "پشکنینی زیرەکی ئۆتۆمبێل":"Inteligentne sprawdzenie pojazdu",
+  "پێش کڕین،":"Sprawdź przed",
+  "دڵنیابەوە.":"zakupem.",
+  "پشکنینی ئۆتۆمبێل":"Sprawdź pojazd",
+  "ژمارەی تۆمار":"Numer rejestracyjny",
+  "تێچووی سووتەمەنی":"Koszt paliwa",
+  "ڕێنمای نرخی بازاڕ":"Przewodnik cen rynkowych",
+  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"Sprawdzenie strefy czystego powietrza dla diesla",
+  "پارەی ناوچەی هەوای پاک بدە":"Zapłać opłatę za strefę czystego powietrza"
+};
+
+const UR_TRANSLATIONS = {
+  "زمان":"زبان",
+  "زمانەکەت هەڵبژێرە":"اپنی زبان منتخب کریں",
+  "کوردی سۆرانی":"سورانی کردی",
+  "ئینگلیزی":"انگریزی",
+  "پشکنینی زیرەکی ئۆتۆمبێل":"سمارٹ گاڑی چیک",
+  "پێش کڕین،":"خریدنے سے پہلے",
+  "دڵنیابەوە.":"چیک کریں۔",
+  "پشکنینی ئۆتۆمبێل":"گاڑی چیک کریں",
+  "ژمارەی تۆمار":"رجسٹریشن نمبر",
+  "تێچووی سووتەمەنی":"ایندھن کی لاگت",
+  "ڕێنمای نرخی بازاڕ":"مارکیٹ قیمت گائیڈ",
+  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"ڈیزل کلین ایئر زون چیک",
+  "پارەی ناوچەی هەوای پاک بدە":"کلین ایئر زون چارج ادا کریں"
+};
+
+const PS_TRANSLATIONS = {
+  "زمان":"ژبه",
+  "زمانەکەت هەڵبژێرە":"خپله ژبه وټاکئ",
+  "کوردی سۆرانی":"سوراني کردي",
+  "ئینگلیزی":"انګلیسي",
+  "پشکنینی زیرەکی ئۆتۆمبێل":"هوښیار د موټر چک",
+  "پێش کڕین،":"له اخیستو مخکې",
+  "دڵنیابەوە.":"چک یې کړئ.",
+  "پشکنینی ئۆتۆمبێل":"موټر چک کړئ",
+  "ژمارەی تۆمار":"د ثبت شمېره",
+  "تێچووی سووتەمەنی":"د سون توکو لګښت",
+  "ڕێنمای نرخی بازاڕ":"د بازار د بیې لارښود",
+  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"د ډیزل پاکې هوا سیمې چک",
+  "پارەی ناوچەی هەوای پاک بدە":"د پاکې هوا سیمې فیس ورکړئ"
+};
+
+
+const LANGUAGE_NAMES = {
+  ckb:"زمان",
+  en:"Language",
+  ar:"اللغة",
+  fa:"زبان",
+  tr:"Dil",
+  fr:"Langue",
+  de:"Sprache",
+  es:"Idioma",
+  ro:"Limbă",
+  pl:"Język",
+  ur:"زبان",
+  ps:"ژبه"
+};
+
+
+function applyLanguageDirection(){
+  const rtl = ["ckb","ar","fa","ur","ps"].includes(currentLang);
+  document.documentElement.lang = currentLang === "ckb" ? "ckb" : currentLang;
+  document.documentElement.dir = rtl ? "rtl" : "ltr";
+}
+
 function setLanguage(lang){
-  currentLang = lang === "en" ? "en" : "ckb";
+  const supported = ["ckb","en","ar","fa","tr","fr","de","es","ro","pl","ur","ps"];
+  currentLang = supported.includes(lang) ? lang : "ckb";
   localStorage.setItem("akar_language", currentLang);
   localStorage.setItem("akar_language_chosen", "1");
   location.reload();
