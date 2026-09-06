@@ -469,6 +469,21 @@ footer{
       </div>
     </div>
 
+
+
+
+      <div class="card fuel-cost-card">
+        <h3><span class="icon">⛽</span> <span>خەمڵاندنی تێچووی سووتەمەنی بە AI</span> <span style="margin-inline-start:auto;font-size:11px;color:var(--gold2);border:1px solid rgba(215,179,106,.35);padding:4px 8px;border-radius:999px">NEW</span></h3>
+        <div id="سووتەمەنی_AI_بارکردن" class="ai-loading">دوای پشکنینی ئۆتۆمبێل، AI MPG خەمڵێنێت...</div>
+        <div id="سووتەمەنی_AI_ئەنجام" style="display:none">
+          <div class="fuel-cost-grid">
+            <div class="fuel-cost-box"><small>MPG ـی خەمڵێنراو</small><strong id="سووتەمەنی_MPG">—</strong></div>
+            <div class="fuel-cost-box"><small>تێچووی 1 مایل</small><strong id="سووتەمەنی_1">—</strong></div>
+            <div class="fuel-cost-box"><small>تێچووی 100 مایل</small><strong id="سووتەمەنی_100">—</strong></div>
+            <div class="fuel-cost-box"><small>تێچووی 12,000 مایل</small><strong id="سووتەمەنی_12000">—</strong></div>
+          </div>
+          
+
     <div class="section-title">
       <h2>ڕاپۆرتی ئۆتۆمبێل</h2>
       <p>زانیارییەکان بە پێی ئەو داتایەی سەرچاوە بۆ ئەم ئۆتۆمبێلە دەگەڕێنێتەوە.</p>
@@ -566,19 +581,7 @@ footer{
           </div>
         </div>
       </div>
-
-
-      <div class="card fuel-cost-card">
-        <h3><span class="icon">⛽</span> <span>خەمڵاندنی تێچووی سووتەمەنی بە AI</span></h3>
-        <div id="سووتەمەنی_AI_بارکردن" class="ai-loading">دوای پشکنینی ئۆتۆمبێل، AI MPG خەمڵێنێت...</div>
-        <div id="سووتەمەنی_AI_ئەنجام" style="display:none">
-          <div class="fuel-cost-grid">
-            <div class="fuel-cost-box"><small>MPG ـی خەمڵێنراو</small><strong id="سووتەمەنی_MPG">—</strong></div>
-            <div class="fuel-cost-box"><small>تێچووی 1 مایل</small><strong id="سووتەمەنی_1">—</strong></div>
-            <div class="fuel-cost-box"><small>تێچووی 100 مایل</small><strong id="سووتەمەنی_100">—</strong></div>
-            <div class="fuel-cost-box"><small>تێچووی 12,000 مایل</small><strong id="سووتەمەنی_12000">—</strong></div>
-          </div>
-          <div class="fuel-meta">
+<div class="fuel-meta">
             <div id="سووتەمەنی_نرخ" class="fuel-pill">—</div>
             <div id="سووتەمەنی_دڵنیایی" class="fuel-pill">—</div>
           </div>
@@ -601,7 +604,7 @@ footer{
   </section>
 </main>
 
-<footer>© 2026 Akar's Car Check</footer>
+<footer>© 2026 Akar's Car Check · Fuel Cost v2</footer>
 
 <script>
 
