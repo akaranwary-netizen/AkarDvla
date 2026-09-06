@@ -1085,7 +1085,7 @@ Vehicle details:
 ${JSON.stringify(car, null, 2)}
 `;
 
-  const models = ["gemini-2.5-flash", "gemini-2.5-flash-lite"];
+  const models = ["gemini-3.5-flash-lite", "gemini-3.5-flash"];
   let lastError = "هەڵەی نەناسراو";
 
   for (const model of models) {
