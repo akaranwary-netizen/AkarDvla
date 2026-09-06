@@ -123,6 +123,21 @@ button:disabled{opacity:.6}
   text-align:center;
 }
 .دوگمەی_بیمە:hover{opacity:.92}
+.دوگمەی_کار{
+  display:block;
+  max-width:720px;
+  margin:10px auto 0;
+  color:#fff;
+  text-decoration:none;
+  padding:16px 20px;
+  border-radius:10px;
+  font-size:17px;
+  font-weight:800;
+  text-align:center;
+}
+.دوگمەی_باج{background:#1769e0}
+.دوگمەی_فرۆشتن{background:#7a3db8}
+.دوگمەی_کار:hover{opacity:.92}
 .تێبینی_بیمە{
   max-width:720px;
   margin:8px auto 0;
@@ -277,6 +292,24 @@ footer{
   <div class="تێبینی_بیمە">
     بۆ پشکنینی بیمەی ئۆتۆمبێلی خۆت یان ئۆتۆمبێلێک کە مافی یاسایی شۆفێرکردنی هەیە.
   </div>
+
+  <a
+    class="دوگمەی_کار دوگمەی_باج"
+    href="https://www.gov.uk/vehicle-tax"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    💷 باجی ڕێگاوبان بدە
+  </a>
+
+  <a
+    class="دوگمەی_کار دوگمەی_فرۆشتن"
+    href="https://www.gov.uk/sold-bought-vehicle"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    🚗 لۆگ بووک بگۆڕە
+  </a>
 </section>
 
 <main class="ناوەڕۆک">
