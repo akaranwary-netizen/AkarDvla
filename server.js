@@ -223,43 +223,6 @@ body{
 .small{font-size:12px;color:#a8afb8;line-height:1.6}
 
 
-.valuation-card{
-  grid-column:1/-1;
-  position:relative;
-  overflow:hidden;
-  background:
-    radial-gradient(circle at 85% 15%,rgba(244,217,154,.13),transparent 30%),
-    linear-gradient(145deg,rgba(27,25,20,.98),rgba(13,15,18,.98));
-  border:1px solid rgba(215,179,106,.30);
-}
-.valuation-card::before{
-  content:"AI";
-  position:absolute;
-  left:-8px;
-  top:-15px;
-  font-size:95px;
-  font-weight:900;
-  color:rgba(215,179,106,.035);
-  direction:ltr;
-}
-.value-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:12px;
-  margin-top:12px;
-}
-.value-box{
-  background:rgba(255,255,255,.035);
-  border:1px solid rgba(255,255,255,.07);
-  border-radius:14px;
-  padding:16px;
-  text-align:center;
-}
-.value-box small{display:block;color:var(--muted);margin-bottom:8px}
-.value-box strong{display:block;direction:ltr;color:var(--gold2);font-size:21px}
-.ai-reason{margin-top:14px;color:#c7cbd1;line-height:1.75;font-size:13px}
-.ai-loading{color:var(--gold2);padding:8px 0}
-@media(max-width:640px){.value-grid{grid-template-columns:1fr}}
 
 
 
@@ -619,21 +582,7 @@ footer{
           ئەگەر خانەیەک بەردەست نەبێت «بەردەست نییە» پیشان دەدرێت.
         </div>
       </div>
-
-      
-      <div class="card valuation-card">
-        <h3><span class="icon">💎</span> نرخی فرۆشتن</h3>
-        <div id="AI_بارکردن" class="ai-loading">دوای پشکنینی ئۆتۆمبێل، AI نرخەکە خەمڵێنێت...</div>
-
-        <div id="AI_ئەنجام" style="display:none">
-          <div class="value-grid" style="grid-template-columns:1fr">
-            <div class="value-box">
-              <small>نرخی خەمڵێنراوی فرۆشتن</small>
-              <strong id="AI_نرخی_تایبەت">—</strong>
-            </div>
-          </div>
-
-          <div id="AI_هۆکار" class="ai-reason"></div>
+<div id="AI_هۆکار" class="ai-reason"></div>
 
           <div class="note">
             ئەمە خەمڵاندنێکی AI ـە، نە نرخی فەرمی یان دڵنیای بازاڕ.
@@ -670,7 +619,7 @@ footer{
     
 
       <div class="card similar-card">
-        <h3><span class="icon">🚗</span> <span>بەراوردی نرخی بازاڕ</span></h3>
+        <h3><span class="icon">🚗</span> <span>ڕێنمای نرخی بازاڕ</span></h3>
         <div id="هاوشێوە_بارکردن" class="ai-loading">ئۆتۆمبێلی هاوشێوە دەگەڕێندرێت...</div>
         <div id="هاوشێوە_کورتە" class="muted" style="display:none"></div>
         <div id="هاوشێوە_ئەنجام" class="similar-chart"></div>
@@ -755,9 +704,6 @@ const EN_TRANSLATIONS = {
   "پێشنیاری کڕین":"Buying recommendation",
   "دۆخی گشتی":"Overall condition",
   "خزمەتگوزاری و چاککردنەوە":"Maintenance",
-  "نرخی فرۆشتن":"AI estimated selling price",
-  "نرخی خەمڵێنراوی فرۆشتن":"Estimated selling price",
-  "ئەمە خەمڵاندنێکی AI ـە، نە نرخی فەرمی یان دڵنیای بازاڕ.":"This is an AI estimate, not an official or guaranteed market valuation.",
   "کێشە دووبارەبووەکانی MOT":"Recurring MOT issues",
   "جۆری کێشە":"Issue type",
   "وردەکاری مێژووی MOT":"MOT history details",
@@ -802,16 +748,12 @@ const EN_TRANSLATIONS = {
   "شوشەی پێشەوە":"Windscreen",
   "ئاوێنەکان":"Mirrors",
   "دەرچوونی گاز":"Emissions",
-  "AI نرخی ئۆتۆمبێلەکە خەمڵێنێت...":"AI is estimating the vehicle value...",
-  "خەمڵاندنی AI لەم کاتەدا بەردەست نییە.":"AI valuation is currently unavailable.",
   "زمان هەڵبژێرە":"Choose your language",
   "دوا V5C":"Latest V5C",
   "دەرچوونی گاز لە شۆفێری ڕاستەقینە":"Real driving emissions",
   "زانیارییەکان بە پێی ئەو داتایەی سەرچاوە بۆ ئەم ئۆتۆمبێلە دەگەڕێنێتەوە.":"Information is shown according to the data returned for this vehicle.",
   "ئەم هەڵسەنگاندنە تەنها لەسەر ئەو داتایەیە کە API بۆ ئەم ئۆتۆمبێلە دەگەڕێنێتەوە.":"This assessment is based only on the data returned by the API for this vehicle.",
   "ئەگەر خانەیەک بەردەست نەبێت «بەردەست نییە» پیشان دەدرێت.":"If a field is unavailable, “Not available” will be shown.",
-  "دوای پشکنینی ئۆتۆمبێل، AI نرخەکە خەمڵێنێت...":"After the vehicle check, AI will estimate the selling price.",
-  "نرخی ڕاستەقینە دەتوانێت بە پێی مۆدێل، سپێک، دۆخ، شوێن و بازاڕ جیاواز بێت.":"The actual price can vary depending on model, specification, condition, location and market.",
   "تێچووی سووتەمەنی":"Fuel cost",
   "دوای پشکنینی ئۆتۆمبێل، MPG خەمڵێنرێت...":"After the vehicle check, AI will estimate MPG...",
   "MPG ـی خەمڵێنراو":"Estimated MPG",
@@ -819,7 +761,7 @@ const EN_TRANSLATIONS = {
   "تێچووی 100 مایل":"Cost for 100 miles",
   "تێچووی 12,000 مایل":"Cost for 12,000 miles",
   "ئەمە خەمڵاندنێکی AI ـە. تێچووی ڕاستەقینە بە نرخی سووتەمەنی، شێوازی شۆفێری، ترافیک و دۆخی ئۆتۆمبێل دەگۆڕێت.":"This is an AI estimate. Actual fuel cost varies with fuel price, driving style, traffic and vehicle condition.",
-  "بەراوردی نرخی بازاڕ":"Market price comparison",
+  "ڕێنمای نرخی بازاڕ":"Market Price Guide",
   "ئۆتۆمبێلی هاوشێوە دەگەڕێندرێت...":"Finding similar cars currently for sale...",
   "ئەممانە نرخی داواکراوی ئۆتۆمبێلە هاوشێوەکانی ئێستای بازاڕن، نە نرخی فرۆشتنی دڵنیابوو.":"Based on current asking prices for similar cars. These are not confirmed sold prices.",
   "ئەم بەراوردە لەسەر نرخی داواکراوی ئێستای ئۆتۆمبێلە هاوشێوەکانە؛ نرخی فرۆشتنی کۆتایی نییە.":"Based on current asking prices for similar cars. These are not confirmed sold prices."
@@ -1105,74 +1047,6 @@ function پۆند(v){
   const n = Number(v);
   if(!Number.isFinite(n)) return "—";
   return "£" + Math.round(n).toLocaleString("en-GB");
-}
-
-async function خەمڵاندنی_AI(d){
-  const loading = دۆزینەوە("AI_بارکردن");
-  const resultBox = دۆزینەوە("AI_ئەنجام");
-
-  loading.style.display = "block";
-  loading.textContent = currentLang === "en" ? "AI is estimating the vehicle value..." : "AI نرخی ئۆتۆمبێلەکە خەمڵێنێت...";
-  resultBox.style.display = "none";
-
-  try{
-    const response = await fetch("/api/value",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        registration:d.registration || d.registrationNumber || d.vrm || null,
-        make:d.make || null,
-        model:d.model || null,
-        yearOfManufacture:d.yearOfManufacture || null,
-        monthOfFirstRegistration:d.monthOfFirstRegistration || null,
-        vehicleAgeYears:d.vehicleAgeYears || null,
-        fuelType:d.fuelType || null,
-        engineCapacityCc:d.engineCapacityCc || null,
-        colour:d.colour || null,
-        latestOdometerMiles:d.signals?.latestOdometerMiles ?? null,
-        typicalAnnualMileageMiles:d.signals?.typicalAnnualMileageMiles ?? d.signals?.typicalAnnualMileage ?? null,
-        motPassRate:d.signals?.motPassRate ?? null,
-        totalMotTests:d.signals?.totalMotTests ?? null,
-        totalMotFailures:d.signals?.totalMotFailures ?? null,
-        totalAdvisoryCount:d.signals?.totalAdvisoryCount ?? d.signals?.totalAdvisories ?? null,
-        latestAdvisoryCount:d.signals?.latestAdvisoryCount ?? d.signals?.latestMotAdvisoryCount ?? null,
-        odometerTrend:d.signals?.odometerTrend ?? null,
-        vehicleRiskLevel:d.summary?.vehicleRiskLevel ?? null,
-        motRiskLevel:d.summary?.motRiskLevel ?? null,
-        conditionBand:d.summary?.conditionBand ?? null,
-        maintenanceBand:d.summary?.maintenanceBand ?? null,
-        mileageAnomalyRisk:d.summary?.mileageAnomalyRisk ?? null,
-        buyRecommendation:d.summary?.buyRecommendation ?? null,
-        language:currentLang
-      })
-    });
-
-    const result = await response.json();
-    if(!response.ok || !result.ok){
-      throw new Error(result.error || "AI valuation failed");
-    }
-
-    const v = result.valuation || {};
-    const range = (a,b) => {
-      if(a === null || a === undefined || b === null || b === undefined) return "—";
-      return پۆند(a) + " – " + پۆند(b);
-    };
-
-    دۆزینەوە("AI_نرخی_تایبەت").textContent = range(v.privateSaleLowGbp, v.privateSaleHighGbp);
-دۆزینەوە("AI_هۆکار").textContent = v.reasonSorani || (currentLang === "en" ? "AI produced an approximate selling-price estimate." : "AI خەمڵاندنێکی نزیکەیی بۆ نرخەکە کردووە.");
-
-    loading.style.display = "none";
-    resultBox.style.display = "block";
-  }catch(error){
-    loading.textContent = "خەمڵاندنی AI سەرکەوتوو نەبوو: " + (error?.message || "هەڵەی نەناسراو");
-  }
-}
-
-
-function پارەی_دوو_خانە(v){
-  const n = Number(v);
-  if(!Number.isFinite(n)) return "—";
-  return "£" + n.toFixed(2);
 }
 
 async function خەمڵاندنی_سووتەمەنی_AI(d){
@@ -1533,7 +1407,6 @@ async function پشکنین(){
         '<div class="muted">'+(currentLang === "en" ? "The data source did not return a full test-by-test MOT history for this vehicle." : "سەرچاوەی داتا مێژووی تەواوی هەر MOT بە جیاوازی بۆ ئەم ئۆتۆمبێلە نەگەڕاندووەتەوە.")+'</div>';
     }
 
-    خەمڵاندنی_AI(d);
     خەمڵاندنی_سووتەمەنی_AI(d);
     دۆزینەوەی_هاوشێوە(d);
 
@@ -1620,140 +1493,6 @@ app.post("/api/check", async (req, res) => {
       error:"نەتوانرا پەیوەندی بە سەرچاوەی زانیاری بکرێت."
     });
   }
-});
-
-
-app.post("/api/value", async (req, res) => {
-  if (!GEMINI_API_KEY) {
-    return res.status(500).json({
-      ok:false,
-      error:"GEMINI_API_KEY لە Render دانەنراوە."
-    });
-  }
-
-  const car = req.body || {};
-
-  const prompt = `
-Estimate the value of this used vehicle in the United Kingdom.
-
-Rules:
-- This is an approximate AI estimate only, not a professional valuation.
-- Do not claim access to live Auto Trader, CAP, Glass's, auction or dealer sales data.
-- Use the supplied vehicle details plus general UK used-car market knowledge.
-- Be conservative.
-- If trim/spec/service history is missing, use a wider range.
-- Return GBP amounts as whole-number integers.
-- Estimate only the likely private-sale price range.
-- If vehicle details contain "language":"en", write the explanation in English. Otherwise write it in Kurdish Sorani.
-- Return ONLY valid JSON in exactly this structure:
-
-{
-  "privateSaleLowGbp": 0,
-  "privateSaleHighGbp": 0,
-  "confidence": "low|medium|high",
-  "reasonSorani": "..."
-}
-
-Vehicle details:
-${JSON.stringify(car, null, 2)}
-`;
-
-  const models = ["gemini-3.5-flash-lite", "gemini-3.5-flash"];
-  let lastError = "هەڵەی نەناسراو";
-
-  for (const model of models) {
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-        {
-          method:"POST",
-          headers:{
-            "Content-Type":"application/json",
-            "x-goog-api-key":GEMINI_API_KEY
-          },
-          body:JSON.stringify({
-            contents:[{
-              role:"user",
-              parts:[{text:prompt}]
-            }],
-            generationConfig:{
-              responseMimeType:"application/json",
-              maxOutputTokens:700
-            }
-          })
-        }
-      );
-
-      const raw = await response.text();
-
-      let data = null;
-      try{
-        data = JSON.parse(raw);
-      }catch{}
-
-      if(!response.ok){
-        const googleMessage =
-          data?.error?.message ||
-          data?.message ||
-          raw ||
-          `HTTP ${response.status}`;
-
-        lastError = `${model}: ${googleMessage}`;
-        console.error("Gemini API error:", lastError);
-        continue;
-      }
-
-      const modelText =
-        data?.candidates?.[0]?.content?.parts
-          ?.map(p => p?.text || "")
-          .join("")
-          .trim();
-
-      if(!modelText){
-        lastError = `${model}: Gemini وەڵامێکی بەتاڵی گەڕاندەوە`;
-        continue;
-      }
-
-      let valuation;
-      try{
-        valuation = JSON.parse(modelText);
-      }catch{
-        const cleaned = modelText
-          .replace(/^```json\s*/i,"")
-          .replace(/^```\s*/,"")
-          .replace(/```$/,"")
-          .trim();
-
-        valuation = JSON.parse(cleaned);
-      }
-
-      const fields = [
-      "privateSaleLowGbp",
-      "privateSaleHighGbp"
-    ];
-
-      for(const field of fields){
-        const n = Number(valuation[field]);
-        valuation[field] =
-          Number.isFinite(n) ? Math.max(0, Math.round(n)) : null;
-      }
-
-      return res.json({
-        ok:true,
-        modelUsed:model,
-        valuation
-      });
-
-    } catch (error) {
-      lastError = `${model}: ${error?.message || String(error)}`;
-      console.error("Gemini valuation error:", lastError);
-    }
-  }
-
-  return res.status(502).json({
-    ok:false,
-    error:`Gemini هەڵەی دا: ${lastError}`
-  });
 });
 
 
