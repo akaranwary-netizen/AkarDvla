@@ -1132,8 +1132,8 @@ async function خەمڵاندنی_سووتەمەنی_AI(d){
     const fuelName = f.fuelType || d.fuelType || "";
     دۆزینەوە("سووتەمەنی_نرخ").textContent =
       currentLang === "en"
-        ? `${fuelName}: £${price.toFixed(3)}/litre`
-        : `${وەرگێڕانی_بەها(fuelName)}: £${price.toFixed(3)}/لیتر`;
+        ? (fuelName + ": £" + price.toFixed(3) + "/litre")
+        : (وەرگێڕانی_بەها(fuelName) + ": £" + price.toFixed(3) + "/لیتر");
 
     const c = f.confidence || "low";
     const cText = currentLang === "en"
