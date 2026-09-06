@@ -809,7 +809,9 @@ const EN_TRANSLATIONS = {
   "کوردی سۆرانی زمانی بنەڕەتییە":"Sorani Kurdish is the default language",
   "ژمارەی تۆمار":"Registration number",
   "ساڵ":"year",
-  "مایل":"miles"
+  "مایل":"miles",
+  "پێش کڕین،":"Check before",
+  "دڵنیابەوە.":"you buy."
 };
 
 function translateTextNode(node){
