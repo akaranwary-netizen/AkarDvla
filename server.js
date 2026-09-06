@@ -262,6 +262,17 @@ body{
 @media(max-width:640px){.value-grid{grid-template-columns:1fr}}
 
 
+
+.fuel-cost-card{grid-column:1/-1;position:relative;overflow:hidden;background:radial-gradient(circle at 88% 12%,rgba(244,217,154,.10),transparent 30%),linear-gradient(145deg,rgba(18,21,26,.98),rgba(11,13,16,.98));border:1px solid rgba(215,179,106,.22)}
+.fuel-cost-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+.fuel-cost-box{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;text-align:center}
+.fuel-cost-box small{display:block;color:var(--muted);margin-bottom:8px}
+.fuel-cost-box strong{display:block;direction:ltr;color:var(--gold2);font-size:20px}
+.fuel-meta{margin-top:14px;display:flex;flex-wrap:wrap;gap:9px}
+.fuel-pill{background:rgba(215,179,106,.08);border:1px solid rgba(215,179,106,.16);border-radius:999px;padding:7px 10px;color:#c7cbd1;font-size:12px}
+@media(max-width:760px){.fuel-cost-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:440px){.fuel-cost-grid{grid-template-columns:1fr}}
+
 .language-switch{
   border:1px solid rgba(215,179,106,.28);
   background:rgba(215,179,106,.08);
@@ -556,6 +567,26 @@ footer{
         </div>
       </div>
 
+
+      <div class="card fuel-cost-card">
+        <h3><span class="icon">⛽</span> <span>خەمڵاندنی تێچووی سووتەمەنی بە AI</span></h3>
+        <div id="سووتەمەنی_AI_بارکردن" class="ai-loading">دوای پشکنینی ئۆتۆمبێل، AI MPG خەمڵێنێت...</div>
+        <div id="سووتەمەنی_AI_ئەنجام" style="display:none">
+          <div class="fuel-cost-grid">
+            <div class="fuel-cost-box"><small>MPG ـی خەمڵێنراو</small><strong id="سووتەمەنی_MPG">—</strong></div>
+            <div class="fuel-cost-box"><small>تێچووی 1 مایل</small><strong id="سووتەمەنی_1">—</strong></div>
+            <div class="fuel-cost-box"><small>تێچووی 100 مایل</small><strong id="سووتەمەنی_100">—</strong></div>
+            <div class="fuel-cost-box"><small>تێچووی 12,000 مایل</small><strong id="سووتەمەنی_12000">—</strong></div>
+          </div>
+          <div class="fuel-meta">
+            <div id="سووتەمەنی_نرخ" class="fuel-pill">—</div>
+            <div id="سووتەمەنی_دڵنیایی" class="fuel-pill">—</div>
+          </div>
+          <div id="سووتەمەنی_هۆکار" class="ai-reason"></div>
+          <div class="note">ئەمە خەمڵاندنێکی AI ـە. تێچووی ڕاستەقینە بە نرخی سووتەمەنی، شێوازی شۆفێری، ترافیک و دۆخی ئۆتۆمبێل دەگۆڕێت.</div>
+        </div>
+      </div>
+
 <div class="card full">
         <h3><span class="icon">🛠️</span> کێشە دووبارەبووەکانی MOT</h3>
         <div id="کێشە_دووبارە"></div>
@@ -688,7 +719,14 @@ const EN_TRANSLATIONS = {
   "ئەم هەڵسەنگاندنە تەنها لەسەر ئەو داتایەیە کە API بۆ ئەم ئۆتۆمبێلە دەگەڕێنێتەوە.":"This assessment is based only on the data returned by the API for this vehicle.",
   "ئەگەر خانەیەک بەردەست نەبێت «بەردەست نییە» پیشان دەدرێت.":"If a field is unavailable, “Not available” will be shown.",
   "دوای پشکنینی ئۆتۆمبێل، AI نرخەکە خەمڵێنێت...":"After the vehicle check, AI will estimate the selling price.",
-  "نرخی ڕاستەقینە دەتوانێت بە پێی مۆدێل، سپێک، دۆخ، شوێن و بازاڕ جیاواز بێت.":"The actual price can vary depending on model, specification, condition, location and market."
+  "نرخی ڕاستەقینە دەتوانێت بە پێی مۆدێل، سپێک، دۆخ، شوێن و بازاڕ جیاواز بێت.":"The actual price can vary depending on model, specification, condition, location and market.",
+  "خەمڵاندنی تێچووی سووتەمەنی بە AI":"AI estimated fuel costs",
+  "دوای پشکنینی ئۆتۆمبێل، AI MPG خەمڵێنێت...":"After the vehicle check, AI will estimate MPG...",
+  "MPG ـی خەمڵێنراو":"Estimated MPG",
+  "تێچووی 1 مایل":"Cost for 1 mile",
+  "تێچووی 100 مایل":"Cost for 100 miles",
+  "تێچووی 12,000 مایل":"Cost for 12,000 miles",
+  "ئەمە خەمڵاندنێکی AI ـە. تێچووی ڕاستەقینە بە نرخی سووتەمەنی، شێوازی شۆفێری، ترافیک و دۆخی ئۆتۆمبێل دەگۆڕێت.":"This is an AI estimate. Actual fuel cost varies with fuel price, driving style, traffic and vehicle condition."
 };
 
 function translateTextNode(node){
@@ -1034,6 +1072,88 @@ async function خەمڵاندنی_AI(d){
   }
 }
 
+
+function پارەی_دوو_خانە(v){
+  const n = Number(v);
+  if(!Number.isFinite(n)) return "—";
+  return "£" + n.toFixed(2);
+}
+
+async function خەمڵاندنی_سووتەمەنی_AI(d){
+  const loading = دۆزینەوە("سووتەمەنی_AI_بارکردن");
+  const resultBox = دۆزینەوە("سووتەمەنی_AI_ئەنجام");
+  if(!loading || !resultBox) return;
+
+  loading.style.display = "block";
+  loading.textContent = currentLang === "en"
+    ? "AI is estimating MPG and fuel costs..."
+    : "AI MPG و تێچووی سووتەمەنی خەمڵێنێت...";
+  resultBox.style.display = "none";
+
+  try{
+    const response = await fetch("/api/fuel-estimate",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        registration:d.registration || d.registrationNumber || d.vrm || null,
+        make:d.make || null,
+        model:d.model || null,
+        yearOfManufacture:d.yearOfManufacture || null,
+        monthOfFirstRegistration:d.monthOfFirstRegistration || null,
+        vehicleAgeYears:d.vehicleAgeYears || null,
+        fuelType:d.fuelType || null,
+        engineCapacityCc:d.engineCapacityCc || null,
+        latestOdometerMiles:d.signals?.latestOdometerMiles ?? null,
+        language:currentLang
+      })
+    });
+
+    const result = await response.json();
+    if(!response.ok || !result.ok){
+      throw new Error(result.error || "Fuel estimate failed");
+    }
+
+    const f = result.fuel || {};
+
+    دۆزینەوە("سووتەمەنی_MPG").textContent =
+      Number.isFinite(Number(f.estimatedMpg)) ? Number(f.estimatedMpg).toFixed(1)+" MPG" : "—";
+
+    دۆزینەوە("سووتەمەنی_1").textContent = پارەی_دوو_خانە(f.cost1MileGbp);
+    دۆزینەوە("سووتەمەنی_100").textContent = پارەی_دوو_خانە(f.cost100MilesGbp);
+    دۆزینەوە("سووتەمەنی_12000").textContent =
+      Number.isFinite(Number(f.cost12000MilesGbp))
+        ? "£"+Math.round(Number(f.cost12000MilesGbp)).toLocaleString("en-GB")
+        : "—";
+
+    const price = Number(f.pricePerLitreGbp);
+    const fuelName = f.fuelType || d.fuelType || "";
+    دۆزینەوە("سووتەمەنی_نرخ").textContent =
+      currentLang === "en"
+        ? `${fuelName}: £${price.toFixed(3)}/litre`
+        : `${وەرگێڕانی_بەها(fuelName)}: £${price.toFixed(3)}/لیتر`;
+
+    const c = f.confidence || "low";
+    const cText = currentLang === "en"
+      ? ({low:"Low",medium:"Medium",high:"High"}[c] || c)
+      : ({low:"نزم",medium:"مامناوەند",high:"بەرز"}[c] || c);
+
+    دۆزینەوە("سووتەمەنی_دڵنیایی").textContent =
+      currentLang === "en" ? "AI confidence: "+cText : "ئاستی دڵنیایی AI: "+cText;
+
+    دۆزینەوە("سووتەمەنی_هۆکار").textContent =
+      f.reason || (currentLang === "en"
+        ? "Estimated from the available vehicle details."
+        : "بەپێی زانیارییە بەردەستەکانی ئۆتۆمبێل خەمڵێنراوە.");
+
+    loading.style.display = "none";
+    resultBox.style.display = "block";
+  }catch(error){
+    loading.textContent =
+      (currentLang === "en" ? "Fuel-cost estimate unavailable: " : "خەمڵاندنی تێچووی سووتەمەنی بەردەست نییە: ")
+      + (error?.message || (currentLang === "en" ? "Unknown error" : "هەڵەی نەناسراو"));
+  }
+}
+
 async function پشکنین(){
   const vrm = دۆزینەوە("ژمارە").value.toUpperCase().replace(/[^A-Z0-9]/g,"");
 
@@ -1192,6 +1312,7 @@ async function پشکنین(){
     }
 
     خەمڵاندنی_AI(d);
+    خەمڵاندنی_سووتەمەنی_AI(d);
 
     دۆزینەوە("پەیام").style.display = "none";
     دۆزینەوە("ڕاپۆرت").style.display = "block";
@@ -1410,6 +1531,128 @@ ${JSON.stringify(car, null, 2)}
     ok:false,
     error:`Gemini هەڵەی دا: ${lastError}`
   });
+});
+
+
+app.post("/api/fuel-estimate", async (req, res) => {
+  if (!GEMINI_API_KEY) {
+    return res.status(500).json({ok:false,error:"GEMINI_API_KEY لە Render دانەنراوە."});
+  }
+
+  const car = req.body || {};
+  const fuelTypeRaw = String(car.fuelType || "").trim();
+  const fuelKey = fuelTypeRaw.toLowerCase();
+
+  if (fuelKey.includes("electric")) {
+    return res.status(400).json({
+      ok:false,
+      error: car.language === "en"
+        ? "This MPG estimate is for petrol, diesel and hybrid vehicles."
+        : "ئەم خەمڵاندنەی MPG بۆ ئۆتۆمبێلی بەنزین، دیزڵ و هایبرێدە."
+    });
+  }
+
+  const petrolPrice = Number(process.env.PETROL_PRICE_PER_LITRE || 1.45);
+  const dieselPrice = Number(process.env.DIESEL_PRICE_PER_LITRE || 1.52);
+  const pricePerLitre = fuelKey.includes("diesel") ? dieselPrice : petrolPrice;
+
+  const prompt = `
+Estimate a realistic UK combined real-world MPG for this used vehicle.
+
+Rules:
+- Estimate MPG only. Do not calculate fuel costs.
+- Use UK imperial MPG, not US MPG.
+- Use make, model, year, fuel type and engine size.
+- Prefer a conservative real-world combined-driving estimate.
+- If exact trim/spec is missing, lower confidence.
+- Return ONLY valid JSON.
+- If language is "en", write reason in English. Otherwise write it in Kurdish Sorani.
+
+Return exactly:
+{
+  "estimatedMpg": 0,
+  "confidence": "low|medium|high",
+  "reason": "short explanation"
+}
+
+Vehicle:
+${JSON.stringify(car, null, 2)}
+`;
+
+  const models = ["gemini-3.5-flash-lite", "gemini-3.5-flash"];
+  let lastError = "Unknown Gemini error";
+
+  for (const model of models) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+        {
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json",
+            "x-goog-api-key":GEMINI_API_KEY
+          },
+          body:JSON.stringify({
+            contents:[{role:"user",parts:[{text:prompt}]}],
+            generationConfig:{
+              responseMimeType:"application/json",
+              maxOutputTokens:350
+            }
+          })
+        }
+      );
+
+      const raw = await response.text();
+      let data = null;
+      try{ data = JSON.parse(raw); }catch{}
+
+      if(!response.ok){
+        lastError = data?.error?.message || data?.message || raw || `HTTP ${response.status}`;
+        continue;
+      }
+
+      const modelText = data?.candidates?.[0]?.content?.parts?.map(p=>p?.text||"").join("").trim();
+      if(!modelText){ lastError = "Empty Gemini MPG response"; continue; }
+
+      let mpgResult;
+      try{
+        mpgResult = JSON.parse(modelText);
+      }catch{
+        mpgResult = JSON.parse(
+          modelText.replace(/^```json\s*/i,"").replace(/^```\s*/,"").replace(/```$/,"").trim()
+        );
+      }
+
+      const mpg = Number(mpgResult.estimatedMpg);
+      if(!Number.isFinite(mpg) || mpg < 5 || mpg > 150){
+        lastError = `Invalid MPG: ${mpgResult.estimatedMpg}`;
+        continue;
+      }
+
+      const litresPerMile = 4.54609 / mpg;
+      const cost = miles => Number((litresPerMile * miles * pricePerLitre).toFixed(2));
+
+      return res.json({
+        ok:true,
+        modelUsed:model,
+        fuel:{
+          estimatedMpg:Number(mpg.toFixed(1)),
+          confidence:["low","medium","high"].includes(mpgResult.confidence) ? mpgResult.confidence : "low",
+          reason:String(mpgResult.reason || ""),
+          fuelType:fuelTypeRaw || "Petrol",
+          pricePerLitreGbp:Number(pricePerLitre.toFixed(3)),
+          cost1MileGbp:cost(1),
+          cost100MilesGbp:cost(100),
+          cost12000MilesGbp:cost(12000)
+        }
+      });
+
+    } catch (error) {
+      lastError = error?.message || String(error);
+    }
+  }
+
+  return res.status(502).json({ok:false,error:`Gemini fuel estimate failed: ${lastError}`});
 });
 
 app.listen(PORT, "0.0.0.0", () => {
