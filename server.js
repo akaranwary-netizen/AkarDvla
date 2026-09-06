@@ -235,6 +235,25 @@ body{
 
 
 
+
+.caz-card{
+  grid-column:1/-1;
+  background:linear-gradient(145deg,rgba(14,22,18,.98),rgba(10,14,12,.98));
+  border:1px solid rgba(114,190,137,.22);
+}
+.caz-list{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.caz-row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);
+  border-radius:13px;padding:13px 14px
+}
+.caz-city{font-weight:900;color:#f3f4f5}
+.caz-status{font-weight:900;text-align:left;direction:ltr}
+.caz-ok{color:#7fd59a}
+.caz-pay{color:#ffb36b}
+.caz-check{color:#f2d17f}
+@media(max-width:650px){.caz-list{grid-template-columns:1fr}}
+
 .similar-card{
   grid-column:1/-1;
   background:linear-gradient(145deg,rgba(17,20,25,.98),rgba(10,12,15,.98));
@@ -605,6 +624,15 @@ footer{
         </div>
       </div>
 
+      <div id="CAZ_کارت" class="card caz-card" style="display:none">
+        <h3><span class="icon">🌿</span> <span>پشکنینی Clean Air Zone بۆ دیزڵ</span></h3>
+        <div id="CAZ_کورتە" class="muted"></div>
+        <div id="CAZ_لیست" class="caz-list"></div>
+        <div class="note">
+          ئەم ئەنجامە بۆ ئۆتۆمبێلی تایبەتی ئاساییە و لەسەر یاساکانی CAZ و ستانداردی Euro ـی ئۆتۆمبێلەکە هەژمار دەکرێت. تاکسی، ڤان، مینیباس، ئۆتۆمبێلی بازرگانی و هەندێک بەخشین دەتوانن یاسای جیاواز هەبێت.
+        </div>
+      </div>
+
       <div class="card similar-card">
         <h3><span class="icon">🚗</span> <span>ڕێنمای نرخی بازاڕ</span></h3>
         <div id="هاوشێوە_بارکردن" class="ai-loading">ئۆتۆمبێلی هاوشێوە دەگەڕێندرێت...</div>
@@ -752,7 +780,9 @@ const EN_TRANSLATIONS = {
   "ئۆتۆمبێلی هاوشێوە دەگەڕێندرێت...":"Finding similar cars currently for sale...",
   "ئەممانە نرخی داواکراوی ئۆتۆمبێلە هاوشێوەکانی ئێستای بازاڕن، نە نرخی فرۆشتنی دڵنیابوو.":"Based on current asking prices for similar cars. These are not confirmed sold prices.",
   "ئەم بەراوردە لەسەر نرخی داواکراوی ئێستای ئۆتۆمبێلە هاوشێوەکانە؛ نرخی فرۆشتنی کۆتایی نییە.":"Based on current asking prices for similar cars. These are not confirmed sold prices.",
-  "ئەمە خەمڵاندنێکە. تێچووی ڕاستەقینە بە نرخی سووتەمەنی، شێوازی شۆفێری، ترافیک و دۆخی ئۆتۆمبێل دەگۆڕێت.":"This is an estimate. Actual fuel cost varies with fuel price, driving style, traffic and vehicle condition."
+  "ئەمە خەمڵاندنێکە. تێچووی ڕاستەقینە بە نرخی سووتەمەنی، شێوازی شۆفێری، ترافیک و دۆخی ئۆتۆمبێل دەگۆڕێت.":"This is an estimate. Actual fuel cost varies with fuel price, driving style, traffic and vehicle condition.",
+  "پشکنینی Clean Air Zone بۆ دیزڵ":"Diesel Clean Air Zone Check",
+  "ئەم ئەنجامە بۆ ئۆتۆمبێلی تایبەتی ئاساییە و لەسەر یاساکانی CAZ و ستانداردی Euro ـی ئۆتۆمبێلەکە هەژمار دەکرێت. تاکسی، ڤان، مینیباس، ئۆتۆمبێلی بازرگانی و هەندێک بەخشین دەتوانن یاسای جیاواز هەبێت.":"This result is for a normal private car and is calculated from CAZ rules and the vehicle's Euro standard. Taxis, vans, minibuses, commercial vehicles and some exemptions can have different rules."
 };
 
 function translateTextNode(node){
@@ -1244,6 +1274,61 @@ async function دۆزینەوەی_هاوشێوە(d){
 }
 
 
+
+function نیشاندانی_CAZ_بۆ_دیزڵ(d){
+  const card = دۆزینەوە("CAZ_کارت");
+  const list = دۆزینەوە("CAZ_لیست");
+  const summary = دۆزینەوە("CAZ_کورتە");
+  if(!card || !list || !summary) return;
+
+  const fuel = String(d?.fuelType || "").toLowerCase();
+  if(!fuel.includes("diesel")){
+    card.style.display = "none";
+    list.innerHTML = "";
+    summary.textContent = "";
+    return;
+  }
+
+  card.style.display = "block";
+
+  const rawEuro = String(d?.signals?.euroEmissionStandard || "").toUpperCase();
+  const match = rawEuro.match(/(?:EURO\s*)?([0-9]+)/);
+  const euro = match ? Number(match[1]) : null;
+  const euro6 = Number.isFinite(euro) ? euro >= 6 : null;
+
+  summary.textContent = currentLang === "en"
+    ? ("Diesel vehicle" + (rawEuro ? " · " + rawEuro : "") + ". CAZ result for a normal private car:")
+    : ("ئۆتۆمبێلی دیزڵ" + (rawEuro ? " · " + rawEuro : "") + " ـە. ئەنجامی CAZ بۆ ئۆتۆمبێلی تایبەتی ئاسایی:");
+
+  function row(city, type, textCkb, textEn){
+    const cls = type === "ok" ? "caz-ok" : (type === "pay" ? "caz-pay" : "caz-check");
+    return '<div class="caz-row">'+
+      '<span class="caz-city">'+پاراستنی_دەق(city)+'</span>'+
+      '<span class="caz-status '+cls+'">'+پاراستنی_دەق(currentLang === "en" ? textEn : textCkb)+'</span>'+
+    '</div>';
+  }
+
+  let html = "";
+  html += row("Bath","ok","✅ پارە نادات","✅ No charge");
+  html += row("Bradford","ok","✅ پارە نادات","✅ No charge");
+  html += row("Portsmouth","ok","✅ پارە نادات","✅ No charge");
+  html += row("Sheffield","ok","✅ پارە نادات","✅ No charge");
+  html += row("Tyneside","ok","✅ پارە نادات","✅ No charge");
+
+  if(euro6 === true){
+    html += row("Birmingham","ok","✅ پارە نادات","✅ No charge");
+    html += row("Bristol","ok","✅ پارە نادات","✅ No charge");
+  }else if(euro6 === false){
+    html += row("Birmingham","pay","⚠️ £8 / ڕۆژ","⚠️ £8 / day");
+    html += row("Bristol","pay","⚠️ £9 / ڕۆژ","⚠️ £9 / day");
+  }else{
+    html += row("Birmingham","check","⚠️ Euro بەردەست نییە","⚠️ Euro standard unavailable");
+    html += row("Bristol","check","⚠️ Euro بەردەست نییە","⚠️ Euro standard unavailable");
+  }
+
+  list.innerHTML = html;
+}
+
 async function پشکنین(){
   const vrm = دۆزینەوە("ژمارە").value.toUpperCase().replace(/[^A-Z0-9]/g,"");
 
@@ -1402,6 +1487,7 @@ async function پشکنین(){
     }
 
     خەمڵاندنی_سووتەمەنی_AI(d);
+    نیشاندانی_CAZ_بۆ_دیزڵ(d);
     دۆزینەوەی_هاوشێوە(d);
 
     دۆزینەوە("پەیام").style.display = "none";
