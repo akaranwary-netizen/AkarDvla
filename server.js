@@ -1117,6 +1117,7 @@ function closeLanguageModal(){
 }
 
 document.addEventListener("DOMContentLoaded",()=>{
+  setTimeout(refreshSelectedLanguage, 80);
   applyLanguage();
 
   if(!localStorage.getItem("akar_language_chosen")){
@@ -1403,6 +1404,7 @@ async function خەمڵاندنی_سووتەمەنی_AI(d){
 
     loading.style.display = "none";
     resultBox.style.display = "block";
+    setTimeout(refreshSelectedLanguage, 50);
   }catch(error){
     loading.textContent =
       (currentLang === "en" ? "Fuel-cost estimate unavailable: " : "خەمڵاندنی تێچووی سووتەمەنی بەردەست نییە: ")
@@ -1527,6 +1529,7 @@ async function دۆزینەوەی_هاوشێوە(d){
     }).join("");
 
     resultBox.innerHTML = summaryHtml + barsHtml;
+    setTimeout(refreshSelectedLanguage, 50);
 
   }catch(error){
     loading.textContent =
@@ -1591,19 +1594,116 @@ function نیشاندانی_CAZ_بۆ_دیزڵ(d){
   list.innerHTML = html;
 }
 
+
+const EXTRA_LANGS = ["ar","fa","tr","fr","de","es","ro","pl","ur","ps"];
+const translationCache = new Map();
+let translationBusy = false;
+
+function shouldTranslateText(txt){
+  const t = String(txt || "").trim();
+  if(!t) return false;
+  if(/^[\d\s£€$%.,:;+\-–—/()⭐✅⚠️]+$/.test(t)) return false;
+  if(/^[A-Z0-9]{2,10}$/.test(t)) return false;
+  return true;
+}
+
+async function translateVisiblePageFully(root=document.body){
+  if(!EXTRA_LANGS.includes(currentLang) || translationBusy) return;
+
+  translationBusy = true;
+  try{
+    const nodes = [];
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode:function(node){
+        const parent = node.parentElement;
+        if(!parent) return NodeFilter.FILTER_REJECT;
+        if(["SCRIPT","STYLE","NOSCRIPT"].includes(parent.tagName)) return NodeFilter.FILTER_REJECT;
+        if(parent.closest("[data-no-translate='1']")) return NodeFilter.FILTER_REJECT;
+        return shouldTranslateText(node.nodeValue)
+          ? NodeFilter.FILTER_ACCEPT
+          : NodeFilter.FILTER_REJECT;
+      }
+    });
+
+    let n;
+    while(n = walker.nextNode()){
+      nodes.push(n);
+    }
+
+    const originals = [];
+    const pendingIndexes = [];
+
+    nodes.forEach(function(node, index){
+      const source = String(node.nodeValue || "").trim();
+      originals[index] = source;
+      const key = currentLang + "::" + source;
+      if(translationCache.has(key)){
+        node.nodeValue = node.nodeValue.replace(source, translationCache.get(key));
+      }else{
+        pendingIndexes.push(index);
+      }
+    });
+
+    for(let offset=0; offset<pendingIndexes.length; offset+=60){
+      const batchIndexes = pendingIndexes.slice(offset, offset+60);
+      const batchTexts = batchIndexes.map(function(i){ return originals[i]; });
+
+      const response = await fetch("/api/ui-translate",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({language:currentLang,texts:batchTexts})
+      });
+
+      const data = await response.json();
+      if(!response.ok || !data.ok || !Array.isArray(data.translations)){
+        continue;
+      }
+
+      batchIndexes.forEach(function(nodeIndex, j){
+        const translated = String(data.translations[j] ?? originals[nodeIndex]);
+        const source = originals[nodeIndex];
+        translationCache.set(currentLang + "::" + source, translated);
+
+        const node = nodes[nodeIndex];
+        if(node && node.isConnected){
+          const current = String(node.nodeValue || "");
+          node.nodeValue = current.includes(source) ? current.replace(source, translated) : translated;
+        }
+      });
+    }
+
+    const switcher = document.getElementById("languageSwitch");
+    if(switcher) switcher.textContent = "🌐 " + (LANGUAGE_NAMES[currentLang] || "Language");
+
+  }catch(error){
+    console.error("Full UI translation error:", error);
+  }finally{
+    translationBusy = false;
+  }
+}
+
+function refreshSelectedLanguage(){
+  if(currentLang === "ckb") return;
+  if(currentLang === "en"){
+    translateElementTree(document.body);
+    return;
+  }
+  translateVisiblePageFully(document.body);
+}
+
 async function پشکنین(){
   const vrm = دۆزینەوە("ژمارە").value.toUpperCase().replace(/[^A-Z0-9]/g,"");
 
   if(vrm.length < 2){
-    alert(currentLang === "en" ? "Please enter a valid registration." : "تکایە ژمارەی تۆماری دروست بنووسە.");
+    alert(currentLang === "ckb" ? "تکایە ژمارەی تۆماری دروست بنووسە." : translateString("تکایە ژمارەی تۆماری دروست بنووسە."));
     return;
   }
 
   دۆزینەوە("دوگمە").disabled = true;
-  دۆزینەوە("دوگمە").textContent = currentLang === "en" ? "Checking..." : "لە پشکنین دایە...";
+  دۆزینەوە("دوگمە").textContent = currentLang === "ckb" ? "لە پشکنین دایە..." : translateString("لە پشکنین دایە...");
   دۆزینەوە("پەیام").className = "message";
   دۆزینەوە("پەیام").style.display = "block";
-  دۆزینەوە("پەیام").textContent = currentLang === "en" ? "Retrieving live vehicle information..." : "زانیاری ڕاستەوخۆ وەردەگیرێت...";
+  دۆزینەوە("پەیام").textContent = currentLang === "ckb" ? "زانیاری ڕاستەوخۆ وەردەگیرێت..." : translateString("زانیاری ڕاستەوخۆ وەردەگیرێت...");
   دۆزینەوە("ڕاپۆرت").style.display = "none";
 
   try{
@@ -1615,7 +1715,7 @@ async function پشکنین(){
 
     const result = await response.json();
     if(!response.ok || !result.ok){
-      throw new Error(result.error || (currentLang === "en" ? "Vehicle check failed." : "پشکنینی ئۆتۆمبێل سەرکەوتوو نەبوو."));
+      throw new Error(result.error || (currentLang === "ckb" ? "پشکنینی ئۆتۆمبێل سەرکەوتوو نەبوو." : translateString("پشکنینی ئۆتۆمبێل سەرکەوتوو نەبوو.")));
     }
 
     const d = result.data || {};
@@ -1624,7 +1724,7 @@ async function پشکنین(){
 
     const reg = d.registration || d.registrationNumber || d.vrm || vrm;
     دۆزینەوە("تابلۆ").textContent = reg;
-    دۆزینەوە("سەردێڕ").textContent = [d.make,d.model].filter(Boolean).join(" ") || (currentLang === "en" ? "Vehicle report" : "ڕاپۆرتی ئۆتۆمبێل");
+    دۆزینەوە("سەردێڕ").textContent = [d.make,d.model].filter(Boolean).join(" ") || (currentLang === "ckb" ? "ڕاپۆرتی ئۆتۆمبێل" : translateString("ڕاپۆرتی ئۆتۆمبێل"));
     دۆزینەوە("کورتەی_ئۆتۆمبێل").textContent =
       [d.fuelType,d.engineCapacityCc ? (d.engineCapacityCc+" cc") : null,d.colour,d.yearOfManufacture].filter(Boolean).join(" · ") || "—";
 
@@ -1713,7 +1813,7 @@ async function پشکنین(){
     if(Array.isArray(clusters) && clusters.length){
       دۆزینەوە("کێشە_دووبارە").innerHTML = clusters.map(item=>{
         if(typeof item==="string"){
-          return '<div class="row"><span class="label">'+(currentLang === "en" ? "Issue type" : "جۆری کێشە")+'</span><span class="value">'+پاراستنی_دەق(وەرگێڕانی_بەها(item))+'</span></div>';
+          return '<div class="row"><span class="label">'+(currentLang === "ckb" ? "جۆری کێشە" : translateString("جۆری کێشە"))+'</span><span class="value">'+پاراستنی_دەق(وەرگێڕانی_بەها(item))+'</span></div>';
         }
         const name = item.category || item.name || item.type || "کێشە";
         const count = item.count ?? item.total ?? item.occurrences ?? "—";
@@ -1737,9 +1837,9 @@ async function پشکنین(){
         }).join("") : "";
 
         return '<div class="mot-item">'+
-          '<div class="row"><span class="label">'+(currentLang === "en" ? "Date" : "بەروار")+'</span><span class="value">'+پاراستنی_دەق(بەروار(testDate))+'</span></div>'+
-          '<div class="row"><span class="label">'+(currentLang === "en" ? "Result" : "ئەنجام")+'</span><span class="value">'+پاراستنی_دەق(وەرگێڕانی_بەها(resultText))+'</span></div>'+
-          '<div class="row"><span class="label">'+(currentLang === "en" ? "Mileage" : "مایلیج")+'</span><span class="value">'+
+          '<div class="row"><span class="label">'+(currentLang === "ckb" ? "بەروار" : translateString("بەروار"))+'</span><span class="value">'+پاراستنی_دەق(بەروار(testDate))+'</span></div>'+
+          '<div class="row"><span class="label">'+(currentLang === "ckb" ? "ئەنجام" : translateString("ئەنجام"))+'</span><span class="value">'+پاراستنی_دەق(وەرگێڕانی_بەها(resultText))+'</span></div>'+
+          '<div class="row"><span class="label">'+(currentLang === "ckb" ? "مایلیج" : translateString("مایلیج"))+'</span><span class="value">'+
           (mileageVal !== null ? Number(mileageVal).toLocaleString("en-GB") + (currentLang === "en" ? " miles" : " مایل") : (currentLang === "ckb" ? "بەردەست نییە" : translateString("بەردەست نییە")))+
           '</span></div>'+notesHtml+'</div>';
       }).join("");
@@ -1754,6 +1854,9 @@ async function پشکنین(){
 
     دۆزینەوە("پەیام").style.display = "none";
     دۆزینەوە("ڕاپۆرت").style.display = "block";
+    setTimeout(refreshSelectedLanguage, 60);
+    setTimeout(refreshSelectedLanguage, 700);
+    setTimeout(refreshSelectedLanguage, 1600);
     دۆزینەوە("ڕاپۆرت").scrollIntoView({behavior:"smooth",block:"start"});
 
   }catch(error){
@@ -1837,6 +1940,126 @@ app.post("/api/check", async (req, res) => {
   }
 });
 
+
+
+app.post("/api/ui-translate", async (req, res) => {
+  try{
+    const language = String(req.body?.language || "").trim();
+    const texts = Array.isArray(req.body?.texts) ? req.body.texts : [];
+
+    const languageNames = {
+      ar:"Arabic",
+      fa:"Persian (Farsi)",
+      tr:"Turkish",
+      fr:"French",
+      de:"German",
+      es:"Spanish",
+      ro:"Romanian",
+      pl:"Polish",
+      ur:"Urdu",
+      ps:"Pashto"
+    };
+
+    if(!languageNames[language]){
+      return res.status(400).json({ok:false,error:"Unsupported language"});
+    }
+
+    if(!texts.length){
+      return res.json({ok:true,translations:[]});
+    }
+
+    if(!GEMINI_API_KEY){
+      return res.status(503).json({ok:false,error:"Translation service unavailable"});
+    }
+
+    const cleanTexts = texts.slice(0,220).map(function(t){
+      return String(t ?? "").slice(0,700);
+    });
+
+    const prompt = `
+Translate the following user-interface text into ${languageNames[language]}.
+
+Rules:
+- Return ONLY a JSON array of strings.
+- Keep the same number of items and the same order.
+- Translate every normal-language phrase fully.
+- Preserve technical abbreviations exactly when appropriate: MOT, ULEZ, CAZ, V5C, CO2, MPG, NCAP.
+- Preserve registration numbers, vehicle make/model names, numbers, dates, prices, currency symbols, engine sizes and units.
+- Do not add explanations.
+- Do not leave Kurdish or English untranslated unless it is a proper noun, technical abbreviation, number, unit or vehicle model.
+- Keep concise wording suitable for a vehicle-check website.
+
+Texts:
+${JSON.stringify(cleanTexts)}
+`;
+
+    const models = ["gemini-3.5-flash-lite", "gemini-3.5-flash"];
+    let lastError = "Translation failed";
+
+    for(const model of models){
+      try{
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+          {
+            method:"POST",
+            headers:{
+              "Content-Type":"application/json",
+              "x-goog-api-key":GEMINI_API_KEY
+            },
+            body:JSON.stringify({
+              contents:[{role:"user",parts:[{text:prompt}]}],
+              generationConfig:{
+                responseMimeType:"application/json",
+                maxOutputTokens:4000
+              }
+            })
+          }
+        );
+
+        const raw = await response.text();
+        let data = null;
+        try{ data = JSON.parse(raw); }catch{}
+
+        if(!response.ok){
+          lastError = data?.error?.message || raw || `HTTP ${response.status}`;
+          continue;
+        }
+
+        const modelText = data?.candidates?.[0]?.content?.parts?.map(function(p){
+          return p?.text || "";
+        }).join("").trim();
+
+        if(!modelText){
+          lastError = "Empty translation response";
+          continue;
+        }
+
+        let translated;
+        try{
+          translated = JSON.parse(modelText);
+        }catch{
+          translated = JSON.parse(
+            modelText.replace(/^```json\s*/i,"").replace(/^```\s*/,"").replace(/```$/,"").trim()
+          );
+        }
+
+        if(!Array.isArray(translated) || translated.length !== cleanTexts.length){
+          lastError = "Translation count mismatch";
+          continue;
+        }
+
+        return res.json({ok:true,translations:translated.map(String)});
+      }catch(error){
+        lastError = error?.message || String(error);
+      }
+    }
+
+    return res.status(502).json({ok:false,error:lastError});
+  }catch(error){
+    console.error("UI translation error:", error);
+    return res.status(500).json({ok:false,error:"Translation failed"});
+  }
+});
 
 app.post("/api/fuel-estimate", async (req, res) => {
   if (!GEMINI_API_KEY) {
