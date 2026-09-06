@@ -884,6 +884,53 @@ const EXTRA_UI_ENGLISH = [
   "Emissions","Fuel system","Electrical","Engine","Chassis","Corrosion","Structure"
 ]
 
+function buildLocalLanguageFallback(){
+  if(currentLang === "ckb" || currentLang === "en") return {};
+
+  const dictionaries = {
+    ar: typeof AR_TRANSLATIONS !== "undefined" ? AR_TRANSLATIONS : {},
+    fa: typeof FA_TRANSLATIONS !== "undefined" ? FA_TRANSLATIONS : {},
+    tr: typeof TR_TRANSLATIONS !== "undefined" ? TR_TRANSLATIONS : {},
+    fr: typeof FR_TRANSLATIONS !== "undefined" ? FR_TRANSLATIONS : {},
+    de: typeof DE_TRANSLATIONS !== "undefined" ? DE_TRANSLATIONS : {},
+    es: typeof ES_TRANSLATIONS !== "undefined" ? ES_TRANSLATIONS : {},
+    ro: typeof RO_TRANSLATIONS !== "undefined" ? RO_TRANSLATIONS : {},
+    pl: typeof PL_TRANSLATIONS !== "undefined" ? PL_TRANSLATIONS : {},
+    ur: typeof UR_TRANSLATIONS !== "undefined" ? UR_TRANSLATIONS : {},
+    ps: typeof PS_TRANSLATIONS !== "undefined" ? PS_TRANSLATIONS : {}
+  };
+
+  const source = dictionaries[currentLang] || {};
+  const fallback = {};
+
+  Object.entries(source).forEach(function(pair){
+    const english = EN_TRANSLATIONS[pair[0]];
+    if(english) fallback[english] = pair[1];
+  });
+
+  return fallback;
+}
+
+function languagePackLooksTranslated(pack, englishTexts){
+  if(!pack || typeof pack !== "object") return false;
+
+  let checked = 0;
+  let changed = 0;
+
+  englishTexts.forEach(function(source){
+    const target = pack[source];
+    if(typeof target !== "string" || !target.trim()) return;
+
+    if(/^(MOT|ULEZ|CAZ|V5C|CO2|MPG|NCAP|LPG|CNG)$/i.test(source.trim())) return;
+
+    checked++;
+    if(target.trim() !== source.trim()) changed++;
+  });
+
+  if(checked < 20) return false;
+  return changed / checked >= 0.45;
+}
+
 async function loadLanguagePack(){
   if(currentLang === "ckb" || currentLang === "en"){
     ACTIVE_LANGUAGE_PACK = {};
@@ -891,20 +938,24 @@ async function loadLanguagePack(){
     return;
   }
 
-  const cacheKey = "akar_language_pack_v5_" + currentLang;
-
-  try{
-    const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
-    if(cached && typeof cached === "object" && Object.keys(cached).length >= 60){
-      ACTIVE_LANGUAGE_PACK = cached;
-      languagePackReady = true;
-      return;
-    }
-  }catch{}
+  // Use built-in translations immediately as a safe fallback.
+  ACTIVE_LANGUAGE_PACK = buildLocalLanguageFallback();
 
   const englishTexts = Array.from(new Set(
     Object.values(EN_TRANSLATIONS).concat(EXTRA_UI_ENGLISH)
   )).filter(Boolean);
+
+  // New cache version so any old failed/English-only pack is ignored.
+  const cacheKey = "akar_language_pack_v6_" + currentLang;
+
+  try{
+    const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+    if(languagePackLooksTranslated(cached, englishTexts)){
+      ACTIVE_LANGUAGE_PACK = Object.assign({}, ACTIVE_LANGUAGE_PACK, cached);
+      languagePackReady = true;
+      return;
+    }
+  }catch{}
 
   let lastError = null;
 
@@ -919,20 +970,29 @@ async function loadLanguagePack(){
       const data = await response.json();
 
       if(response.ok && data.ok && data.translations){
-        ACTIVE_LANGUAGE_PACK = data.translations;
-        languagePackReady = true;
-        try{ localStorage.setItem(cacheKey, JSON.stringify(ACTIVE_LANGUAGE_PACK)); }catch{}
-        return;
-      }
+        const merged = Object.assign({}, ACTIVE_LANGUAGE_PACK, data.translations);
 
-      lastError = data?.error || "Language pack failed";
+        // Do not save a failed "translation" that is mostly unchanged English.
+        if(languagePackLooksTranslated(merged, englishTexts)){
+          ACTIVE_LANGUAGE_PACK = merged;
+          languagePackReady = true;
+          try{
+            localStorage.setItem(cacheKey, JSON.stringify(ACTIVE_LANGUAGE_PACK));
+          }catch{}
+          return;
+        }
+
+        lastError = "Gemini returned an untranslated language pack";
+      }else{
+        lastError = data?.error || "Language pack failed";
+      }
     }catch(error){
       lastError = error?.message || String(error);
     }
   }
 
   console.error("Language pack unavailable:", lastError);
-  ACTIVE_LANGUAGE_PACK = {};
+  // Keep the built-in target-language fallback instead of changing the page to English.
   languagePackReady = true;
 }
 function translateString(txt){
@@ -2045,6 +2105,7 @@ app.post("/api/language-pack", async (req, res) => {
     }
 
     const translatedMap = {};
+    let failedBatches = 0;
     const models = ["gemini-3.5-flash-lite", "gemini-3.5-flash"];
 
     // Small batches make the response much more reliable than translating the whole page at once.
@@ -2108,17 +2169,26 @@ ${JSON.stringify(batch)}
           }
 
           modelText = modelText
-            .replace(/^```json\s*/i,"")
-            .replace(/^```\s*/,"")
-            .replace(/```$/,"")
+            .replace(/^```(?:json)?\s*/i,"")
+            .replace(/\s*```$/i,"")
             .trim();
 
-          let arr;
-          try{ arr = JSON.parse(modelText); }
-          catch{
+          let arr = null;
+
+          try{
+            const parsed = JSON.parse(modelText);
+            if(Array.isArray(parsed)) arr = parsed;
+          }catch{}
+
+          if(!arr){
             const first = modelText.indexOf("[");
             const last = modelText.lastIndexOf("]");
-            if(first >= 0 && last > first) arr = JSON.parse(modelText.slice(first,last+1));
+            if(first >= 0 && last > first){
+              try{
+                const parsed = JSON.parse(modelText.slice(first,last+1));
+                if(Array.isArray(parsed)) arr = parsed;
+              }catch{}
+            }
           }
 
           if(!Array.isArray(arr) || arr.length !== batch.length){
@@ -2138,14 +2208,21 @@ ${JSON.stringify(batch)}
       }
 
       if(!finished){
+        failedBatches++;
         console.error("Language-pack batch failed:",language,lastError);
-        // Fall back to English for this batch rather than breaking the page.
         batch.forEach(function(source){ translatedMap[source] = source; });
       }
     }
 
-    UI_LANGUAGE_PACK_CACHE.set(cacheKey,translatedMap);
-    return res.json({ok:true,translations:translatedMap});
+    if(failedBatches === 0){
+      UI_LANGUAGE_PACK_CACHE.set(cacheKey,translatedMap);
+    }
+
+    return res.json({
+      ok:true,
+      translations:translatedMap,
+      partial:failedBatches > 0
+    });
   }catch(error){
     console.error("Language pack error:",error);
     return res.status(500).json({ok:false,error:"Translation failed"});
