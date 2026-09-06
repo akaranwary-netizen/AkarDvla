@@ -280,93 +280,74 @@ body{
   background:linear-gradient(145deg,rgba(17,20,25,.98),rgba(10,12,15,.98));
   border:1px solid rgba(215,179,106,.18);
 }
+
 .similar-chart{
   display:flex;
   flex-direction:column;
   gap:14px;
   margin-top:16px;
 }
-.similar-chart-row{
+.market-summary{
   display:grid;
-  grid-template-columns:minmax(150px,1.3fr) minmax(160px,2.7fr) auto;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+  margin-bottom:16px;
+}
+.market-box{
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:14px;
+  padding:15px;
+  text-align:center;
+}
+.market-box small{
+  display:block;
+  color:var(--muted);
+  margin-bottom:7px;
+  font-size:11px;
+}
+.market-box strong{
+  display:block;
+  color:var(--gold2);
+  font-size:20px;
+  direction:ltr;
+}
+.market-bar-row{
+  display:grid;
+  grid-template-columns:150px 1fr 88px;
   gap:12px;
   align-items:center;
 }
-.similar-chart-label{
-  min-width:0;
+.market-bar-label{
+  color:#cfd3d8;
+  font-size:12px;
+  font-weight:800;
 }
-.similar-chart-title{
-  font-size:13px;
-  font-weight:900;
-  direction:ltr;
-  text-align:left;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.similar-chart-meta{
-  margin-top:3px;
-  color:var(--muted);
-  font-size:11px;
-  direction:ltr;
-  text-align:left;
-}
-.similar-bar-track{
-  height:32px;
+.market-bar-track{
+  height:30px;
   border-radius:10px;
   overflow:hidden;
   background:rgba(255,255,255,.045);
   border:1px solid rgba(255,255,255,.06);
-  position:relative;
 }
-.similar-bar{
+.market-bar{
   height:100%;
   min-width:4px;
-  background:linear-gradient(90deg,rgba(215,179,106,.55),var(--gold));
   border-radius:9px;
-  display:flex;
-  align-items:center;
-  justify-content:flex-end;
-  padding:0 9px;
-  transition:width .35s ease;
+  background:linear-gradient(90deg,rgba(215,179,106,.55),var(--gold));
 }
-.similar-bar-price{
+.market-bar-value{
+  text-align:left;
+  direction:ltr;
   font-size:12px;
   font-weight:900;
-  color:#15110a;
-  direction:ltr;
-  white-space:nowrap;
-}
-.similar-chart-link{
-  text-decoration:none;
   color:var(--gold2);
-  border:1px solid rgba(215,179,106,.22);
-  background:rgba(215,179,106,.08);
-  border-radius:9px;
-  padding:8px 10px;
-  font-size:11px;
-  font-weight:800;
-  white-space:nowrap;
-}
-.similar-chart-axis{
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
-  margin:4px 0 0;
-  padding:0 4px;
-  color:#777f89;
-  font-size:10px;
-  direction:ltr;
 }
 @media(max-width:700px){
-  .similar-chart-row{
-    grid-template-columns:1fr;
-    gap:7px;
-  }
-  .similar-chart-link{
-    justify-self:start;
-  }
+  .market-summary{grid-template-columns:1fr}
+  .market-bar-row{grid-template-columns:110px 1fr 76px}
 }
+  }
 
 .language-switch{
   border:1px solid rgba(215,179,106,.28);
@@ -689,12 +670,12 @@ footer{
     
 
       <div class="card similar-card">
-        <h3><span class="icon">🚗</span> <span>ئۆتۆمبێلی هاوشێوە بۆ فرۆشتن</span></h3>
+        <h3><span class="icon">🚗</span> <span>بەراوردی نرخی بازاڕ</span></h3>
         <div id="هاوشێوە_بارکردن" class="ai-loading">ئۆتۆمبێلی هاوشێوە دەگەڕێندرێت...</div>
         <div id="هاوشێوە_کورتە" class="muted" style="display:none"></div>
         <div id="هاوشێوە_ئەنجام" class="similar-chart"></div>
         <div class="note">
-          ئەمانە نرخی داواکراوی ئۆتۆمبێلە هاوشێوەکانی ئێستای بازاڕن، نە نرخی فرۆشتنی دڵنیابوو.
+          ئەم بەراوردە لەسەر نرخی داواکراوی ئێستای ئۆتۆمبێلە هاوشێوەکانە؛ نرخی فرۆشتنی کۆتایی نییە.
         </div>
       </div>
 
@@ -838,10 +819,10 @@ const EN_TRANSLATIONS = {
   "تێچووی 100 مایل":"Cost for 100 miles",
   "تێچووی 12,000 مایل":"Cost for 12,000 miles",
   "ئەمە خەمڵاندنێکی AI ـە. تێچووی ڕاستەقینە بە نرخی سووتەمەنی، شێوازی شۆفێری، ترافیک و دۆخی ئۆتۆمبێل دەگۆڕێت.":"This is an AI estimate. Actual fuel cost varies with fuel price, driving style, traffic and vehicle condition.",
-  "ئۆتۆمبێلی هاوشێوە بۆ فرۆشتن":"Similar cars currently for sale",
+  "بەراوردی نرخی بازاڕ":"Market price comparison",
   "ئۆتۆمبێلی هاوشێوە دەگەڕێندرێت...":"Finding similar cars currently for sale...",
-  "ئەممانە نرخی داواکراوی ئۆتۆمبێلە هاوشێوەکانی ئێستای بازاڕن، نە نرخی فرۆشتنی دڵنیابوو.":"Chart shows current asking prices for similar cars, not confirmed sold prices.",
-  "ئەمانە نرخی داواکراوی ئۆتۆمبێلە هاوشێوەکانی ئێستای بازاڕن، نە نرخی فرۆشتنی دڵنیابوو.":"Chart shows current asking prices for similar cars, not confirmed sold prices."
+  "ئەممانە نرخی داواکراوی ئۆتۆمبێلە هاوشێوەکانی ئێستای بازاڕن، نە نرخی فرۆشتنی دڵنیابوو.":"Based on current asking prices for similar cars. These are not confirmed sold prices.",
+  "ئەم بەراوردە لەسەر نرخی داواکراوی ئێستای ئۆتۆمبێلە هاوشێوەکانە؛ نرخی فرۆشتنی کۆتایی نییە.":"Based on current asking prices for similar cars. These are not confirmed sold prices."
 };
 
 function translateTextNode(node){
@@ -1320,53 +1301,72 @@ async function دۆزینەوەی_هاوشێوە(d){
       summaryBox.style.display = "block";
     }
 
-    const validPrices = cars
-      .map(function(car){ return Number(car.price); })
-      .filter(function(p){ return Number.isFinite(p) && p > 0; });
+    const validCars = cars.filter(function(car){
+      const p = Number(car.price);
+      return Number.isFinite(p) && p > 0;
+    });
 
-    const maxPrice = validPrices.length ? Math.max.apply(null, validPrices) : 1;
-    const minPrice = validPrices.length ? Math.min.apply(null, validPrices) : 0;
+    if(!validCars.length){
+      loading.textContent = currentLang === "en"
+        ? "No usable asking-price data was found."
+        : "هیچ داتایەکی بەکارهاتووی نرخی داواکراو نەدۆزرایەوە.";
+      return;
+    }
 
-    const axisHtml =
-      '<div class="similar-chart-axis">'+
-        '<span>£'+Math.round(minPrice).toLocaleString("en-GB")+'</span>'+
-        '<span>'+(currentLang === "en" ? "Asking price" : "نرخی داواکراو")+'</span>'+
-        '<span>£'+Math.round(maxPrice).toLocaleString("en-GB")+'</span>'+
+    const prices = validCars.map(function(car){ return Number(car.price); }).sort(function(a,b){ return a-b; });
+    const minPrice = prices[0];
+    const maxPrice = prices[prices.length-1];
+    const averagePrice = prices.reduce(function(sum,p){ return sum+p; },0) / prices.length;
+    const middle = Math.floor(prices.length/2);
+    const medianPrice = prices.length % 2
+      ? prices[middle]
+      : (prices[middle-1] + prices[middle]) / 2;
+
+    const formatPrice = function(v){
+      return "£" + Math.round(v).toLocaleString("en-GB");
+    };
+
+    if(summaryBox){
+      summaryBox.textContent = currentLang === "en"
+        ? ("Based on " + validCars.length + " similar live asking prices. Typical market asking price: " + formatPrice(medianPrice) + ".")
+        : ("بەپێی " + validCars.length + " نرخی داواکراوی زیندووی هاوشێوە. نرخی ئاسایی بازاڕ: " + formatPrice(medianPrice) + ".");
+      summaryBox.style.display = "block";
+    }
+
+    const summaryHtml =
+      '<div class="market-summary">'+
+        '<div class="market-box">'+
+          '<small>'+(currentLang === "en" ? "Lowest asking price" : "نزمترین نرخی داواکراو")+'</small>'+
+          '<strong>'+formatPrice(minPrice)+'</strong>'+
+        '</div>'+
+        '<div class="market-box">'+
+          '<small>'+(currentLang === "en" ? "Typical asking price" : "نرخی ئاسایی داواکراو")+'</small>'+
+          '<strong>'+formatPrice(medianPrice)+'</strong>'+
+        '</div>'+
+        '<div class="market-box">'+
+          '<small>'+(currentLang === "en" ? "Highest asking price" : "بەرزترین نرخی داواکراو")+'</small>'+
+          '<strong>'+formatPrice(maxPrice)+'</strong>'+
+        '</div>'+
       '</div>';
 
-    resultBox.innerHTML = axisHtml + cars.map(function(car){
-      const title = [car.year,car.make,car.model].filter(Boolean).join(" ");
-      const numericPrice = Number(car.price);
-      const price = Number.isFinite(numericPrice)
-        ? "£" + Math.round(numericPrice).toLocaleString("en-GB")
-        : "—";
-      const width = Number.isFinite(numericPrice) && maxPrice > 0
-        ? Math.max(8, Math.round((numericPrice / maxPrice) * 100))
-        : 8;
-      const mileage = Number.isFinite(Number(car.mileage))
-        ? Number(car.mileage).toLocaleString("en-GB") + (currentLang === "en" ? " miles" : " مایل")
-        : (currentLang === "en" ? "Mileage unavailable" : "مایلیج بەردەست نییە");
-      const fuel = car.fuel_type || "";
-      const loc = car.loc || "";
-      const meta = mileage + (fuel ? " · " + fuel : "") + (loc ? " · " + loc : "");
-      const linkText = currentLang === "en" ? "View listing" : "بینینی ڕیکلام";
-      const linkHtml = car.url
-        ? '<a class="similar-chart-link" href="'+پاراستنی_دەق(car.url)+'" target="_blank" rel="noopener noreferrer">'+linkText+'</a>'
-        : '<span></span>';
+    const maxScale = maxPrice > 0 ? maxPrice : 1;
+    const bars = [
+      {label:currentLang === "en" ? "Lowest" : "نزمترین", value:minPrice},
+      {label:currentLang === "en" ? "Typical" : "ئاسایی", value:medianPrice},
+      {label:currentLang === "en" ? "Average" : "ناوەند", value:averagePrice},
+      {label:currentLang === "en" ? "Highest" : "بەرزترین", value:maxPrice}
+    ];
 
-      return '<div class="similar-chart-row">'+
-        '<div class="similar-chart-label">'+
-          '<div class="similar-chart-title">'+پاراستنی_دەق(title || "Vehicle")+'</div>'+
-          '<div class="similar-chart-meta">'+پاراستنی_دەق(meta)+'</div>'+
-        '</div>'+
-        '<div class="similar-bar-track">'+
-          '<div class="similar-bar" style="width:'+width+'%">'+
-            '<span class="similar-bar-price">'+price+'</span>'+
-          '</div>'+
-        '</div>'+
-        linkHtml+
+    const barsHtml = bars.map(function(item){
+      const width = Math.max(6, Math.round((item.value / maxScale) * 100));
+      return '<div class="market-bar-row">'+
+        '<div class="market-bar-label">'+پاراستنی_دەق(item.label)+'</div>'+
+        '<div class="market-bar-track"><div class="market-bar" style="width:'+width+'%"></div></div>'+
+        '<div class="market-bar-value">'+formatPrice(item.value)+'</div>'+
       '</div>';
     }).join("");
+
+    resultBox.innerHTML = summaryHtml + barsHtml;
 
   }catch(error){
     loading.textContent =
@@ -1949,11 +1949,7 @@ app.post("/api/similar-listings", async (req, res) => {
       transmission:car?.transmission ?? null,
       engine_size:car?.engine_size ?? null,
       price:car?.price ?? null,
-      dealer:car?.dealer ?? null,
-      url:car?.url ?? null,
-      loc:car?.loc ?? null,
-      thumbnail:car?.thumbnail ?? null,
-      images:Array.isArray(car?.images) ? car.images.slice(0,3) : []
+      loc:car?.loc ?? null
     }));
 
     return res.json({
