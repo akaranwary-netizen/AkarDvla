@@ -19,6 +19,7 @@ app.get("/", (req, res) => {
   res.type("html").send(`<!doctype html>
 <html lang="ckb" dir="rtl">
 <head>
+<meta name="google-site-verification" content="qFWdo65b2VIDInQWb2JmLyN2mY8LqHA_u4fNw5dUP74" />
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Akar's Car Check</title>
