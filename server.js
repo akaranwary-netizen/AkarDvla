@@ -273,6 +273,68 @@ body{
 @media(max-width:760px){.fuel-cost-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:440px){.fuel-cost-grid{grid-template-columns:1fr}}
 
+
+.similar-card{
+  grid-column:1/-1;
+  background:linear-gradient(145deg,rgba(17,20,25,.98),rgba(10,12,15,.98));
+  border:1px solid rgba(215,179,106,.18);
+}
+.similar-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+  margin-top:14px;
+}
+.similar-item{
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:15px;
+  background:rgba(255,255,255,.025);
+}
+.similar-image{
+  width:100%;
+  height:160px;
+  object-fit:cover;
+  display:block;
+  background:#0c0e11;
+}
+.similar-body{padding:14px}
+.similar-title{
+  font-weight:900;
+  font-size:15px;
+  margin-bottom:8px;
+  direction:ltr;
+  text-align:left;
+}
+.similar-price{
+  font-size:22px;
+  font-weight:900;
+  color:var(--gold2);
+  direction:ltr;
+  text-align:left;
+  margin-bottom:9px;
+}
+.similar-meta{
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.7;
+}
+.similar-link{
+  display:block;
+  margin-top:12px;
+  text-decoration:none;
+  text-align:center;
+  padding:10px 12px;
+  border-radius:10px;
+  background:rgba(215,179,106,.10);
+  border:1px solid rgba(215,179,106,.22);
+  color:var(--gold2);
+  font-weight:800;
+  font-size:12px;
+}
+@media(max-width:850px){.similar-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.similar-grid{grid-template-columns:1fr}}
+
 .language-switch{
   border:1px solid rgba(215,179,106,.28);
   background:rgba(215,179,106,.08);
@@ -592,6 +654,17 @@ footer{
           
 
     
+
+      <div class="card similar-card">
+        <h3><span class="icon">🚗</span> <span>ئۆتۆمبێلی هاوشێوە بۆ فرۆشتن</span></h3>
+        <div id="هاوشێوە_بارکردن" class="ai-loading">ئۆتۆمبێلی هاوشێوە دەگەڕێندرێت...</div>
+        <div id="هاوشێوە_کورتە" class="muted" style="display:none"></div>
+        <div id="هاوشێوە_ئەنجام" class="similar-grid"></div>
+        <div class="note">
+          ئەمانە نرخی داواکراوی ئۆتۆمبێلە هاوشێوەکانی ئێستای بازاڕن، نە نرخی فرۆشتنی دڵنیابوو.
+        </div>
+      </div>
+
 <div class="card full">
         <h3><span class="icon">🛠️</span> کێشە دووبارەبووەکانی MOT</h3>
         <div id="کێشە_دووبارە"></div>
@@ -731,7 +804,11 @@ const EN_TRANSLATIONS = {
   "تێچووی 1 مایل":"Cost for 1 mile",
   "تێچووی 100 مایل":"Cost for 100 miles",
   "تێچووی 12,000 مایل":"Cost for 12,000 miles",
-  "ئەمە خەمڵاندنێکی AI ـە. تێچووی ڕاستەقینە بە نرخی سووتەمەنی، شێوازی شۆفێری، ترافیک و دۆخی ئۆتۆمبێل دەگۆڕێت.":"This is an AI estimate. Actual fuel cost varies with fuel price, driving style, traffic and vehicle condition."
+  "ئەمە خەمڵاندنێکی AI ـە. تێچووی ڕاستەقینە بە نرخی سووتەمەنی، شێوازی شۆفێری، ترافیک و دۆخی ئۆتۆمبێل دەگۆڕێت.":"This is an AI estimate. Actual fuel cost varies with fuel price, driving style, traffic and vehicle condition.",
+  "ئۆتۆمبێلی هاوشێوە بۆ فرۆشتن":"Similar cars currently for sale",
+  "ئۆتۆمبێلی هاوشێوە دەگەڕێندرێت...":"Finding similar cars currently for sale...",
+  "ئەممانە نرخی داواکراوی ئۆتۆمبێلە هاوشێوەکانی ئێستای بازاڕن، نە نرخی فرۆشتنی دڵنیابوو.":"These are current asking prices for similar cars, not confirmed sold prices.",
+  "ئەمانە نرخی داواکراوی ئۆتۆمبێلە هاوشێوەکانی ئێستای بازاڕن، نە نرخی فرۆشتنی دڵنیابوو.":"These are current asking prices for similar cars, not confirmed sold prices."
 };
 
 function translateTextNode(node){
@@ -1159,6 +1236,98 @@ async function خەمڵاندنی_سووتەمەنی_AI(d){
   }
 }
 
+
+async function دۆزینەوەی_هاوشێوە(d){
+  const loading = دۆزینەوە("هاوشێوە_بارکردن");
+  const resultBox = دۆزینەوە("هاوشێوە_ئەنجام");
+  const summaryBox = دۆزینەوە("هاوشێوە_کورتە");
+  if(!loading || !resultBox) return;
+
+  loading.style.display = "block";
+  loading.textContent = currentLang === "en"
+    ? "Finding similar cars currently for sale..."
+    : "ئۆتۆمبێلی هاوشێوە دەگەڕێندرێت...";
+  resultBox.innerHTML = "";
+  if(summaryBox) summaryBox.style.display = "none";
+
+  try{
+    const response = await fetch("/api/similar-listings",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        make:d.make || null,
+        model:d.model || null,
+        year:d.yearOfManufacture || null,
+        mileage:d.signals?.latestOdometerMiles ?? null,
+        fuelType:d.fuelType || null
+      })
+    });
+
+    const result = await response.json();
+    if(!response.ok || !result.ok){
+      throw new Error(result.error || "Similar vehicle search failed");
+    }
+
+    const cars = Array.isArray(result.cars) ? result.cars : [];
+
+    if(!cars.length){
+      loading.textContent = currentLang === "en"
+        ? "No similar live listings were found."
+        : "هیچ ڕیکلامێکی زیندووی هاوشێوە نەدۆزرایەوە.";
+      return;
+    }
+
+    loading.style.display = "none";
+
+    if(summaryBox){
+      const countText = currentLang === "en"
+        ? (cars.length + " similar live listings shown")
+        : (cars.length + " ئۆتۆمبێلی هاوشێوە پیشان دەدرێت");
+      summaryBox.textContent = countText;
+      summaryBox.style.display = "block";
+    }
+
+    resultBox.innerHTML = cars.map(function(car){
+      const title = [car.year,car.make,car.model].filter(Boolean).join(" ");
+      const price = Number.isFinite(Number(car.price))
+        ? "£" + Math.round(Number(car.price)).toLocaleString("en-GB")
+        : "—";
+      const mileage = Number.isFinite(Number(car.mileage))
+        ? Number(car.mileage).toLocaleString("en-GB") + (currentLang === "en" ? " miles" : " مایل")
+        : (currentLang === "en" ? "Mileage unavailable" : "مایلیج بەردەست نییە");
+      const fuel = car.fuel_type || "";
+      const loc = car.loc || "";
+      const image = car.thumbnail || (Array.isArray(car.images) ? car.images[0] : null);
+      const imgHtml = image
+        ? '<img class="similar-image" src="'+پاراستنی_دەق(image)+'" alt="'+پاراستنی_دەق(title)+'" loading="lazy" referrerpolicy="no-referrer">'
+        : '<div class="similar-image" style="display:grid;place-items:center;color:#666;font-size:42px">🚗</div>';
+      const linkText = currentLang === "en" ? "View listing" : "بینینی ڕیکلام";
+      const linkHtml = car.url
+        ? '<a class="similar-link" href="'+پاراستنی_دەق(car.url)+'" target="_blank" rel="noopener noreferrer">'+linkText+'</a>'
+        : "";
+
+      return '<div class="similar-item">'+
+        imgHtml+
+        '<div class="similar-body">'+
+          '<div class="similar-title">'+پاراستنی_دەق(title || "Vehicle")+'</div>'+
+          '<div class="similar-price">'+price+'</div>'+
+          '<div class="similar-meta">'+پاراستنی_دەق(mileage)+
+            (fuel ? ' · '+پاراستنی_دەق(fuel) : '')+
+            (loc ? '<br>'+پاراستنی_دەق(loc) : '')+
+          '</div>'+
+          linkHtml+
+        '</div>'+
+      '</div>';
+    }).join("");
+
+  }catch(error){
+    loading.textContent =
+      (currentLang === "en" ? "Similar listings unavailable: " : "ڕیکلامی هاوشێوە بەردەست نییە: ")
+      + (error?.message || (currentLang === "en" ? "Unknown error" : "هەڵەی نەناسراو"));
+  }
+}
+
+
 async function پشکنین(){
   const vrm = دۆزینەوە("ژمارە").value.toUpperCase().replace(/[^A-Z0-9]/g,"");
 
@@ -1318,6 +1487,7 @@ async function پشکنین(){
 
     خەمڵاندنی_AI(d);
     خەمڵاندنی_سووتەمەنی_AI(d);
+    دۆزینەوەی_هاوشێوە(d);
 
     دۆزینەوە("پەیام").style.display = "none";
     دۆزینەوە("ڕاپۆرت").style.display = "block";
@@ -1659,6 +1829,100 @@ ${JSON.stringify(car, null, 2)}
 
   return res.status(502).json({ok:false,error:`Gemini fuel estimate failed: ${lastError}`});
 });
+
+
+app.post("/api/similar-listings", async (req, res) => {
+  const make = String(req.body?.make || "").trim();
+  const model = String(req.body?.model || "").trim();
+  const year = Number(req.body?.year);
+  const mileage = Number(req.body?.mileage);
+
+  if(!make || !model){
+    return res.status(400).json({
+      ok:false,
+      error:"Vehicle make and model are required."
+    });
+  }
+
+  async function searchListings(yearMin, yearMax){
+    const params = new URLSearchParams({
+      make,
+      model,
+      sort:"relevance",
+      page:"1"
+    });
+
+    if(Number.isFinite(yearMin)) params.set("year_min", String(yearMin));
+    if(Number.isFinite(yearMax)) params.set("year_max", String(yearMax));
+
+    const response = await fetch(
+      "https://www.pistontraders.co.uk/api/v1/vehicles/?" + params.toString(),
+      {headers:{"Accept":"application/json"}}
+    );
+
+    if(!response.ok){
+      const raw = await response.text();
+      throw new Error("PistonTraders returned HTTP " + response.status + (raw ? ": " + raw.slice(0,180) : ""));
+    }
+
+    const data = await response.json();
+    return Array.isArray(data?.results?.cars) ? data.results.cars : [];
+  }
+
+  try{
+    let cars = [];
+
+    if(Number.isFinite(year)){
+      cars = await searchListings(year, year);
+      if(!cars.length){
+        cars = await searchListings(year - 1, year + 1);
+      }
+    }else{
+      cars = await searchListings(null, null);
+    }
+
+    // Prefer listings with mileage closest to the checked vehicle.
+    if(Number.isFinite(mileage)){
+      cars = cars.slice().sort((a,b)=>{
+        const am = Number(a?.mileage);
+        const bm = Number(b?.mileage);
+        const ad = Number.isFinite(am) ? Math.abs(am - mileage) : Number.MAX_SAFE_INTEGER;
+        const bd = Number.isFinite(bm) ? Math.abs(bm - mileage) : Number.MAX_SAFE_INTEGER;
+        return ad - bd;
+      });
+    }
+
+    cars = cars.slice(0,5).map(car => ({
+      year:car?.year ?? null,
+      make:car?.make ?? null,
+      model:car?.model ?? null,
+      mileage:car?.mileage ?? null,
+      fuel_type:car?.fuel_type ?? null,
+      transmission:car?.transmission ?? null,
+      engine_size:car?.engine_size ?? null,
+      price:car?.price ?? null,
+      dealer:car?.dealer ?? null,
+      url:car?.url ?? null,
+      loc:car?.loc ?? null,
+      thumbnail:car?.thumbnail ?? null,
+      images:Array.isArray(car?.images) ? car.images.slice(0,3) : []
+    }));
+
+    return res.json({
+      ok:true,
+      source:"PistonTraders",
+      cars
+    });
+
+  }catch(error){
+    console.error("PistonTraders similar-listings error:", error);
+    return res.status(502).json({
+      ok:false,
+      error:"Could not retrieve similar live vehicle listings."
+    });
+  }
+});
+
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Akar's Car Check لە پۆرتی ${PORT} کار دەکات`);
