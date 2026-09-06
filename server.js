@@ -834,15 +834,24 @@ const EXTRA_UI_ENGLISH = [
   "Retrieving live vehicle information...",
   "Vehicle check failed.",
   "Vehicle report",
+  "Needs further checking",
+  "Shows a good overall condition",
+  "Check carefully",
   "Estimating MPG and fuel costs...",
   "Fuel-cost estimate unavailable:",
+  "Fuel estimate failed",
   "Unknown error",
   "Estimated from the available vehicle details.",
   "Confidence:",
   "Low","Medium","High",
   "Finding similar cars currently for sale...",
+  "No similar live listings were found.",
+  "similar live listings shown",
   "No similar asking prices were found.",
   "No usable asking-price data was found.",
+  "Based on",
+  "similar live asking prices.",
+  "Typical market asking price:",
   "Lowest asking price",
   "Typical asking price",
   "Highest asking price",
@@ -851,6 +860,7 @@ const EXTRA_UI_ENGLISH = [
   "Typical",
   "Highest",
   "Similar listings unavailable:",
+  "Similar vehicle search failed",
   "Diesel vehicle",
   "CAZ result for a normal private car:",
   "No charge",
@@ -858,8 +868,21 @@ const EXTRA_UI_ENGLISH = [
   "year","years","mile","miles","miles/year",
   "litre",
   "Issue type","Date","Result","Mileage",
-  "No additional recurring-issue information is available."
-];
+  "No additional recurring-issue information is available.",
+  "The data source did not return a full test-by-test MOT history for this vehicle.",
+  "Above average","Below average","Consistent","Inconsistent",
+  "Valid","Expired","Taxed","Untaxed",
+  "Petrol","Diesel","Electric","Hybrid",
+  "Passed","Failed","Compliant","Not compliant",
+  "None","Possible","Good","Poor","Excellent","Very good","Very poor",
+  "Consider","Good to buy","Avoid","Recommended","Not recommended",
+  "Increasing","Decreasing","Stable","Anomaly","No anomaly",
+  "Advisory","Advisories","Dangerous","Major","Minor","Recall",
+  "Suspension","Tyres","Tyre","Lights","Light","Bodywork","Exhaust",
+  "Brakes","Brake","Steering","Visibility","Windscreen","Wipers","Washers",
+  "Seatbelts","Seats","Doors","Mirrors","Horn","Registration plate",
+  "Emissions","Fuel system","Electrical","Engine","Chassis","Corrosion","Structure"
+]
 
 async function loadLanguagePack(){
   if(currentLang === "ckb" || currentLang === "en"){
@@ -868,31 +891,50 @@ async function loadLanguagePack(){
     return;
   }
 
+  const cacheKey = "akar_language_pack_v5_" + currentLang;
+
+  try{
+    const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+    if(cached && typeof cached === "object" && Object.keys(cached).length >= 60){
+      ACTIVE_LANGUAGE_PACK = cached;
+      languagePackReady = true;
+      return;
+    }
+  }catch{}
+
   const englishTexts = Array.from(new Set(
     Object.values(EN_TRANSLATIONS).concat(EXTRA_UI_ENGLISH)
   )).filter(Boolean);
 
-  try{
-    const response = await fetch("/api/language-pack",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({language:currentLang,texts:englishTexts})
-    });
-    const data = await response.json();
+  let lastError = null;
 
-    if(response.ok && data.ok && data.translations){
-      ACTIVE_LANGUAGE_PACK = data.translations;
-      languagePackReady = true;
-      return;
+  for(let attempt=0; attempt<2; attempt++){
+    try{
+      const response = await fetch("/api/language-pack",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({language:currentLang,texts:englishTexts})
+      });
+
+      const data = await response.json();
+
+      if(response.ok && data.ok && data.translations){
+        ACTIVE_LANGUAGE_PACK = data.translations;
+        languagePackReady = true;
+        try{ localStorage.setItem(cacheKey, JSON.stringify(ACTIVE_LANGUAGE_PACK)); }catch{}
+        return;
+      }
+
+      lastError = data?.error || "Language pack failed";
+    }catch(error){
+      lastError = error?.message || String(error);
     }
-  }catch(error){
-    console.error("Language pack load error:", error);
   }
 
+  console.error("Language pack unavailable:", lastError);
   ACTIVE_LANGUAGE_PACK = {};
   languagePackReady = true;
 }
-
 function translateString(txt){
   if(currentLang === "ckb") return txt;
 
@@ -1260,17 +1302,19 @@ function وەرگێڕانی_بەها(v){
   };
 
   const map = currentLang !== "ckb" ? enMap : ckbMap;
-  if(map[key]) return map[key];
+  if(map[key]){
+    return currentLang === "ckb" ? map[key] : translateString(map[key]);
+  }
 
   if(currentLang !== "ckb"){
-    if(key.includes("above_average")) return "Above average";
-    if(key.includes("below_average")) return "Below average";
-    if(key.includes("consistent")) return "Consistent";
-    if(key.includes("inconsistent")) return "Inconsistent";
-    if(key.includes("valid")) return "Valid";
-    if(key.includes("expired")) return "Expired";
-    if(key.includes("taxed")) return "Taxed";
-    if(key.includes("untaxed")) return "Untaxed";
+    if(key.includes("above_average")) return translateString("Above average");
+    if(key.includes("below_average")) return translateString("Below average");
+    if(key.includes("consistent")) return translateString("Consistent");
+    if(key.includes("inconsistent")) return translateString("Inconsistent");
+    if(key.includes("valid")) return translateString("Valid");
+    if(key.includes("expired")) return translateString("Expired");
+    if(key.includes("taxed")) return translateString("Taxed");
+    if(key.includes("untaxed")) return translateString("Untaxed");
     return raw;
   }
 
@@ -1368,10 +1412,10 @@ function هەڵسەنگاندن(summary,s){
 
   score = Math.max(10,Math.min(95,Math.round(score)));
 
-  let text = currentLang !== "ckb" ? "Needs further checking" : "پێویستی بە پشکنینی زیاتر هەیە";
+  let text = currentLang !== "ckb" ? translateString("Needs further checking") : "پێویستی بە پشکنینی زیاتر هەیە";
   let colour = "#f7c76d";
-  if(score >= 80){ text = currentLang !== "ckb" ? "Shows a good overall condition" : "دۆخی باش پیشان دەدات"; colour = "#5dd39e"; }
-  if(score < 55){ text = currentLang !== "ckb" ? "Check carefully" : "بە وریاییەوە بپشکنە"; colour = "#ff7070"; }
+  if(score >= 80){ text = currentLang !== "ckb" ? translateString("Shows a good overall condition") : "دۆخی باش پیشان دەدات"; colour = "#5dd39e"; }
+  if(score < 55){ text = currentLang !== "ckb" ? translateString("Check carefully") : "بە وریاییەوە بپشکنە"; colour = "#ff7070"; }
 
   دۆزینەوە("نمرە").textContent = score;
   دۆزینەوە("دەقی_هەڵسەنگاندن").textContent = text;
@@ -1400,7 +1444,7 @@ async function خەمڵاندنی_سووتەمەنی_AI(d){
 
   loading.style.display = "block";
   loading.textContent = currentLang !== "ckb"
-    ? "Estimating MPG and fuel costs..."
+    ? translateString("Estimating MPG and fuel costs...")
     : "MPG و تێچووی سووتەمەنی خەمڵێنرێت...";
   resultBox.style.display = "none";
 
@@ -1443,20 +1487,20 @@ async function خەمڵاندنی_سووتەمەنی_AI(d){
     const fuelName = f.fuelType || d.fuelType || "";
     دۆزینەوە("سووتەمەنی_نرخ").textContent =
       currentLang !== "ckb"
-        ? (fuelName + ": £" + price.toFixed(3) + "/litre")
+        ? (translateString(fuelName) + ": £" + price.toFixed(3) + "/" + translateString("litre"))
         : (وەرگێڕانی_بەها(fuelName) + ": £" + price.toFixed(3) + "/لیتر");
 
     const c = f.confidence || "low";
     const cText = currentLang !== "ckb"
-      ? ({low:"Low",medium:"Medium",high:"High"}[c] || c)
+      ? translateString(({low:"Low",medium:"Medium",high:"High"}[c] || c))
       : ({low:"نزم",medium:"مامناوەند",high:"بەرز"}[c] || c);
 
     دۆزینەوە("سووتەمەنی_دڵنیایی").textContent =
-      currentLang !== "ckb" ? "Confidence: "+cText : "ئاستی دڵنیایی: "+cText;
+      currentLang !== "ckb" ? translateString("Confidence:")+" "+cText : "ئاستی دڵنیایی: "+cText;
 
     دۆزینەوە("سووتەمەنی_هۆکار").textContent =
       f.reason || (currentLang !== "ckb"
-        ? "Estimated from the available vehicle details."
+        ? translateString("Estimated from the available vehicle details.")
         : "بەپێی زانیارییە بەردەستەکانی ئۆتۆمبێل خەمڵێنراوە.");
 
     loading.style.display = "none";
@@ -1464,8 +1508,8 @@ async function خەمڵاندنی_سووتەمەنی_AI(d){
     setTimeout(refreshSelectedLanguage, 50);
   }catch(error){
     loading.textContent =
-      (currentLang !== "ckb" ? "Fuel-cost estimate unavailable: " : "خەمڵاندنی تێچووی سووتەمەنی بەردەست نییە: ")
-      + (error?.message || (currentLang !== "ckb" ? "Unknown error" : "هەڵەی نەناسراو"));
+      (currentLang !== "ckb" ? translateString("Fuel-cost estimate unavailable:")+" " : "خەمڵاندنی تێچووی سووتەمەنی بەردەست نییە: ")
+      + (error?.message || (currentLang !== "ckb" ? translateString("Unknown error") : "هەڵەی نەناسراو"));
   }
 }
 
@@ -1478,7 +1522,7 @@ async function دۆزینەوەی_هاوشێوە(d){
 
   loading.style.display = "block";
   loading.textContent = currentLang !== "ckb"
-    ? "Finding similar cars currently for sale..."
+    ? translateString("Finding similar cars currently for sale...")
     : "ئۆتۆمبێلی هاوشێوە دەگەڕێندرێت...";
   resultBox.innerHTML = "";
   if(summaryBox) summaryBox.style.display = "none";
@@ -1505,7 +1549,7 @@ async function دۆزینەوەی_هاوشێوە(d){
 
     if(!cars.length){
       loading.textContent = currentLang !== "ckb"
-        ? "No similar live listings were found."
+        ? translateString("No similar live listings were found.")
         : "هیچ ڕیکلامێکی زیندووی هاوشێوە نەدۆزرایەوە.";
       return;
     }
@@ -1514,7 +1558,7 @@ async function دۆزینەوەی_هاوشێوە(d){
 
     if(summaryBox){
       const countText = currentLang !== "ckb"
-        ? (cars.length + " similar live listings shown")
+        ? (cars.length + " " + translateString("similar live listings shown"))
         : (cars.length + " ئۆتۆمبێلی هاوشێوە پیشان دەدرێت");
       summaryBox.textContent = countText;
       summaryBox.style.display = "block";
@@ -1527,7 +1571,7 @@ async function دۆزینەوەی_هاوشێوە(d){
 
     if(!validCars.length){
       loading.textContent = currentLang !== "ckb"
-        ? "No usable asking-price data was found."
+        ? translateString("No usable asking-price data was found.")
         : "هیچ داتایەکی بەکارهاتووی نرخی داواکراو نەدۆزرایەوە.";
       return;
     }
@@ -1547,7 +1591,7 @@ async function دۆزینەوەی_هاوشێوە(d){
 
     if(summaryBox){
       summaryBox.textContent = currentLang !== "ckb"
-        ? ("Based on " + validCars.length + " similar live asking prices. Typical market asking price: " + formatPrice(medianPrice) + ".")
+        ? (translateString("Based on") + " " + validCars.length + " " + translateString("similar live asking prices.") + " " + translateString("Typical market asking price:") + " " + formatPrice(medianPrice) + ".")
         : ("بەپێی " + validCars.length + " نرخی داواکراوی زیندووی هاوشێوە. نرخی ئاسایی بازاڕ: " + formatPrice(medianPrice) + ".");
       summaryBox.style.display = "block";
     }
@@ -1555,25 +1599,25 @@ async function دۆزینەوەی_هاوشێوە(d){
     const summaryHtml =
       '<div class="market-summary">'+
         '<div class="market-box">'+
-          '<small>'+(currentLang !== "ckb" ? "Lowest asking price" : "نزمترین نرخی داواکراو")+'</small>'+
+          '<small>'+(currentLang !== "ckb" ? translateString("Lowest asking price") : "نزمترین نرخی داواکراو")+'</small>'+
           '<strong>'+formatPrice(minPrice)+'</strong>'+
         '</div>'+
         '<div class="market-box">'+
-          '<small>'+(currentLang !== "ckb" ? "Typical asking price" : "نرخی ئاسایی داواکراو")+'</small>'+
+          '<small>'+(currentLang !== "ckb" ? translateString("Typical asking price") : "نرخی ئاسایی داواکراو")+'</small>'+
           '<strong>'+formatPrice(medianPrice)+'</strong>'+
         '</div>'+
         '<div class="market-box">'+
-          '<small>'+(currentLang !== "ckb" ? "Highest asking price" : "بەرزترین نرخی داواکراو")+'</small>'+
+          '<small>'+(currentLang !== "ckb" ? translateString("Highest asking price") : "بەرزترین نرخی داواکراو")+'</small>'+
           '<strong>'+formatPrice(maxPrice)+'</strong>'+
         '</div>'+
       '</div>';
 
     const maxScale = maxPrice > 0 ? maxPrice : 1;
     const bars = [
-      {label:currentLang !== "ckb" ? "Lowest" : "نزمترین", value:minPrice},
-      {label:currentLang !== "ckb" ? "Typical" : "ئاسایی", value:medianPrice},
-      {label:currentLang !== "ckb" ? "Average" : "ناوەند", value:averagePrice},
-      {label:currentLang !== "ckb" ? "Highest" : "بەرزترین", value:maxPrice}
+      {label:currentLang !== "ckb" ? translateString("Lowest") : "نزمترین", value:minPrice},
+      {label:currentLang !== "ckb" ? translateString("Typical") : "ئاسایی", value:medianPrice},
+      {label:currentLang !== "ckb" ? translateString("Average") : "ناوەند", value:averagePrice},
+      {label:currentLang !== "ckb" ? translateString("Highest") : "بەرزترین", value:maxPrice}
     ];
 
     const barsHtml = bars.map(function(item){
@@ -1590,8 +1634,8 @@ async function دۆزینەوەی_هاوشێوە(d){
 
   }catch(error){
     loading.textContent =
-      (currentLang !== "ckb" ? "Similar listings unavailable: " : "ڕیکلامی هاوشێوە بەردەست نییە: ")
-      + (error?.message || (currentLang !== "ckb" ? "Unknown error" : "هەڵەی نەناسراو"));
+      (currentLang !== "ckb" ? translateString("Similar listings unavailable:")+" " : "ڕیکلامی هاوشێوە بەردەست نییە: ")
+      + (error?.message || (currentLang !== "ckb" ? translateString("Unknown error") : "هەڵەی نەناسراو"));
   }
 }
 
@@ -1619,14 +1663,14 @@ function نیشاندانی_CAZ_بۆ_دیزڵ(d){
   const euro6 = Number.isFinite(euro) ? euro >= 6 : null;
 
   summary.textContent = currentLang !== "ckb"
-    ? ("Diesel vehicle" + (rawEuro ? " · " + rawEuro : "") + ". CAZ result for a normal private car:")
+    ? (translateString("Diesel vehicle") + (rawEuro ? " · " + rawEuro : "") + ". " + translateString("CAZ result for a normal private car:"))
     : ("ئۆتۆمبێلی دیزڵ" + (rawEuro ? " · " + rawEuro : "") + " ـە. ئەنجامی CAZ بۆ ئۆتۆمبێلی تایبەتی ئاسایی:");
 
   function row(city, type, textCkb, textEn){
     const cls = type === "ok" ? "caz-ok" : (type === "pay" ? "caz-pay" : "caz-check");
     return '<div class="caz-row">'+
       '<span class="caz-city">'+پاراستنی_دەق(city)+'</span>'+
-      '<span class="caz-status '+cls+'">'+پاراستنی_دەق(currentLang !== "ckb" ? textEn : textCkb)+'</span>'+
+      '<span class="caz-status '+cls+'">'+پاراستنی_دەق(currentLang !== "ckb" ? translateString(textEn) : textCkb)+'</span>'+
     '</div>';
   }
 
@@ -1649,6 +1693,7 @@ function نیشاندانی_CAZ_بۆ_دیزڵ(d){
   }
 
   list.innerHTML = html;
+  setTimeout(refreshSelectedLanguage, 60);
 }
 
 
@@ -1709,7 +1754,7 @@ async function پشکنین(){
     دانان("ساڵ",d.yearOfManufacture);
     دۆزینەوە("تەمەن").textContent =
       d.vehicleAgeYears !== null && d.vehicleAgeYears !== undefined
-      ? d.vehicleAgeYears + (currentLang !== "ckb" ? " years" : " ساڵ") : (currentLang === "ckb" ? "بەردەست نییە" : translateString("بەردەست نییە"));
+      ? d.vehicleAgeYears + (currentLang !== "ckb" ? " " + translateString("years") : " ساڵ") : (currentLang === "ckb" ? "بەردەست نییە" : translateString("بەردەست نییە"));
     دانان("یەکەم_تۆمار",d.monthOfFirstRegistration);
 
     دانانی_بەروار("V5C",وەرگرتن(d,[
@@ -1737,12 +1782,12 @@ async function پشکنین(){
 
     دۆزینەوە("مایلیج").textContent =
       s.latestOdometerMiles !== null && s.latestOdometerMiles !== undefined
-      ? Number(s.latestOdometerMiles).toLocaleString("en-GB") + (currentLang !== "ckb" ? " miles" : " مایل") : (currentLang === "ckb" ? "بەردەست نییە" : translateString("بەردەست نییە"));
+      ? Number(s.latestOdometerMiles).toLocaleString("en-GB") + (currentLang !== "ckb" ? " " + translateString("miles") : " مایل") : (currentLang === "ckb" ? "بەردەست نییە" : translateString("بەردەست نییە"));
 
     دۆزینەوە("مایلیج_ساڵانە").textContent =
       ژمارە_لەگەڵ_یەکە(
         وەرگرتن(d,["signals.typicalAnnualMileageMiles","signals.typicalAnnualMileage","signals.annualMileage","summary.typicalAnnualMileage"]),
-        (currentLang !== "ckb" ? " miles/year" : " مایل/ساڵ")
+        (currentLang !== "ckb" ? " " + translateString("miles/year") : " مایل/ساڵ")
       );
 
     دانان("ڕەوتی_مایلیج",s.odometerTrend);
@@ -1789,7 +1834,7 @@ async function پشکنین(){
       }).join("");
     }else{
       دۆزینەوە("کێشە_دووبارە").innerHTML =
-        '<div class="muted">'+(currentLang !== "ckb" ? "No additional recurring-issue information is available." : "هیچ زانیارییەکی زیاتر بۆ کێشە دووبارەبووەکان بەردەست نییە.")+'</div>';
+        '<div class="muted">'+(currentLang !== "ckb" ? translateString("No additional recurring-issue information is available.") : "هیچ زانیارییەکی زیاتر بۆ کێشە دووبارەبووەکان بەردەست نییە.")+'</div>';
     }
 
     const motDetails = وەرگرتن(d,["motHistory","mot_history","signals.motHistory","motTests"]);
@@ -1808,12 +1853,12 @@ async function پشکنین(){
           '<div class="row"><span class="label">'+(currentLang === "ckb" ? "بەروار" : translateString("بەروار"))+'</span><span class="value">'+پاراستنی_دەق(بەروار(testDate))+'</span></div>'+
           '<div class="row"><span class="label">'+(currentLang === "ckb" ? "ئەنجام" : translateString("ئەنجام"))+'</span><span class="value">'+پاراستنی_دەق(وەرگێڕانی_بەها(resultText))+'</span></div>'+
           '<div class="row"><span class="label">'+(currentLang === "ckb" ? "مایلیج" : translateString("مایلیج"))+'</span><span class="value">'+
-          (mileageVal !== null ? Number(mileageVal).toLocaleString("en-GB") + (currentLang !== "ckb" ? " miles" : " مایل") : (currentLang === "ckb" ? "بەردەست نییە" : translateString("بەردەست نییە")))+
+          (mileageVal !== null ? Number(mileageVal).toLocaleString("en-GB") + (currentLang !== "ckb" ? " " + translateString("miles") : " مایل") : (currentLang === "ckb" ? "بەردەست نییە" : translateString("بەردەست نییە")))+
           '</span></div>'+notesHtml+'</div>';
       }).join("");
     }else{
       دۆزینەوە("مێژووی_MOT").innerHTML =
-        '<div class="muted">'+(currentLang !== "ckb" ? "The data source did not return a full test-by-test MOT history for this vehicle." : "سەرچاوەی داتا مێژووی تەواوی هەر MOT بە جیاوازی بۆ ئەم ئۆتۆمبێلە نەگەڕاندووەتەوە.")+'</div>';
+        '<div class="muted">'+(currentLang !== "ckb" ? translateString("The data source did not return a full test-by-test MOT history for this vehicle.") : "سەرچاوەی داتا مێژووی تەواوی هەر MOT بە جیاوازی بۆ ئەم ئۆتۆمبێلە نەگەڕاندووەتەوە.")+'</div>';
     }
 
     خەمڵاندنی_سووتەمەنی_AI(d);
@@ -2003,8 +2048,8 @@ app.post("/api/language-pack", async (req, res) => {
     const models = ["gemini-3.5-flash-lite", "gemini-3.5-flash"];
 
     // Small batches make the response much more reliable than translating the whole page at once.
-    for(let offset=0; offset<texts.length; offset+=20){
-      const batch = texts.slice(offset,offset+20);
+    for(let offset=0; offset<texts.length; offset+=30){
+      const batch = texts.slice(offset,offset+30);
       let finished = false;
       let lastError = "Translation failed";
 
@@ -2038,7 +2083,7 @@ ${JSON.stringify(batch)}
                 contents:[{role:"user",parts:[{text:prompt}]}],
                 generationConfig:{
                   responseMimeType:"application/json",
-                  maxOutputTokens:1800
+                  maxOutputTokens:5000
                 }
               })
             }
