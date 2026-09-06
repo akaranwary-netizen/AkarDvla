@@ -274,66 +274,99 @@ body{
 @media(max-width:440px){.fuel-cost-grid{grid-template-columns:1fr}}
 
 
+
 .similar-card{
   grid-column:1/-1;
   background:linear-gradient(145deg,rgba(17,20,25,.98),rgba(10,12,15,.98));
   border:1px solid rgba(215,179,106,.18);
 }
-.similar-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
+.similar-chart{
+  display:flex;
+  flex-direction:column;
   gap:14px;
-  margin-top:14px;
+  margin-top:16px;
 }
-.similar-item{
+.similar-chart-row{
+  display:grid;
+  grid-template-columns:minmax(150px,1.3fr) minmax(160px,2.7fr) auto;
+  gap:12px;
+  align-items:center;
+}
+.similar-chart-label{
+  min-width:0;
+}
+.similar-chart-title{
+  font-size:13px;
+  font-weight:900;
+  direction:ltr;
+  text-align:left;
+  white-space:nowrap;
   overflow:hidden;
-  border:1px solid rgba(255,255,255,.07);
-  border-radius:15px;
-  background:rgba(255,255,255,.025);
+  text-overflow:ellipsis;
 }
-.similar-image{
-  width:100%;
-  height:160px;
-  object-fit:cover;
-  display:block;
-  background:#0c0e11;
-}
-.similar-body{padding:14px}
-.similar-title{
-  font-weight:900;
-  font-size:15px;
-  margin-bottom:8px;
-  direction:ltr;
-  text-align:left;
-}
-.similar-price{
-  font-size:22px;
-  font-weight:900;
-  color:var(--gold2);
-  direction:ltr;
-  text-align:left;
-  margin-bottom:9px;
-}
-.similar-meta{
+.similar-chart-meta{
+  margin-top:3px;
   color:var(--muted);
-  font-size:12px;
-  line-height:1.7;
+  font-size:11px;
+  direction:ltr;
+  text-align:left;
 }
-.similar-link{
-  display:block;
-  margin-top:12px;
-  text-decoration:none;
-  text-align:center;
-  padding:10px 12px;
+.similar-bar-track{
+  height:32px;
   border-radius:10px;
-  background:rgba(215,179,106,.10);
-  border:1px solid rgba(215,179,106,.22);
-  color:var(--gold2);
-  font-weight:800;
-  font-size:12px;
+  overflow:hidden;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.06);
+  position:relative;
 }
-@media(max-width:850px){.similar-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:560px){.similar-grid{grid-template-columns:1fr}}
+.similar-bar{
+  height:100%;
+  min-width:4px;
+  background:linear-gradient(90deg,rgba(215,179,106,.55),var(--gold));
+  border-radius:9px;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  padding:0 9px;
+  transition:width .35s ease;
+}
+.similar-bar-price{
+  font-size:12px;
+  font-weight:900;
+  color:#15110a;
+  direction:ltr;
+  white-space:nowrap;
+}
+.similar-chart-link{
+  text-decoration:none;
+  color:var(--gold2);
+  border:1px solid rgba(215,179,106,.22);
+  background:rgba(215,179,106,.08);
+  border-radius:9px;
+  padding:8px 10px;
+  font-size:11px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.similar-chart-axis{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  margin:4px 0 0;
+  padding:0 4px;
+  color:#777f89;
+  font-size:10px;
+  direction:ltr;
+}
+@media(max-width:700px){
+  .similar-chart-row{
+    grid-template-columns:1fr;
+    gap:7px;
+  }
+  .similar-chart-link{
+    justify-self:start;
+  }
+}
 
 .language-switch{
   border:1px solid rgba(215,179,106,.28);
@@ -659,7 +692,7 @@ footer{
         <h3><span class="icon">🚗</span> <span>ئۆتۆمبێلی هاوشێوە بۆ فرۆشتن</span></h3>
         <div id="هاوشێوە_بارکردن" class="ai-loading">ئۆتۆمبێلی هاوشێوە دەگەڕێندرێت...</div>
         <div id="هاوشێوە_کورتە" class="muted" style="display:none"></div>
-        <div id="هاوشێوە_ئەنجام" class="similar-grid"></div>
+        <div id="هاوشێوە_ئەنجام" class="similar-chart"></div>
         <div class="note">
           ئەمانە نرخی داواکراوی ئۆتۆمبێلە هاوشێوەکانی ئێستای بازاڕن، نە نرخی فرۆشتنی دڵنیابوو.
         </div>
@@ -807,8 +840,8 @@ const EN_TRANSLATIONS = {
   "ئەمە خەمڵاندنێکی AI ـە. تێچووی ڕاستەقینە بە نرخی سووتەمەنی، شێوازی شۆفێری، ترافیک و دۆخی ئۆتۆمبێل دەگۆڕێت.":"This is an AI estimate. Actual fuel cost varies with fuel price, driving style, traffic and vehicle condition.",
   "ئۆتۆمبێلی هاوشێوە بۆ فرۆشتن":"Similar cars currently for sale",
   "ئۆتۆمبێلی هاوشێوە دەگەڕێندرێت...":"Finding similar cars currently for sale...",
-  "ئەممانە نرخی داواکراوی ئۆتۆمبێلە هاوشێوەکانی ئێستای بازاڕن، نە نرخی فرۆشتنی دڵنیابوو.":"These are current asking prices for similar cars, not confirmed sold prices.",
-  "ئەمانە نرخی داواکراوی ئۆتۆمبێلە هاوشێوەکانی ئێستای بازاڕن، نە نرخی فرۆشتنی دڵنیابوو.":"These are current asking prices for similar cars, not confirmed sold prices."
+  "ئەممانە نرخی داواکراوی ئۆتۆمبێلە هاوشێوەکانی ئێستای بازاڕن، نە نرخی فرۆشتنی دڵنیابوو.":"Chart shows current asking prices for similar cars, not confirmed sold prices.",
+  "ئەمانە نرخی داواکراوی ئۆتۆمبێلە هاوشێوەکانی ئێستای بازاڕن، نە نرخی فرۆشتنی دڵنیابوو.":"Chart shows current asking prices for similar cars, not confirmed sold prices."
 };
 
 function translateTextNode(node){
@@ -1287,36 +1320,51 @@ async function دۆزینەوەی_هاوشێوە(d){
       summaryBox.style.display = "block";
     }
 
-    resultBox.innerHTML = cars.map(function(car){
+    const validPrices = cars
+      .map(function(car){ return Number(car.price); })
+      .filter(function(p){ return Number.isFinite(p) && p > 0; });
+
+    const maxPrice = validPrices.length ? Math.max.apply(null, validPrices) : 1;
+    const minPrice = validPrices.length ? Math.min.apply(null, validPrices) : 0;
+
+    const axisHtml =
+      '<div class="similar-chart-axis">'+
+        '<span>£'+Math.round(minPrice).toLocaleString("en-GB")+'</span>'+
+        '<span>'+(currentLang === "en" ? "Asking price" : "نرخی داواکراو")+'</span>'+
+        '<span>£'+Math.round(maxPrice).toLocaleString("en-GB")+'</span>'+
+      '</div>';
+
+    resultBox.innerHTML = axisHtml + cars.map(function(car){
       const title = [car.year,car.make,car.model].filter(Boolean).join(" ");
-      const price = Number.isFinite(Number(car.price))
-        ? "£" + Math.round(Number(car.price)).toLocaleString("en-GB")
+      const numericPrice = Number(car.price);
+      const price = Number.isFinite(numericPrice)
+        ? "£" + Math.round(numericPrice).toLocaleString("en-GB")
         : "—";
+      const width = Number.isFinite(numericPrice) && maxPrice > 0
+        ? Math.max(8, Math.round((numericPrice / maxPrice) * 100))
+        : 8;
       const mileage = Number.isFinite(Number(car.mileage))
         ? Number(car.mileage).toLocaleString("en-GB") + (currentLang === "en" ? " miles" : " مایل")
         : (currentLang === "en" ? "Mileage unavailable" : "مایلیج بەردەست نییە");
       const fuel = car.fuel_type || "";
       const loc = car.loc || "";
-      const image = car.thumbnail || (Array.isArray(car.images) ? car.images[0] : null);
-      const imgHtml = image
-        ? '<img class="similar-image" src="'+پاراستنی_دەق(image)+'" alt="'+پاراستنی_دەق(title)+'" loading="lazy" referrerpolicy="no-referrer">'
-        : '<div class="similar-image" style="display:grid;place-items:center;color:#666;font-size:42px">🚗</div>';
+      const meta = mileage + (fuel ? " · " + fuel : "") + (loc ? " · " + loc : "");
       const linkText = currentLang === "en" ? "View listing" : "بینینی ڕیکلام";
       const linkHtml = car.url
-        ? '<a class="similar-link" href="'+پاراستنی_دەق(car.url)+'" target="_blank" rel="noopener noreferrer">'+linkText+'</a>'
-        : "";
+        ? '<a class="similar-chart-link" href="'+پاراستنی_دەق(car.url)+'" target="_blank" rel="noopener noreferrer">'+linkText+'</a>'
+        : '<span></span>';
 
-      return '<div class="similar-item">'+
-        imgHtml+
-        '<div class="similar-body">'+
-          '<div class="similar-title">'+پاراستنی_دەق(title || "Vehicle")+'</div>'+
-          '<div class="similar-price">'+price+'</div>'+
-          '<div class="similar-meta">'+پاراستنی_دەق(mileage)+
-            (fuel ? ' · '+پاراستنی_دەق(fuel) : '')+
-            (loc ? '<br>'+پاراستنی_دەق(loc) : '')+
-          '</div>'+
-          linkHtml+
+      return '<div class="similar-chart-row">'+
+        '<div class="similar-chart-label">'+
+          '<div class="similar-chart-title">'+پاراستنی_دەق(title || "Vehicle")+'</div>'+
+          '<div class="similar-chart-meta">'+پاراستنی_دەق(meta)+'</div>'+
         '</div>'+
+        '<div class="similar-bar-track">'+
+          '<div class="similar-bar" style="width:'+width+'%">'+
+            '<span class="similar-bar-price">'+price+'</span>'+
+          '</div>'+
+        '</div>'+
+        linkHtml+
       '</div>';
     }).join("");
 
