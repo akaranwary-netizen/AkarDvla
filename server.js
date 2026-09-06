@@ -556,170 +556,318 @@ footer{
 
 let currentLang = localStorage.getItem("akar_language") || "ckb";
 
-const EN_MAP = new Map([
-  ["پشکنینی ئۆتۆمبێلی بەریتانیا","UK vehicle check"],
-  ["پشکنینی زیرەکی ئۆتۆمبێل","Smart vehicle check"],
-  ["پێش کڕین،","Check before you buy,"],
-  ["دڵنیابەوە.","with confidence."],
-  ["ژمارەی تۆماری ئۆتۆمبێل بنووسە بۆ بینینی MOT، باج، مایلیج و زانیارییە گرنگەکان لە یەک شوێندا.","Enter a registration to see MOT, tax, mileage and important vehicle information in one place."],
-  ["پشکنینی ئۆتۆمبێل","Check vehicle"],
-  ["زانیاری ڕاستەوخۆ لە سەرچاوەی داتا وەردەگیرێت.","Live information is retrieved from the data source."],
-  ["پشکنینی بیمەی ئۆتۆمبێل","Check vehicle insurance"],
-  ["باجی ڕێگاوبان بدە","Pay road tax"],
-  ["لۆگ بووک بگۆڕە","Change log book"],
-  ["ڕاپۆرتی ئۆتۆمبێل","Vehicle report"],
-  ["هەڵسەنگاندنی گشتی","Overall assessment"],
-  ["زانیاری سەرەکی","Vehicle details"],
-  ["مارکە","Make"],
-  ["مۆدێل","Model"],
-  ["ڕەنگ","Colour"],
-  ["سووتەمەنی","Fuel"],
-  ["قەبارەی ئەنجن","Engine size"],
-  ["ساڵی دروستکردن","Year of manufacture"],
-  ["تەمەنی ئۆتۆمبێل","Vehicle age"],
-  ["یەکەم تۆمارکردن","First registration"],
-  ["بۆ هەناردە نیشان کراوە؟","Marked for export?"],
-  ["MOT و باج","MOT & Tax"],
-  ["دۆخی MOT","MOT status"],
-  ["بەرواری بەسەرچوونی MOT","MOT expiry date"],
-  ["ڕۆژانی ماوە تا MOT","Days until MOT"],
-  ["دۆخی باجی ڕێگا","Tax status"],
-  ["بەرواری باجی داهاتوو","Tax due date"],
-  ["ڕۆژانی ماوە تا باج","Days until tax"],
-  ["دوا MOT","Last MOT"],
-  ["ئەنجامی دوا MOT","Last MOT result"],
-  ["کۆی MOT","Total MOT tests"],
-  ["کۆی شکستهێنان","Total MOT failures"],
-  ["کۆی تێبینی","Total advisories"],
-  ["تێبینی لە دوا MOT","Latest advisories"],
-  ["ڕێژەی سەرکەوتن","MOT pass rate"],
-  ["مایلیج","Mileage"],
-  ["دوا مایلیج","Latest mileage"],
-  ["مایلیجی ساڵانە","Typical annual mileage"],
-  ["ڕەوتی مایلیج","Mileage trend"],
-  ["مەترسی دەستکاری مایلیج","Mileage tampering risk"],
-  ["بەراورد بە ناوەندی بازاڕ","Compared with average"],
-  ["ژینگە و ULEZ","Emissions & ULEZ"],
-  ["ستانداردی Euro","Euro standard"],
-  ["دەرچوونی CO₂","CO₂ emissions"],
-  ["گونجاوە بۆ ULEZ؟","ULEZ compliant?"],
-  ["هەڵسەنگاندنی مەترسی","Risk assessment"],
-  ["مەترسی گشتی","Overall risk"],
-  ["مەترسی MOT","MOT risk"],
-  ["مەترسی نائاسایی مایلیج","Mileage anomaly risk"],
-  ["گۆڕینی ڕەنگ نیشان دراوە؟","Colour change indicated?"],
-  ["Recall هەیە؟","Outstanding recall?"],
-  ["کورتەی پێشنیاری کڕین","Buying summary"],
-  ["پێشنیاری کڕین","Buying recommendation"],
-  ["دۆخی گشتی","Overall condition"],
-  ["خزمەتگوزاری و چاککردنەوە","Maintenance"],
-  ["خەمڵاندنی نرخی فرۆشتنی ئۆتۆمبێل بە AI","AI estimated selling price"],
-  ["نرخی خەمڵێنراوی فرۆشتن","Estimated selling price"],
-  ["کێشە دووبارەبووەکانی MOT","Recurring MOT issues"],
-  ["جۆری کێشە","Issue type"],
-  ["وردەکاری مێژووی MOT","MOT history details"],
-  ["بەروار","Date"],
-  ["ئەنجام","Result"],
-  ["بەردەست نییە","Not available"],
-  ["بەڵێ","Yes"],
-  ["نەخێر","No"],
-  ["بەنزین","Petrol"],
-  ["دیزڵ","Diesel"],
-  ["کارەبایی","Electric"],
-  ["هایبرێد","Hybrid"],
-  ["دروستە","Valid"],
-  ["بەسەرچووە","Expired"],
-  ["سەرکەوتوو","Passed"],
-  ["شکستی هێنا","Failed"],
-  ["باجی دراوە","Taxed"],
-  ["باجی نەدراوە","Untaxed"],
-  ["گونجاوە","Compliant"],
-  ["گونجاو نییە","Not compliant"],
-  ["نزم","Low"],
-  ["مامناوەند","Medium"],
-  ["بەرز","High"],
-  ["هیچ","None"],
-  ["باش","Good"],
-  ["لاواز","Poor"],
-  ["بە وردی بپشکنە","Consider"],
-  ["باشترە نەیکڕیت","Avoid"],
-  ["ئاسایی و یەکسان","Consistent"],
-  ["نایەکسان","Inconsistent"],
-  ["لە ناوەند زیاتر","Above average"],
-  ["لە ناوەند کەمتر","Below average"],
-  ["سیستەمی سەسپێنشن","Suspension"],
-  ["تایەرەکان","Tyres"],
-  ["چراغەکان","Lights"],
-  ["لاشی ئۆتۆمبێل","Bodywork"],
-  ["ئەگزۆز","Exhaust"],
-  ["برێکەکان","Brakes"],
-  ["فەرمان","Steering"],
-  ["بینین","Visibility"],
-  ["شوشەی پێشەوە","Windscreen"],
-  ["ئاوێنەکان","Mirrors"],
-  ["دەرچوونی گاز","Emissions"],
-  ["AI نرخی ئۆتۆمبێلەکە خەمڵێنێت...","AI is estimating the vehicle value..."],
-  ["زمان هەڵبژێرە","Choose your language"]
-]);
-
-function translatePageToEnglish(root=document.body){
-  if(currentLang !== "en") return;
-
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-  const nodes = [];
-  let n;
-  while((n = walker.nextNode())) nodes.push(n);
-
-  for(const node of nodes){
-    const original = node.nodeValue;
-    if(!original || !original.trim()) continue;
-
-    let translated = original;
-    for(const [ckb,en] of EN_MAP.entries()){
-      if(translated.includes(ckb)){
-        translated = translated.split(ckb).join(en);
-      }
-    }
-    if(translated !== original) node.nodeValue = translated;
+const I18N = {
+  ckb: {
+    pageTag:"پشکنینی ئۆتۆمبێلی بەریتانیا",
+    eyebrow:"✦ پشکنینی زیرەکی ئۆتۆمبێل",
+    heroTitle1:"پێش کڕین، ",
+    heroTitle2:"دڵنیابەوە.",
+    heroText:"ژمارەی تۆماری ئۆتۆمبێل بنووسە بۆ بینینی MOT، باج، مایلیج و زانیارییە گرنگەکان لە یەک شوێندا.",
+    checkBtn:"پشکنینی ئۆتۆمبێل",
+    heroNote:"زانیاری ڕاستەوخۆ لە سەرچاوەی داتا وەردەگیرێت.",
+    insurance:"🛡️ پشکنینی بیمەی ئۆتۆمبێل",
+    roadTax:"💷 باجی ڕێگاوبان بدە",
+    logbook:"🚗 لۆگ بووک بگۆڕە",
+    vehicleReport:"ڕاپۆرتی ئۆتۆمبێل",
+    overallAssessment:"هەڵسەنگاندنی گشتی",
+    vehicleDetails:"زانیاری سەرەکی",
+    make:"مارکە",
+    model:"مۆدێل",
+    colour:"ڕەنگ",
+    fuel:"سووتەمەنی",
+    engineSize:"قەبارەی ئەنجن",
+    year:"ساڵی دروستکردن",
+    age:"تەمەنی ئۆتۆمبێل",
+    firstReg:"یەکەم تۆمارکردن",
+    exportMarked:"بۆ هەناردە نیشان کراوە؟",
+    motTax:"MOT و باج",
+    motStatus:"دۆخی MOT",
+    motExpiry:"بەرواری بەسەرچوونی MOT",
+    motDays:"ڕۆژانی ماوە تا MOT",
+    taxStatus:"دۆخی باجی ڕێگا",
+    taxDue:"بەرواری باجی داهاتوو",
+    taxDays:"ڕۆژانی ماوە تا باج",
+    lastMot:"دوا MOT",
+    lastMotResult:"ئەنجامی دوا MOT",
+    totalMot:"کۆی MOT",
+    totalFailures:"کۆی شکستهێنان",
+    totalAdvisories:"کۆی تێبینی",
+    latestAdvisories:"تێبینی لە دوا MOT",
+    passRate:"ڕێژەی سەرکەوتن",
+    mileage:"مایلیج",
+    latestMileage:"دوا مایلیج",
+    annualMileage:"مایلیجی ساڵانە",
+    mileageTrend:"ڕەوتی مایلیج",
+    mileageRisk:"مەترسی دەستکاری مایلیج",
+    mileageAverage:"بەراورد بە ناوەندی بازاڕ",
+    emissions:"ژینگە و ULEZ",
+    euro:"ستانداردی Euro",
+    co2:"دەرچوونی CO₂",
+    ulez:"گونجاوە بۆ ULEZ؟",
+    risk:"هەڵسەنگاندنی مەترسی",
+    overallRisk:"مەترسی گشتی",
+    motRisk:"مەترسی MOT",
+    anomalyRisk:"مەترسی نائاسایی مایلیج",
+    colourChange:"گۆڕینی ڕەنگ نیشان دراوە؟",
+    recall:"Recall هەیە؟",
+    buyingSummary:"کورتەی پێشنیاری کڕین",
+    buyingRecommendation:"پێشنیاری کڕین",
+    overallCondition:"دۆخی گشتی",
+    maintenance:"خزمەتگوزاری و چاککردنەوە",
+    aiTitle:"خەمڵاندنی نرخی فرۆشتنی ئۆتۆمبێل بە AI",
+    aiSelling:"نرخی خەمڵێنراوی فرۆشتن",
+    recurringIssues:"کێشە دووبارەبووەکانی MOT",
+    motHistory:"وردەکاری مێژووی MOT",
+    langButton:"🌐 کوردی / English",
+    chooseTitle:"زمان هەڵبژێرە",
+    chooseSub:"Choose your language",
+    chooseKurdish:"کوردی سۆرانی",
+    chooseEnglish:"English"
+  },
+  en: {
+    pageTag:"UK vehicle check",
+    eyebrow:"✦ Smart vehicle check",
+    heroTitle1:"Check before you buy, ",
+    heroTitle2:"with confidence.",
+    heroText:"Enter a vehicle registration to see MOT, tax, mileage and important vehicle information in one place.",
+    checkBtn:"Check vehicle",
+    heroNote:"Live information is retrieved from the data source.",
+    insurance:"🛡️ Check vehicle insurance",
+    roadTax:"💷 Pay road tax",
+    logbook:"🚗 Change log book",
+    vehicleReport:"Vehicle report",
+    overallAssessment:"Overall assessment",
+    vehicleDetails:"Vehicle details",
+    make:"Make",
+    model:"Model",
+    colour:"Colour",
+    fuel:"Fuel",
+    engineSize:"Engine size",
+    year:"Year of manufacture",
+    age:"Vehicle age",
+    firstReg:"First registration",
+    exportMarked:"Marked for export?",
+    motTax:"MOT & Tax",
+    motStatus:"MOT status",
+    motExpiry:"MOT expiry date",
+    motDays:"Days until MOT",
+    taxStatus:"Tax status",
+    taxDue:"Tax due date",
+    taxDays:"Days until tax",
+    lastMot:"Last MOT",
+    lastMotResult:"Last MOT result",
+    totalMot:"Total MOT tests",
+    totalFailures:"Total MOT failures",
+    totalAdvisories:"Total advisories",
+    latestAdvisories:"Latest advisories",
+    passRate:"MOT pass rate",
+    mileage:"Mileage",
+    latestMileage:"Latest mileage",
+    annualMileage:"Typical annual mileage",
+    mileageTrend:"Mileage trend",
+    mileageRisk:"Mileage tampering risk",
+    mileageAverage:"Compared with average",
+    emissions:"Emissions & ULEZ",
+    euro:"Euro standard",
+    co2:"CO₂ emissions",
+    ulez:"ULEZ compliant?",
+    risk:"Risk assessment",
+    overallRisk:"Overall risk",
+    motRisk:"MOT risk",
+    anomalyRisk:"Mileage anomaly risk",
+    colourChange:"Colour change indicated?",
+    recall:"Outstanding recall?",
+    buyingSummary:"Buying summary",
+    buyingRecommendation:"Buying recommendation",
+    overallCondition:"Overall condition",
+    maintenance:"Maintenance",
+    aiTitle:"AI estimated selling price",
+    aiSelling:"Estimated selling price",
+    recurringIssues:"Recurring MOT issues",
+    motHistory:"MOT history details",
+    langButton:"🌐 English / کوردی",
+    chooseTitle:"Choose your language",
+    chooseSub:"زمان هەڵبژێرە",
+    chooseKurdish:"Sorani Kurdish",
+    chooseEnglish:"English"
   }
+};
 
-  document.documentElement.lang = "en";
-  document.documentElement.dir = "ltr";
-  document.body.dir = "ltr";
+const VALUE_EN = {
+  "بەردەست نییە":"Not available",
+  "بەڵێ":"Yes",
+  "نەخێر":"No",
+  "بەنزین":"Petrol",
+  "دیزڵ":"Diesel",
+  "کارەبایی":"Electric",
+  "هایبرێد":"Hybrid",
+  "دروستە":"Valid",
+  "بەسەرچووە":"Expired",
+  "سەرکەوتوو":"Passed",
+  "شکستی هێنا":"Failed",
+  "باجی دراوە":"Taxed",
+  "باجی نەدراوە":"Untaxed",
+  "گونجاوە":"Compliant",
+  "گونجاو نییە":"Not compliant",
+  "نزم":"Low",
+  "مامناوەند":"Medium",
+  "بەرز":"High",
+  "هیچ":"None",
+  "باش":"Good",
+  "لاواز":"Poor",
+  "بە وردی بپشکنە":"Consider",
+  "باشە بۆ کڕین":"Good to buy",
+  "باشترە نەیکڕیت":"Avoid",
+  "ئاسایی و یەکسان":"Consistent",
+  "نایەکسان":"Inconsistent",
+  "لە ناوەند زیاتر":"Above average",
+  "لە ناوەند کەمتر":"Below average",
+  "سیستەمی سەسپێنشن":"Suspension",
+  "تایەرەکان":"Tyres",
+  "چراغەکان":"Lights",
+  "لاشی ئۆتۆمبێل":"Bodywork",
+  "ئەگزۆز":"Exhaust",
+  "برێکەکان":"Brakes",
+  "فەرمان":"Steering",
+  "بینین":"Visibility",
+  "شوشەی پێشەوە":"Windscreen",
+  "ئاوێنەکان":"Mirrors",
+  "دەرچوونی گاز":"Emissions"
+};
 
-  const switcher = document.getElementById("languageSwitch");
-  if(switcher) switcher.textContent = "🌐 English / کوردی";
+function setText(selector, value){
+  const el = document.querySelector(selector);
+  if(el) el.textContent = value;
 }
 
-function applyStoredLanguage(){
-  if(currentLang === "en"){
-    translatePageToEnglish();
-  }else{
-    document.documentElement.lang = "ckb";
-    document.documentElement.dir = "rtl";
-    document.body.dir = "rtl";
-    const switcher = document.getElementById("languageSwitch");
-    if(switcher) switcher.textContent = "🌐 کوردی / English";
+function applyLanguage(){
+  const t = I18N[currentLang] || I18N.ckb;
+
+  document.documentElement.lang = currentLang === "en" ? "en" : "ckb";
+  document.documentElement.dir = currentLang === "en" ? "ltr" : "rtl";
+  document.body.dir = currentLang === "en" ? "ltr" : "rtl";
+
+  setText(".tag", t.pageTag);
+  setText(".eyebrow", t.eyebrow);
+
+  const heroH1 = document.querySelector(".hero h1");
+  if(heroH1){
+    heroH1.innerHTML = currentLang === "en"
+      ? 'Check before you buy, <span>with confidence.</span>'
+      : 'پێش کڕین، <span>دڵنیابەوە.</span>';
   }
+
+  setText(".hero p", t.heroText);
+  setText("#دوگمە", t.checkBtn);
+  setText(".hero-note", t.heroNote);
+
+  const qa = document.querySelectorAll(".quick-action");
+  if(qa[0]) qa[0].textContent = t.insurance;
+  if(qa[1]) qa[1].textContent = t.roadTax;
+  if(qa[2]) qa[2].textContent = t.logbook;
+
+  setText("#languageSwitch", t.langButton);
+
+  const lb = document.querySelector(".language-box");
+  if(lb){
+    const h2 = lb.querySelector("h2");
+    const p = lb.querySelector("p");
+    const buttons = lb.querySelectorAll(".language-choice");
+    if(h2) h2.textContent = t.chooseTitle;
+    if(p) p.textContent = t.chooseSub;
+    if(buttons[0]) buttons[0].textContent = t.chooseKurdish;
+    if(buttons[1]) buttons[1].textContent = t.chooseEnglish;
+  }
+
+  // Section headings
+  const headings = document.querySelectorAll(".card h3");
+  const headingKeys = [
+    "vehicleDetails","motTax","mileage","emissions","risk",
+    "buyingSummary","aiTitle","recurringIssues","motHistory"
+  ];
+  headingKeys.forEach((key,i)=>{
+    if(headings[i]){
+      const icon = headings[i].querySelector(".icon");
+      const iconText = icon ? icon.outerHTML : "";
+      headings[i].innerHTML = iconText + " " + t[key];
+    }
+  });
+
+  setText(".section-title h2", t.vehicleReport);
+
+  // Labels by ID-neighbour relationship
+  const labelMap = {
+    "مارکە":"make","مۆدێل":"model","ڕەنگ":"colour","سووتەمەنی":"fuel",
+    "ئەنجن":"engineSize","ساڵ":"year","تەمەن":"age","یەکەم_تۆمار":"firstReg",
+    "هەناردە":"exportMarked","MOT":"motStatus","MOT_بەسەرچوون":"motExpiry",
+    "MOT_ڕۆژ":"motDays","باج":"taxStatus","باج_بەروار":"taxDue","باج_ڕۆژ":"taxDays",
+    "دوا_MOT_بەروار":"lastMot","دوا_MOT_ئەنجام":"lastMotResult","کۆی_MOT":"totalMot",
+    "شکست":"totalFailures","تێبینی_کۆ":"totalAdvisories","تێبینی_دوا":"latestAdvisories",
+    "ڕێژەی_MOT":"passRate","مایلیج":"latestMileage","مایلیج_ساڵانە":"annualMileage",
+    "ڕەوتی_مایلیج":"mileageTrend","مەترسی_مایلیج":"mileageRisk",
+    "بەراوردی_مایلیج":"mileageAverage","Euro":"euro","CO2":"co2","ULEZ":"ulez",
+    "مەترسی_گشتی":"overallRisk","مەترسی_MOT":"motRisk",
+    "مەترسی_نائاسایی":"anomalyRisk","گۆڕینی_ڕەنگ":"colourChange","Recall":"recall",
+    "پێشنیار":"buyingRecommendation","دۆخ":"overallCondition","چاککردنەوە":"maintenance"
+  };
+
+  for(const [id,key] of Object.entries(labelMap)){
+    const valueEl = document.getElementById(id);
+    const row = valueEl?.closest(".row");
+    const label = row?.querySelector(".label");
+    if(label) label.textContent = t[key];
+  }
+
+  setText('#AI_نرخی_تایبەت', document.getElementById('AI_نرخی_تایبەت')?.textContent || "—");
+  const aiSmall = document.querySelector(".valuation-card .value-box small");
+  if(aiSmall) aiSmall.textContent = t.aiSelling;
+
+  translateDynamicValues();
+}
+
+function translateDynamicValues(root=document){
+  if(currentLang !== "en") return;
+
+  root.querySelectorAll(".value, .ai-reason, .muted, .small").forEach(el=>{
+    let txt = el.textContent;
+    if(!txt) return;
+
+    for(const [ckb,en] of Object.entries(VALUE_EN)){
+      if(txt.includes(ckb)) txt = txt.split(ckb).join(en);
+    }
+
+    txt = txt
+      .replace(/ ساڵ/g," years")
+      .replace(/ مایل\/ساڵ/g," miles/year")
+      .replace(/ مایل/g," miles");
+
+    el.textContent = txt;
+  });
 }
 
 function setLanguage(lang){
-  localStorage.setItem("akar_language", lang === "en" ? "en" : "ckb");
+  currentLang = lang === "en" ? "en" : "ckb";
+  localStorage.setItem("akar_language", currentLang);
   localStorage.setItem("akar_language_chosen", "1");
-  location.reload();
+  const modal = document.getElementById("languageModal");
+  if(modal) modal.classList.remove("show");
+  applyLanguage();
 }
 
 function openLanguageModal(){
-  const m = document.getElementById("languageModal");
-  if(m) m.classList.add("show");
+  const modal = document.getElementById("languageModal");
+  if(modal) modal.classList.add("show");
 }
 
 document.addEventListener("DOMContentLoaded",()=>{
-  applyStoredLanguage();
+  applyLanguage();
   if(!localStorage.getItem("akar_language_chosen")){
     setTimeout(openLanguageModal,200);
   }
 });
+
+
+
 
 const دۆزینەوە = id => document.getElementById(id);
 
@@ -1018,6 +1166,7 @@ async function خەمڵاندنی_AI(d){
 
     loading.style.display = "none";
     resultBox.style.display = "block";
+    if(currentLang === "en") translateDynamicValues(resultBox);
     if(currentLang === "en") translatePageToEnglish(resultBox);
   }catch(error){
     loading.textContent = "خەمڵاندنی AI سەرکەوتوو نەبوو: " + (error?.message || "هەڵەی نەناسراو");
@@ -1185,6 +1334,7 @@ async function پشکنین(){
 
     دۆزینەوە("پەیام").style.display = "none";
     دۆزینەوە("ڕاپۆرت").style.display = "block";
+    if(currentLang === "en") { applyLanguage(); translateDynamicValues(دۆزینەوە("ڕاپۆرت")); }
     if(currentLang === "en") translatePageToEnglish(دۆزینەوە("ڕاپۆرت"));
     دۆزینەوە("ڕاپۆرت").scrollIntoView({behavior:"smooth",block:"start"});
 
