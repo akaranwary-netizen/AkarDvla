@@ -1085,88 +1085,106 @@ Vehicle details:
 ${JSON.stringify(car, null, 2)}
 `;
 
-  try {
-    const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
-      {
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json",
-          "x-goog-api-key":GEMINI_API_KEY
-        },
-        body:JSON.stringify({
-          contents:[{
-            role:"user",
-            parts:[{text:prompt}]
-          }],
-          generationConfig:{
-            responseMimeType:"application/json",
-            maxOutputTokens:700
-          }
-        })
+  const models = ["gemini-2.5-flash", "gemini-2.5-flash-lite"];
+  let lastError = "هەڵەی نەناسراو";
+
+  for (const model of models) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+        {
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json",
+            "x-goog-api-key":GEMINI_API_KEY
+          },
+          body:JSON.stringify({
+            contents:[{
+              role:"user",
+              parts:[{text:prompt}]
+            }],
+            generationConfig:{
+              responseMimeType:"application/json",
+              maxOutputTokens:700
+            }
+          })
+        }
+      );
+
+      const raw = await response.text();
+
+      let data = null;
+      try{
+        data = JSON.parse(raw);
+      }catch{}
+
+      if(!response.ok){
+        const googleMessage =
+          data?.error?.message ||
+          data?.message ||
+          raw ||
+          `HTTP ${response.status}`;
+
+        lastError = `${model}: ${googleMessage}`;
+        console.error("Gemini API error:", lastError);
+        continue;
       }
-    );
 
-    const raw = await response.text();
-    let data = null;
-    try{ data = JSON.parse(raw); }catch{}
+      const modelText =
+        data?.candidates?.[0]?.content?.parts
+          ?.map(p => p?.text || "")
+          .join("")
+          .trim();
 
-    if(!response.ok){
-      console.error("Gemini API error:", raw);
-      return res.status(response.status).json({
-        ok:false,
-        error:"Gemini نەتوانی نرخەکە بخەمڵێنێت."
+      if(!modelText){
+        lastError = `${model}: Gemini وەڵامێکی بەتاڵی گەڕاندەوە`;
+        continue;
+      }
+
+      let valuation;
+      try{
+        valuation = JSON.parse(modelText);
+      }catch{
+        const cleaned = modelText
+          .replace(/^```json\s*/i,"")
+          .replace(/^```\s*/,"")
+          .replace(/```$/,"")
+          .trim();
+
+        valuation = JSON.parse(cleaned);
+      }
+
+      const fields = [
+        "privateSaleLowGbp",
+        "privateSaleHighGbp",
+        "dealerRetailLowGbp",
+        "dealerRetailHighGbp",
+        "partExchangeLowGbp",
+        "partExchangeHighGbp"
+      ];
+
+      for(const field of fields){
+        const n = Number(valuation[field]);
+        valuation[field] =
+          Number.isFinite(n) ? Math.max(0, Math.round(n)) : null;
+      }
+
+      return res.json({
+        ok:true,
+        modelUsed:model,
+        valuation
       });
+
+    } catch (error) {
+      lastError = `${model}: ${error?.message || String(error)}`;
+      console.error("Gemini valuation error:", lastError);
     }
-
-    const modelText =
-      data?.candidates?.[0]?.content?.parts
-        ?.map(p => p?.text || "")
-        .join("")
-        .trim();
-
-    if(!modelText){
-      return res.status(502).json({
-        ok:false,
-        error:"وەڵامێکی دروست لە Gemini وەرنەگیرا."
-      });
-    }
-
-    let valuation;
-    try{
-      valuation = JSON.parse(modelText);
-    }catch{
-      const cleaned = modelText
-        .replace(/^```json\s*/i,"")
-        .replace(/^```\s*/,"")
-        .replace(/```$/,"")
-        .trim();
-      valuation = JSON.parse(cleaned);
-    }
-
-    const fields = [
-      "privateSaleLowGbp",
-      "privateSaleHighGbp",
-      "dealerRetailLowGbp",
-      "dealerRetailHighGbp",
-      "partExchangeLowGbp",
-      "partExchangeHighGbp"
-    ];
-
-    for(const field of fields){
-      const n = Number(valuation[field]);
-      valuation[field] = Number.isFinite(n) ? Math.max(0, Math.round(n)) : null;
-    }
-
-    return res.json({ ok:true, valuation });
-
-  } catch (error) {
-    console.error("Gemini valuation error:", error);
-    return res.status(500).json({
-      ok:false,
-      error:"هەڵەیەک لە خەمڵاندنی نرخی AI ڕوویدا."
-    });
   }
+
+  return res.status(502).json({
+    ok:false,
+    error:`Gemini هەڵەی دا: ${lastError}`
+  });
 });
 
 app.listen(PORT, "0.0.0.0", () => {
