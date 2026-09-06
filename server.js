@@ -223,9 +223,6 @@ body{
 .small{font-size:12px;color:#a8afb8;line-height:1.6}
 
 
-
-
-
 .fuel-cost-card{grid-column:1/-1;position:relative;overflow:hidden;background:radial-gradient(circle at 88% 12%,rgba(244,217,154,.10),transparent 30%),linear-gradient(145deg,rgba(18,21,26,.98),rgba(11,13,16,.98));border:1px solid rgba(215,179,106,.22)}
 .fuel-cost-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
 .fuel-cost-box{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;text-align:center}
@@ -582,28 +579,8 @@ footer{
           ئەگەر خانەیەک بەردەست نەبێت «بەردەست نییە» پیشان دەدرێت.
         </div>
       </div>
-<div id="AI_هۆکار" class="ai-reason"></div>
 
-          <div class="note">
-            ئەمە خەمڵاندنێکی AI ـە، نە نرخی فەرمی یان دڵنیای بازاڕ.
-            نرخی ڕاستەقینە دەتوانێت بە پێی مۆدێل، سپێک، دۆخ، شوێن و بازاڕ جیاواز بێت.
-          </div>
-        </div>
-      </div>
-<div class="fuel-meta">
-            <div id="سووتەمەنی_نرخ" class="fuel-pill">—</div>
-            <div id="سووتەمەنی_دڵنیایی" class="fuel-pill">—</div>
-          </div>
-          <div id="سووتەمەنی_هۆکار" class="ai-reason"></div>
-          <div class="note">ئەمە خەمڵاندنێکی AI ـە. تێچووی ڕاستەقینە بە نرخی سووتەمەنی، شێوازی شۆفێری، ترافیک و دۆخی ئۆتۆمبێل دەگۆڕێت.</div>
-        </div>
-      </div>
-
-
-
-
-
-
+      
       <div class="card fuel-cost-card">
         <h3><span class="icon">⛽</span> <span>تێچووی سووتەمەنی</span></h3>
         <div id="سووتەمەنی_AI_بارکردن" class="ai-loading">دوای پشکنینی ئۆتۆمبێل، MPG خەمڵێنرێت...</div>
@@ -614,9 +591,19 @@ footer{
             <div class="fuel-cost-box"><small>تێچووی 100 مایل</small><strong id="سووتەمەنی_100">—</strong></div>
             <div class="fuel-cost-box"><small>تێچووی 12,000 مایل</small><strong id="سووتەمەنی_12000">—</strong></div>
           </div>
-          
 
-    
+          <div class="fuel-meta">
+            <div id="سووتەمەنی_نرخ" class="fuel-pill">—</div>
+            <div id="سووتەمەنی_دڵنیایی" class="fuel-pill">—</div>
+          </div>
+
+          <div id="سووتەمەنی_هۆکار" class="ai-reason"></div>
+
+          <div class="note">
+            ئەمە خەمڵاندنێکە. تێچووی ڕاستەقینە بە نرخی سووتەمەنی، شێوازی شۆفێری، ترافیک و دۆخی ئۆتۆمبێل دەگۆڕێت.
+          </div>
+        </div>
+      </div>
 
       <div class="card similar-card">
         <h3><span class="icon">🚗</span> <span>ڕێنمای نرخی بازاڕ</span></h3>
@@ -755,7 +742,7 @@ const EN_TRANSLATIONS = {
   "ئەم هەڵسەنگاندنە تەنها لەسەر ئەو داتایەیە کە API بۆ ئەم ئۆتۆمبێلە دەگەڕێنێتەوە.":"This assessment is based only on the data returned by the API for this vehicle.",
   "ئەگەر خانەیەک بەردەست نەبێت «بەردەست نییە» پیشان دەدرێت.":"If a field is unavailable, “Not available” will be shown.",
   "تێچووی سووتەمەنی":"Fuel cost",
-  "دوای پشکنینی ئۆتۆمبێل، MPG خەمڵێنرێت...":"After the vehicle check, AI will estimate MPG...",
+  "دوای پشکنینی ئۆتۆمبێل، MPG خەمڵێنرێت...":"After the vehicle check, MPG will be estimated...",
   "MPG ـی خەمڵێنراو":"Estimated MPG",
   "تێچووی 1 مایل":"Cost for 1 mile",
   "تێچووی 100 مایل":"Cost for 100 miles",
@@ -764,7 +751,8 @@ const EN_TRANSLATIONS = {
   "ڕێنمای نرخی بازاڕ":"Market Price Guide",
   "ئۆتۆمبێلی هاوشێوە دەگەڕێندرێت...":"Finding similar cars currently for sale...",
   "ئەممانە نرخی داواکراوی ئۆتۆمبێلە هاوشێوەکانی ئێستای بازاڕن، نە نرخی فرۆشتنی دڵنیابوو.":"Based on current asking prices for similar cars. These are not confirmed sold prices.",
-  "ئەم بەراوردە لەسەر نرخی داواکراوی ئێستای ئۆتۆمبێلە هاوشێوەکانە؛ نرخی فرۆشتنی کۆتایی نییە.":"Based on current asking prices for similar cars. These are not confirmed sold prices."
+  "ئەم بەراوردە لەسەر نرخی داواکراوی ئێستای ئۆتۆمبێلە هاوشێوەکانە؛ نرخی فرۆشتنی کۆتایی نییە.":"Based on current asking prices for similar cars. These are not confirmed sold prices.",
+  "ئەمە خەمڵاندنێکە. تێچووی ڕاستەقینە بە نرخی سووتەمەنی، شێوازی شۆفێری، ترافیک و دۆخی ئۆتۆمبێل دەگۆڕێت.":"This is an estimate. Actual fuel cost varies with fuel price, driving style, traffic and vehicle condition."
 };
 
 function translateTextNode(node){
@@ -1047,6 +1035,12 @@ function پۆند(v){
   const n = Number(v);
   if(!Number.isFinite(n)) return "—";
   return "£" + Math.round(n).toLocaleString("en-GB");
+}
+
+function پارەی_دوو_خانە(v){
+  const n = Number(v);
+  if(!Number.isFinite(n)) return "—";
+  return "£" + n.toFixed(2);
 }
 
 async function خەمڵاندنی_سووتەمەنی_AI(d){
