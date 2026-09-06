@@ -249,6 +249,14 @@ body{
 }
 .caz-city{font-weight:900;color:#f3f4f5}
 .caz-status{font-weight:900;text-align:left;direction:ltr}
+.caz-pay-button{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:14px;padding:12px 16px;border-radius:12px;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#111;font-weight:900;text-decoration:none;border:0;
+}
+.caz-pay-button:hover{filter:brightness(1.04)}
+
 .caz-ok{color:#7fd59a}
 .caz-pay{color:#ffb36b}
 .caz-check{color:#f2d17f}
@@ -628,6 +636,9 @@ footer{
         <h3><span class="icon">🌿</span> <span>پشکنینی Clean Air Zone بۆ دیزڵ</span></h3>
         <div id="CAZ_کورتە" class="muted"></div>
         <div id="CAZ_لیست" class="caz-list"></div>
+        <a class="caz-pay-button" href="https://www.gov.uk/clean-air-zones" target="_blank" rel="noopener noreferrer">
+          💳 <span>پارەی Clean Air Zone بدە</span>
+        </a>
         <div class="note">
           ئەم ئەنجامە بۆ ئۆتۆمبێلی تایبەتی ئاساییە و لەسەر یاساکانی CAZ و ستانداردی Euro ـی ئۆتۆمبێلەکە هەژمار دەکرێت. تاکسی، ڤان، مینیباس، ئۆتۆمبێلی بازرگانی و هەندێک بەخشین دەتوانن یاسای جیاواز هەبێت.
         </div>
@@ -782,7 +793,8 @@ const EN_TRANSLATIONS = {
   "ئەم بەراوردە لەسەر نرخی داواکراوی ئێستای ئۆتۆمبێلە هاوشێوەکانە؛ نرخی فرۆشتنی کۆتایی نییە.":"Based on current asking prices for similar cars. These are not confirmed sold prices.",
   "ئەمە خەمڵاندنێکە. تێچووی ڕاستەقینە بە نرخی سووتەمەنی، شێوازی شۆفێری، ترافیک و دۆخی ئۆتۆمبێل دەگۆڕێت.":"This is an estimate. Actual fuel cost varies with fuel price, driving style, traffic and vehicle condition.",
   "پشکنینی Clean Air Zone بۆ دیزڵ":"Diesel Clean Air Zone Check",
-  "ئەم ئەنجامە بۆ ئۆتۆمبێلی تایبەتی ئاساییە و لەسەر یاساکانی CAZ و ستانداردی Euro ـی ئۆتۆمبێلەکە هەژمار دەکرێت. تاکسی، ڤان، مینیباس، ئۆتۆمبێلی بازرگانی و هەندێک بەخشین دەتوانن یاسای جیاواز هەبێت.":"This result is for a normal private car and is calculated from CAZ rules and the vehicle's Euro standard. Taxis, vans, minibuses, commercial vehicles and some exemptions can have different rules."
+  "ئەم ئەنجامە بۆ ئۆتۆمبێلی تایبەتی ئاساییە و لەسەر یاساکانی CAZ و ستانداردی Euro ـی ئۆتۆمبێلەکە هەژمار دەکرێت. تاکسی، ڤان، مینیباس، ئۆتۆمبێلی بازرگانی و هەندێک بەخشین دەتوانن یاسای جیاواز هەبێت.":"This result is for a normal private car and is calculated from CAZ rules and the vehicle's Euro standard. Taxis, vans, minibuses, commercial vehicles and some exemptions can have different rules.",
+  "پارەی Clean Air Zone بدە":"Pay Clean Air Zone charge"
 };
 
 function translateTextNode(node){
