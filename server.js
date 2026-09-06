@@ -468,23 +468,7 @@ footer{
         <div id="دایرەی_هەڵسەنگاندن" class="score"><strong id="نمرە">—</strong></div>
       </div>
     </div>
-
-
-
-
-      <div class="card fuel-cost-card">
-        <h3><span class="icon">⛽</span> <span>خەمڵاندنی تێچووی سووتەمەنی بە AI</span> <span style="margin-inline-start:auto;font-size:11px;color:var(--gold2);border:1px solid rgba(215,179,106,.35);padding:4px 8px;border-radius:999px">NEW</span></h3>
-        <div id="سووتەمەنی_AI_بارکردن" class="ai-loading">دوای پشکنینی ئۆتۆمبێل، AI MPG خەمڵێنێت...</div>
-        <div id="سووتەمەنی_AI_ئەنجام" style="display:none">
-          <div class="fuel-cost-grid">
-            <div class="fuel-cost-box"><small>MPG ـی خەمڵێنراو</small><strong id="سووتەمەنی_MPG">—</strong></div>
-            <div class="fuel-cost-box"><small>تێچووی 1 مایل</small><strong id="سووتەمەنی_1">—</strong></div>
-            <div class="fuel-cost-box"><small>تێچووی 100 مایل</small><strong id="سووتەمەنی_100">—</strong></div>
-            <div class="fuel-cost-box"><small>تێچووی 12,000 مایل</small><strong id="سووتەمەنی_12000">—</strong></div>
-          </div>
-          
-
-    <div class="section-title">
+<div class="section-title">
       <h2>ڕاپۆرتی ئۆتۆمبێل</h2>
       <p>زانیارییەکان بە پێی ئەو داتایەی سەرچاوە بۆ ئەم ئۆتۆمبێلە دەگەڕێنێتەوە.</p>
     </div>
@@ -562,7 +546,7 @@ footer{
 
       
       <div class="card valuation-card">
-        <h3><span class="icon">💎</span> خەمڵاندنی نرخی فرۆشتنی ئۆتۆمبێل بە AI</h3>
+        <h3><span class="icon">💎</span> نرخی فرۆشتن</h3>
         <div id="AI_بارکردن" class="ai-loading">دوای پشکنینی ئۆتۆمبێل، AI نرخەکە خەمڵێنێت...</div>
 
         <div id="AI_ئەنجام" style="display:none">
@@ -590,6 +574,24 @@ footer{
         </div>
       </div>
 
+
+
+
+
+
+      <div class="card fuel-cost-card">
+        <h3><span class="icon">⛽</span> <span>تێچووی سووتەمەنی</span></h3>
+        <div id="سووتەمەنی_AI_بارکردن" class="ai-loading">دوای پشکنینی ئۆتۆمبێل، MPG خەمڵێنرێت...</div>
+        <div id="سووتەمەنی_AI_ئەنجام" style="display:none">
+          <div class="fuel-cost-grid">
+            <div class="fuel-cost-box"><small>MPG ـی خەمڵێنراو</small><strong id="سووتەمەنی_MPG">—</strong></div>
+            <div class="fuel-cost-box"><small>تێچووی 1 مایل</small><strong id="سووتەمەنی_1">—</strong></div>
+            <div class="fuel-cost-box"><small>تێچووی 100 مایل</small><strong id="سووتەمەنی_100">—</strong></div>
+            <div class="fuel-cost-box"><small>تێچووی 12,000 مایل</small><strong id="سووتەمەنی_12000">—</strong></div>
+          </div>
+          
+
+    
 <div class="card full">
         <h3><span class="icon">🛠️</span> کێشە دووبارەبووەکانی MOT</h3>
         <div id="کێشە_دووبارە"></div>
@@ -604,7 +606,7 @@ footer{
   </section>
 </main>
 
-<footer>© 2026 Akar's Car Check · Fuel Cost v2</footer>
+<footer>© 2026 Akar's Car Check</footer>
 
 <script>
 
@@ -666,7 +668,7 @@ const EN_TRANSLATIONS = {
   "پێشنیاری کڕین":"Buying recommendation",
   "دۆخی گشتی":"Overall condition",
   "خزمەتگوزاری و چاککردنەوە":"Maintenance",
-  "خەمڵاندنی نرخی فرۆشتنی ئۆتۆمبێل بە AI":"AI estimated selling price",
+  "نرخی فرۆشتن":"AI estimated selling price",
   "نرخی خەمڵێنراوی فرۆشتن":"Estimated selling price",
   "ئەمە خەمڵاندنێکی AI ـە، نە نرخی فەرمی یان دڵنیای بازاڕ.":"This is an AI estimate, not an official or guaranteed market valuation.",
   "کێشە دووبارەبووەکانی MOT":"Recurring MOT issues",
@@ -723,8 +725,8 @@ const EN_TRANSLATIONS = {
   "ئەگەر خانەیەک بەردەست نەبێت «بەردەست نییە» پیشان دەدرێت.":"If a field is unavailable, “Not available” will be shown.",
   "دوای پشکنینی ئۆتۆمبێل، AI نرخەکە خەمڵێنێت...":"After the vehicle check, AI will estimate the selling price.",
   "نرخی ڕاستەقینە دەتوانێت بە پێی مۆدێل، سپێک، دۆخ، شوێن و بازاڕ جیاواز بێت.":"The actual price can vary depending on model, specification, condition, location and market.",
-  "خەمڵاندنی تێچووی سووتەمەنی بە AI":"AI estimated fuel costs",
-  "دوای پشکنینی ئۆتۆمبێل، AI MPG خەمڵێنێت...":"After the vehicle check, AI will estimate MPG...",
+  "تێچووی سووتەمەنی":"Fuel cost",
+  "دوای پشکنینی ئۆتۆمبێل، MPG خەمڵێنرێت...":"After the vehicle check, AI will estimate MPG...",
   "MPG ـی خەمڵێنراو":"Estimated MPG",
   "تێچووی 1 مایل":"Cost for 1 mile",
   "تێچووی 100 مایل":"Cost for 100 miles",
@@ -1089,8 +1091,8 @@ async function خەمڵاندنی_سووتەمەنی_AI(d){
 
   loading.style.display = "block";
   loading.textContent = currentLang === "en"
-    ? "AI is estimating MPG and fuel costs..."
-    : "AI MPG و تێچووی سووتەمەنی خەمڵێنێت...";
+    ? "Estimating MPG and fuel costs..."
+    : "MPG و تێچووی سووتەمەنی خەمڵێنرێت...";
   resultBox.style.display = "none";
 
   try{
@@ -1141,7 +1143,7 @@ async function خەمڵاندنی_سووتەمەنی_AI(d){
       : ({low:"نزم",medium:"مامناوەند",high:"بەرز"}[c] || c);
 
     دۆزینەوە("سووتەمەنی_دڵنیایی").textContent =
-      currentLang === "en" ? "AI confidence: "+cText : "ئاستی دڵنیایی AI: "+cText;
+      currentLang === "en" ? "Confidence: "+cText : "ئاستی دڵنیایی: "+cText;
 
     دۆزینەوە("سووتەمەنی_هۆکار").textContent =
       f.reason || (currentLang === "en"
