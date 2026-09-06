@@ -451,22 +451,14 @@ footer{
 
       
       <div class="card valuation-card">
-        <h3><span class="icon">💎</span> خەمڵاندنی نرخی ئۆتۆمبێل بە AI</h3>
+        <h3><span class="icon">💎</span> خەمڵاندنی نرخی فرۆشتنی ئۆتۆمبێل بە AI</h3>
         <div id="AI_بارکردن" class="ai-loading">دوای پشکنینی ئۆتۆمبێل، AI نرخەکە خەمڵێنێت...</div>
 
         <div id="AI_ئەنجام" style="display:none">
-          <div class="value-grid">
+          <div class="value-grid" style="grid-template-columns:1fr">
             <div class="value-box">
-              <small>فرۆشتنی تایبەت</small>
+              <small>نرخی خەمڵێنراوی فرۆشتن</small>
               <strong id="AI_نرخی_تایبەت">—</strong>
-            </div>
-            <div class="value-box">
-              <small>نرخی فرۆشیار</small>
-              <strong id="AI_نرخی_فرۆشیار">—</strong>
-            </div>
-            <div class="value-box">
-              <small>بەدڵگۆڕکێ / Part-exchange</small>
-              <strong id="AI_نرخی_گۆڕینەوە">—</strong>
             </div>
           </div>
 
@@ -789,9 +781,7 @@ async function خەمڵاندنی_AI(d){
     };
 
     دۆزینەوە("AI_نرخی_تایبەت").textContent = range(v.privateSaleLowGbp, v.privateSaleHighGbp);
-    دۆزینەوە("AI_نرخی_فرۆشیار").textContent = range(v.dealerRetailLowGbp, v.dealerRetailHighGbp);
-    دۆزینەوە("AI_نرخی_گۆڕینەوە").textContent = range(v.partExchangeLowGbp, v.partExchangeHighGbp);
-    دۆزینەوە("AI_هۆکار").textContent = v.reasonSorani || "AI خەمڵاندنێکی نزیکەیی بۆ نرخەکە کردووە.";
+دۆزینەوە("AI_هۆکار").textContent = v.reasonSorani || "AI خەمڵاندنێکی نزیکەیی بۆ نرخەکە کردووە.";
 
     loading.style.display = "none";
     resultBox.style.display = "block";
@@ -1065,18 +1055,13 @@ Rules:
 - Be conservative.
 - If trim/spec/service history is missing, use a wider range.
 - Return GBP amounts as whole-number integers.
-- Dealer retail should normally be higher than private sale.
-- Part-exchange should normally be lower than private sale.
+- Estimate only the likely private-sale price range.
 - Write the explanation in Kurdish Sorani.
 - Return ONLY valid JSON in exactly this structure:
 
 {
   "privateSaleLowGbp": 0,
   "privateSaleHighGbp": 0,
-  "dealerRetailLowGbp": 0,
-  "dealerRetailHighGbp": 0,
-  "partExchangeLowGbp": 0,
-  "partExchangeHighGbp": 0,
   "confidence": "low|medium|high",
   "reasonSorani": "..."
 }
@@ -1155,13 +1140,9 @@ ${JSON.stringify(car, null, 2)}
       }
 
       const fields = [
-        "privateSaleLowGbp",
-        "privateSaleHighGbp",
-        "dealerRetailLowGbp",
-        "dealerRetailHighGbp",
-        "partExchangeLowGbp",
-        "partExchangeHighGbp"
-      ];
+      "privateSaleLowGbp",
+      "privateSaleHighGbp"
+    ];
 
       for(const field of fields){
         const n = Number(valuation[field]);
