@@ -439,7 +439,7 @@ footer{
 <div id="languageModal" class="language-modal" aria-modal="true" role="dialog">
   <div class="language-box">
     <h2>زمان هەڵبژێرە</h2>
-    <p>Choose your language</p>
+    <p>زمانەکەت هەڵبژێرە</p>
 
     <button class="language-choice default" onclick="setLanguage('ckb')">
       کوردی سۆرانی
@@ -449,7 +449,7 @@ footer{
       English
     </button>
 
-    <div class="language-note">کوردی سۆرانی زمانی بنەڕەتییە · Sorani Kurdish is the default language</div>
+    <div class="language-note">کوردی سۆرانی زمانی بنەڕەتییە</div>
   </div>
 </div>
 
@@ -458,7 +458,7 @@ footer{
 <header class="topbar">
   <div class="topbar-inner">
     <div class="brand">AKAR'S <span>CAR CHECK</span></div>
-<button id="languageSwitch" class="language-switch" type="button" onclick="openLanguageModal()">🌐 کوردی / English</button>
+<button id="languageSwitch" class="language-switch" type="button" onclick="openLanguageModal()">🌐 زمان</button>
     <div class="tag">پشکنینی ئۆتۆمبێلی بەریتانیا</div>
   </div>
 </header>
@@ -641,11 +641,11 @@ footer{
       </div>
 
       <div id="CAZ_کارت" class="card caz-card" style="display:none">
-        <h3><span class="icon">🌿</span> <span>پشکنینی Clean Air Zone بۆ دیزڵ</span></h3>
+        <h3><span class="icon">🌿</span> <span>پشکنینی ناوچەی هەوای پاک بۆ دیزڵ</span></h3>
         <div id="CAZ_کورتە" class="muted"></div>
         <div id="CAZ_لیست" class="caz-list"></div>
         <a class="caz-pay-button" href="https://www.gov.uk/clean-air-zones" target="_blank" rel="noopener noreferrer">
-          💳 <span>پارەی Clean Air Zone بدە</span>
+          💳 <span>پارەی ناوچەی هەوای پاک بدە</span>
         </a>
         <div class="note">
           ئەم ئەنجامە بۆ ئۆتۆمبێلی تایبەتی ئاساییە و لەسەر یاساکانی CAZ و ستانداردی Euro ـی ئۆتۆمبێلەکە هەژمار دەکرێت. تاکسی، ڤان، مینیباس، ئۆتۆمبێلی بازرگانی و هەندێک بەخشین دەتوانن یاسای جیاواز هەبێت.
@@ -800,9 +800,16 @@ const EN_TRANSLATIONS = {
   "ئەممانە نرخی داواکراوی ئۆتۆمبێلە هاوشێوەکانی ئێستای بازاڕن، نە نرخی فرۆشتنی دڵنیابوو.":"Based on current asking prices for similar cars. These are not confirmed sold prices.",
   "ئەم بەراوردە لەسەر نرخی داواکراوی ئێستای ئۆتۆمبێلە هاوشێوەکانە؛ نرخی فرۆشتنی کۆتایی نییە.":"Based on current asking prices for similar cars. These are not confirmed sold prices.",
   "ئەمە خەمڵاندنێکە. تێچووی ڕاستەقینە بە نرخی سووتەمەنی، شێوازی شۆفێری، ترافیک و دۆخی ئۆتۆمبێل دەگۆڕێت.":"This is an estimate. Actual fuel cost varies with fuel price, driving style, traffic and vehicle condition.",
-  "پشکنینی Clean Air Zone بۆ دیزڵ":"Diesel Clean Air Zone Check",
+  "پشکنینی ناوچەی هەوای پاک بۆ دیزڵ":"Diesel Clean Air Zone Check",
   "ئەم ئەنجامە بۆ ئۆتۆمبێلی تایبەتی ئاساییە و لەسەر یاساکانی CAZ و ستانداردی Euro ـی ئۆتۆمبێلەکە هەژمار دەکرێت. تاکسی، ڤان، مینیباس، ئۆتۆمبێلی بازرگانی و هەندێک بەخشین دەتوانن یاسای جیاواز هەبێت.":"This result is for a normal private car and is calculated from CAZ rules and the vehicle's Euro standard. Taxis, vans, minibuses, commercial vehicles and some exemptions can have different rules.",
-  "پارەی Clean Air Zone بدە":"Pay Clean Air Zone charge"
+  "پارەی ناوچەی هەوای پاک بدە":"Pay Clean Air Zone charge",
+  "زمانەکەت هەڵبژێرە":"Choose your language",
+  "کوردی سۆرانی":"Sorani Kurdish",
+  "ئینگلیزی":"English",
+  "کوردی سۆرانی زمانی بنەڕەتییە":"Sorani Kurdish is the default language",
+  "ژمارەی تۆمار":"Registration number",
+  "ساڵ":"year",
+  "مایل":"miles"
 };
 
 function translateTextNode(node){
@@ -812,7 +819,10 @@ function translateTextNode(node){
   let txt = node.nodeValue;
   if(!txt || !txt.trim()) return;
 
-  for(const [ckb,en] of Object.entries(EN_TRANSLATIONS)){
+  const entries = Object.entries(EN_TRANSLATIONS)
+    .sort(function(a,b){ return b[0].length - a[0].length; });
+
+  for(const [ckb,en] of entries){
     if(txt.includes(ckb)){
       txt = txt.split(ckb).join(en);
     }
@@ -838,11 +848,25 @@ function translateElementTree(root=document.body){
   document.documentElement.dir = "ltr";
   document.body.dir = "ltr";
 
+  document.querySelectorAll("[aria-label],[title]").forEach(function(el){
+    ["aria-label","title"].forEach(function(attr){
+      const original = el.getAttribute(attr);
+      if(!original) return;
+      let translated = original;
+      const entries = Object.entries(EN_TRANSLATIONS)
+        .sort(function(a,b){ return b[0].length - a[0].length; });
+      entries.forEach(function(pair){
+        translated = translated.split(pair[0]).join(pair[1]);
+      });
+      el.setAttribute(attr, translated);
+    });
+  });
+
   const input = document.getElementById("ژمارە");
   if(input) input.placeholder = "AB12 CDE";
 
   const switcher = document.getElementById("languageSwitch");
-  if(switcher) switcher.textContent = "🌐 English / کوردی";
+  if(switcher) switcher.textContent = "🌐 Language";
 }
 
 function applyLanguage(){
@@ -853,7 +877,7 @@ function applyLanguage(){
     document.documentElement.dir = "rtl";
     document.body.dir = "rtl";
     const switcher = document.getElementById("languageSwitch");
-    if(switcher) switcher.textContent = "🌐 کوردی / English";
+    if(switcher) switcher.textContent = "🌐 زمان";
   }
 }
 
@@ -1382,7 +1406,7 @@ async function پشکنین(){
 
     const reg = d.registration || d.registrationNumber || d.vrm || vrm;
     دۆزینەوە("تابلۆ").textContent = reg;
-    دۆزینەوە("سەردێڕ").textContent = [d.make,d.model].filter(Boolean).join(" ") || "ڕاپۆرتی ئۆتۆمبێل";
+    دۆزینەوە("سەردێڕ").textContent = [d.make,d.model].filter(Boolean).join(" ") || (currentLang === "en" ? "Vehicle report" : "ڕاپۆرتی ئۆتۆمبێل");
     دۆزینەوە("کورتەی_ئۆتۆمبێل").textContent =
       [d.fuelType,d.engineCapacityCc ? (d.engineCapacityCc+" cc") : null,d.colour,d.yearOfManufacture].filter(Boolean).join(" · ") || "—";
 
@@ -1394,7 +1418,7 @@ async function پشکنین(){
     دۆزینەوە("ئەنجن").textContent =
       d.engineCapacityCc !== null && d.engineCapacityCc !== undefined
       ? Number(d.engineCapacityCc).toLocaleString("en-GB")+" cc"
-      : "بەردەست نییە";
+      : (currentLang === "en" ? "Not available" : "بەردەست نییە");
 
     دانان("ساڵ",d.yearOfManufacture);
     دۆزینەوە("تەمەن").textContent =
@@ -1423,7 +1447,7 @@ async function پشکنین(){
 
     دۆزینەوە("ڕێژەی_MOT").textContent =
       s.motPassRate !== null && s.motPassRate !== undefined
-      ? Math.round(Number(s.motPassRate)*100)+"%" : "بەردەست نییە";
+      ? Math.round(Number(s.motPassRate)*100)+"%" : (currentLang === "en" ? "Not available" : "بەردەست نییە");
 
     دۆزینەوە("مایلیج").textContent =
       s.latestOdometerMiles !== null && s.latestOdometerMiles !== undefined
@@ -1441,7 +1465,7 @@ async function پشکنین(){
 
     دانان("Euro",s.euroEmissionStandard);
     const co2 = وەرگرتن(d,["signals.co2EmissionsGPerKm","signals.co2Emissions","co2EmissionsGPerKm","co2Emissions"]);
-    دۆزینەوە("CO2").textContent = co2 !== null && co2 !== undefined ? بەها(co2)+" g/km" : "بەردەست نییە";
+    دۆزینەوە("CO2").textContent = co2 !== null && co2 !== undefined ? بەها(co2)+" g/km" : (currentLang === "en" ? "Not available" : "بەردەست نییە");
     دانان("ULEZ",s.ulezCompliant);
     دانان("RDE",وەرگرتن(d,["signals.realDrivingEmissions","realDrivingEmissions"]));
 
@@ -1455,7 +1479,7 @@ async function پشکنین(){
       "signals.ncapSafetyRating.overallStars","signals.ncapSafetyRating.stars",
       "signals.ncapRating","ncapSafetyRating.overallStars"
     ]);
-    دۆزینەوە("NCAP").textContent = ncap !== null && ncap !== undefined ? بەها(ncap)+" ⭐" : "بەردەست نییە";
+    دۆزینەوە("NCAP").textContent = ncap !== null && ncap !== undefined ? بەها(ncap)+" ⭐" : (currentLang === "en" ? "Not available" : "بەردەست نییە");
 
     دانان("پێشنیار",summary.buyRecommendation);
     دانان("دۆخ",وەرگرتن(d,["summary.conditionBand","summary.condition","summary.vehicleCondition","signals.condition"]));
