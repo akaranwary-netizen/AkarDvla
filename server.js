@@ -924,20 +924,15 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
 
 
       <div class="card insight-card">
-        <h3><span class="icon">⚡</span> <span>زانیاریی کارایی و تایبەتمەندی</span></h3>
+        <h3><span class="icon">🧰</span> <span>زانیاریی بەسوود بۆ خاوەن ئۆتۆمبێل</span></h3>
         <div id="insight_loading" class="ai-loading">زانیاریی زیاتر دەهێنرێت...</div>
         <div id="insight_content" style="display:none">
-          <div class="insight-grid">
-            <div class="insight-box"><small>0–60 mph</small><strong id="extra_060">—</strong></div>
-            <div class="insight-box"><small>هێزی ئەسپ (BHP)</small><strong id="extra_bhp">—</strong></div>
-            <div class="insight-box"><small>Torque</small><strong id="extra_torque">—</strong></div>
-            <div class="insight-box"><small>زۆرترین خێرایی</small><strong id="extra_top_speed">—</strong></div>
-            <div class="insight-box"><small>گروپی بیمە</small><strong id="extra_insurance">—</strong></div>
-            <div class="insight-box"><small>Timing</small><strong id="extra_timing">—</strong></div>
-            <div class="insight-box"><small>تایەری پێشەوە</small><strong id="extra_front_tyre">—</strong></div>
-            <div class="insight-box"><small>تایەری دواوە</small><strong id="extra_rear_tyre">—</strong></div>
+          <!-- Performance/spec fields are intentionally hidden until a verified specification API is connected. -->
+          <div style="display:none" aria-hidden="true">
+            <span id="extra_060">—</span><span id="extra_bhp">—</span><span id="extra_torque">—</span>
+            <span id="extra_top_speed">—</span><span id="extra_insurance">—</span><span id="extra_timing">—</span>
+            <span id="extra_front_tyre">—</span><span id="extra_rear_tyre">—</span><span id="extra_timing_note"></span>
           </div>
-          <div id="extra_timing_note" class="note" style="display:none"></div>
           <div class="action-row">
             <button type="button" class="secondary-btn" onclick="toggleExtraBox('commonProblemsBox')">🔧 کێشە باوەکان</button>
             <button type="button" class="secondary-btn" onclick="toggleExtraBox('serviceScheduleBox')">🧰 خشتەی خزمەتگوزاری</button>
