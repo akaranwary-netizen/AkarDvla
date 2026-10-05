@@ -612,6 +612,38 @@ body{
   font-size:11px;
 }
 
+/* Extra vehicle insight cards */
+.insight-card{grid-column:1/-1;background:linear-gradient(145deg,rgba(20,23,28,.98),rgba(11,13,16,.98));border:1px solid rgba(215,179,106,.18)}
+.insight-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+.insight-box{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:15px;text-align:center;min-height:92px;display:flex;flex-direction:column;justify-content:center}
+.insight-box small{display:block;color:var(--muted);font-size:11px;margin-bottom:8px}
+.insight-box strong{display:block;color:var(--gold2);font-size:19px;direction:ltr}
+.action-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.secondary-btn{border:1px solid rgba(215,179,106,.24);background:rgba(215,179,106,.08);color:var(--gold2);border-radius:12px;padding:12px 15px;font-weight:900;cursor:pointer}
+.secondary-btn:hover{background:rgba(215,179,106,.14)}
+.secondary-btn:disabled{opacity:.5;cursor:not-allowed}
+.expand-box{display:none;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.expand-box.show{display:block}
+.issue-item,.service-item{padding:12px 0;border-bottom:1px solid var(--line)}
+.issue-item:last-child,.service-item:last-child{border-bottom:0}
+.issue-title{font-weight:900;color:#f2f3f4;margin-bottom:5px}
+.issue-meta{font-size:11px;color:var(--gold2);margin-bottom:5px}
+.modal-overlay{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.78);backdrop-filter:blur(10px)}
+.modal-overlay.show{display:flex}
+.repair-modal{width:min(680px,100%);max-height:85vh;overflow:auto;background:linear-gradient(145deg,#171a20,#0c0e11);border:1px solid rgba(215,179,106,.3);border-radius:22px;padding:22px;box-shadow:0 30px 90px #000}
+.modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.modal-head h2{margin:0;font-size:22px}
+.modal-close{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:#12151a;color:#fff;font-size:20px;cursor:pointer}
+.repair-item{padding:14px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);border-radius:13px;margin-top:10px}
+.repair-title{font-weight:900;margin-bottom:9px}
+.repair-price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.repair-price{background:rgba(0,0,0,.18);border-radius:9px;padding:10px;text-align:center}
+.repair-price small{display:block;color:var(--muted);margin-bottom:5px}
+.repair-price b{direction:ltr;color:var(--gold2)}
+.source-chip{display:inline-block;margin-top:10px;border-radius:999px;padding:6px 9px;font-size:10px;background:rgba(215,179,106,.08);border:1px solid rgba(215,179,106,.15);color:#bbb}
+@media(max-width:800px){.insight-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.insight-grid,.repair-price-grid{grid-template-columns:1fr}}
+
 footer{
   border-top:1px solid rgba(255,255,255,.05);
   text-align:center;color:#717984;font-size:12px;padding:28px 22px 40px
@@ -872,6 +904,35 @@ footer{
         </div>
       </div>
 
+
+      <div class="card insight-card">
+        <h3><span class="icon">⚡</span> <span>زانیاریی کارایی و تایبەتمەندی</span></h3>
+        <div id="insight_loading" class="ai-loading">زانیاریی زیاتر دەهێنرێت...</div>
+        <div id="insight_content" style="display:none">
+          <div class="insight-grid">
+            <div class="insight-box"><small>0–60 mph</small><strong id="extra_060">—</strong></div>
+            <div class="insight-box"><small>هێزی ئەسپ (BHP)</small><strong id="extra_bhp">—</strong></div>
+            <div class="insight-box"><small>Torque</small><strong id="extra_torque">—</strong></div>
+            <div class="insight-box"><small>زۆرترین خێرایی</small><strong id="extra_top_speed">—</strong></div>
+            <div class="insight-box"><small>گروپی بیمە</small><strong id="extra_insurance">—</strong></div>
+            <div class="insight-box"><small>Timing</small><strong id="extra_timing">—</strong></div>
+            <div class="insight-box"><small>تایەری پێشەوە</small><strong id="extra_front_tyre">—</strong></div>
+            <div class="insight-box"><small>تایەری دواوە</small><strong id="extra_rear_tyre">—</strong></div>
+          </div>
+          <div id="extra_timing_note" class="note" style="display:none"></div>
+          <div class="action-row">
+            <button type="button" class="secondary-btn" onclick="toggleExtraBox('commonProblemsBox')">🔧 کێشە باوەکان</button>
+            <button type="button" class="secondary-btn" onclick="toggleExtraBox('serviceScheduleBox')">🧰 خشتەی خزمەتگوزاری</button>
+            <button type="button" class="secondary-btn" onclick="openRepairModal()">💷 نرخی چاککردنەوە</button>
+            <button type="button" class="secondary-btn" onclick="toggleExtraBox('saleHistoryBox')">🏷️ مێژووی ڕیکلام/فرۆشتن</button>
+          </div>
+          <div id="commonProblemsBox" class="expand-box"><div id="commonProblemsList"></div></div>
+          <div id="serviceScheduleBox" class="expand-box"><div id="serviceScheduleList"></div></div>
+          <div id="saleHistoryBox" class="expand-box"><div id="saleHistoryList" class="muted">—</div></div>
+          <span id="extra_source" class="source-chip"></span>
+        </div>
+      </div>
+
 <div class="card full">
         <h3><span class="icon">🛠️</span> کێشە دووبارەبووەکانی MOT</h3>
         <div id="کێشە_دووبارە"></div>
@@ -885,6 +946,18 @@ footer{
     </div>
   </section>
 </main>
+
+<div id="repairModal" class="modal-overlay" onclick="closeRepairModal(event)">
+  <div class="repair-modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h2>💷 خەمڵاندنی نرخی چاککردنەوە</h2>
+      <button type="button" class="modal-close" onclick="closeRepairModal()">×</button>
+    </div>
+    <div id="repairVehicleName" class="muted"></div>
+    <div id="repairList"></div>
+    <div class="note">ئەم نرخانە خەمڵاندنی بازاڕی UK ـن، نەک نرخنامەی گەراج. نرخی ڕاستەقینە بە شوێن، جۆری پارچە و کاتی کار دەگۆڕێت.</div>
+  </div>
+</div>
 
 <footer>© 2026 Akar's Car Check</footer>
 
@@ -1908,6 +1981,97 @@ async function refreshSelectedLanguage(){
   translateElementTree(document.body);
 }
 
+
+let latestExtraInsights = null;
+let latestCheckedVehicle = null;
+
+function toggleExtraBox(id){
+  const el = دۆزینەوە(id);
+  if(el) el.classList.toggle("show");
+}
+
+function moneyRange(min,max){
+  const a=Number(min), b=Number(max);
+  if(!Number.isFinite(a) && !Number.isFinite(b)) return "—";
+  if(Number.isFinite(a) && Number.isFinite(b)) return "£"+Math.round(a).toLocaleString("en-GB")+"–£"+Math.round(b).toLocaleString("en-GB");
+  const n=Number.isFinite(a)?a:b;
+  return "£"+Math.round(n).toLocaleString("en-GB");
+}
+
+function renderExtraInsights(x){
+  latestExtraInsights=x||{};
+  const perf=x?.performance||{};
+  const tyres=x?.tyres||{};
+  const timing=x?.timing||{};
+  const val=(v,suffix)=> (v===null||v===undefined||v==="") ? "—" : String(v)+(suffix||"");
+  دۆزینەوە("extra_060").textContent=val(perf.zeroTo60Seconds," sec");
+  دۆزینەوە("extra_bhp").textContent=val(perf.bhp," BHP");
+  دۆزینەوە("extra_torque").textContent=val(perf.torqueNm," Nm");
+  دۆزینەوە("extra_top_speed").textContent=val(perf.topSpeedMph," mph");
+  دۆزینەوە("extra_insurance").textContent=x?.insuranceGroup || "—";
+  دۆزینەوە("extra_timing").textContent=timing.type || "—";
+  دۆزینەوە("extra_front_tyre").textContent=tyres.front || "—";
+  دۆزینەوە("extra_rear_tyre").textContent=tyres.rear || tyres.front || "—";
+  const tn=دۆزینەوە("extra_timing_note");
+  if(timing.note){tn.textContent=timing.note;tn.style.display="block"}else{tn.style.display="none"}
+
+  const problems=Array.isArray(x?.commonProblems)?x.commonProblems:[];
+  دۆزینەوە("commonProblemsList").innerHTML=problems.length?problems.map(function(i){
+    return '<div class="issue-item"><div class="issue-title">'+پاراستنی_دەق(i.title||"—")+'</div><div class="issue-meta">'+پاراستنی_دەق(i.risk||"")+'</div><div class="small">'+پاراستنی_دەق(i.description||"")+'</div></div>';
+  }).join(""):'<div class="muted">زانیاری بەردەست نییە.</div>';
+
+  const service=Array.isArray(x?.serviceSchedule)?x.serviceSchedule:[];
+  دۆزینەوە("serviceScheduleList").innerHTML=service.length?service.map(function(i){
+    return '<div class="service-item"><div class="issue-title">'+پاراستنی_دەق(i.item||"—")+'</div><div class="small">'+پاراستنی_دەق(i.interval||"—")+(i.note?' · '+پاراستنی_دەق(i.note):'')+'</div></div>';
+  }).join(""):'<div class="muted">زانیاری بەردەست نییە.</div>';
+
+  const hist=Array.isArray(x?.previousSaleHistory)?x.previousSaleHistory:[];
+  دۆزینەوە("saleHistoryList").innerHTML=hist.length?hist.map(function(i){
+    return '<div class="row"><span class="label">'+پاراستنی_دەق(i.date||"—")+'</span><span class="value">'+پاراستنی_دەق(i.price||"—")+(i.mileage?' · '+پاراستنی_دەق(i.mileage):'')+'</span></div>';
+  }).join(""):'هیچ مێژووی ڕیکلام/فرۆشتنی پێشووی پشتڕاستکراوە لە سەرچاوەکانی ئێستا بەردەست نییە.';
+
+  دۆزینەوە("extra_source").textContent=x?.sourceLabel || "Vehicle data + AI guidance";
+  دۆزینەوە("insight_loading").style.display="none";
+  دۆزینەوە("insight_content").style.display="block";
+}
+
+async function loadExtraInsights(d){
+  latestCheckedVehicle=d; latestExtraInsights=null;
+  const loading=دۆزینەوە("insight_loading"), content=دۆزینەوە("insight_content");
+  loading.style.display="block"; content.style.display="none";
+  loading.textContent=currentLang==="ckb"?"زانیاریی زیاتر دەهێنرێت...":"Loading additional vehicle information...";
+  try{
+    const r=await fetch("/api/vehicle-insights",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+      registration:d.registration||d.registrationNumber||d.vrm||null, make:d.make||null, model:d.model||null, year:d.yearOfManufacture||null,
+      fuelType:d.fuelType||null, engineCapacityCc:d.engineCapacityCc||null, mileage:d.signals?.latestOdometerMiles??null,
+      insuranceGroup:وەرگرتن(d,["insuranceGroup","signals.insuranceGroup","summary.insuranceGroup"]),
+      bhp:وەرگرتن(d,["bhp","powerBhp","signals.bhp","signals.powerBhp"]), torqueNm:وەرگرتن(d,["torqueNm","signals.torqueNm"]),
+      topSpeedMph:وەرگرتن(d,["topSpeedMph","signals.topSpeedMph"]), zeroTo60Seconds:وەرگرتن(d,["zeroTo60Seconds","signals.zeroTo60Seconds"]),
+      language:currentLang
+    })});
+    const j=await r.json(); if(!r.ok||!j.ok) throw new Error(j.error||"Extra vehicle information failed");
+    renderExtraInsights(j.insights||{});
+    setTimeout(refreshSelectedLanguage,100);
+  }catch(e){loading.textContent=(currentLang==="ckb"?"زانیاریی زیاتر بەردەست نییە: ":"Additional information unavailable: ")+(e.message||"");}
+}
+
+function openRepairModal(){
+  const m=دۆزینەوە("repairModal"); if(!m)return;
+  const v=latestCheckedVehicle||{};
+  دۆزینەوە("repairVehicleName").textContent=[v.make,v.model,v.yearOfManufacture].filter(Boolean).join(" ");
+  const repairs=Array.isArray(latestExtraInsights?.repairCosts)?latestExtraInsights.repairCosts:[];
+  دۆزینەوە("repairList").innerHTML=repairs.length?repairs.map(function(i){
+    return '<div class="repair-item"><div class="repair-title">'+پاراستنی_دەق(i.repair||"—")+'</div><div class="repair-price-grid">'+
+      '<div class="repair-price"><small>پارچە</small><b>'+moneyRange(i.partsMinGbp,i.partsMaxGbp)+'</b></div>'+
+      '<div class="repair-price"><small>کار</small><b>'+moneyRange(i.labourMinGbp,i.labourMaxGbp)+'</b></div>'+
+      '<div class="repair-price"><small>کۆی گشتی</small><b>'+moneyRange(i.totalMinGbp,i.totalMaxGbp)+'</b></div>'+
+      '</div>'+(i.note?'<div class="small" style="margin-top:9px">'+پاراستنی_دەق(i.note)+'</div>':'')+'</div>';
+  }).join(""):'<div class="muted">خەمڵاندنی نرخی چاککردنەوە بەردەست نییە.</div>';
+  m.classList.add("show"); document.body.style.overflow="hidden";
+  setTimeout(refreshSelectedLanguage,50);
+}
+function closeRepairModal(event){if(event&&event.target!==دۆزینەوە("repairModal"))return;const m=دۆزینەوە("repairModal");if(m)m.classList.remove("show");document.body.style.overflow=""}
+
 async function پشکنین(){
   const vrm = دۆزینەوە("ژمارە").value.toUpperCase().replace(/[^A-Z0-9]/g,"");
 
@@ -2098,6 +2262,7 @@ async function پشکنین(){
     خەمڵاندنی_سووتەمەنی_AI(d);
     نیشاندانی_CAZ_بۆ_دیزڵ(d);
     دۆزینەوەی_هاوشێوە(d);
+    loadExtraInsights(d);
 
     دۆزینەوە("پەیام").style.display = "none";
     دۆزینەوە("ڕاپۆرت").style.display = "block";
@@ -2530,6 +2695,67 @@ ${JSON.stringify(car, null, 2)}
   return res.status(502).json({ok:false,error:`Gemini fuel estimate failed: ${lastError}`});
 });
 
+
+
+const VEHICLE_INSIGHTS_CACHE = new Map();
+
+app.post("/api/vehicle-insights", async (req, res) => {
+  if(!GEMINI_API_KEY) return res.status(503).json({ok:false,error:"GEMINI_API_KEY is not configured."});
+  const car=req.body||{};
+  if(!car.make || !car.model) return res.status(400).json({ok:false,error:"Vehicle make and model are required."});
+  const cacheKey=[car.make,car.model,car.year,car.engineCapacityCc,car.fuelType,car.language].join("|").toLowerCase();
+  if(VEHICLE_INSIGHTS_CACHE.has(cacheKey)) return res.json({ok:true,insights:VEHICLE_INSIGHTS_CACHE.get(cacheKey)});
+
+  const langNames={ckb:"Kurdish Sorani",en:"English",ar:"Arabic",fa:"Persian",tr:"Turkish",fr:"French",de:"German",es:"Spanish",ro:"Romanian",pl:"Polish",ur:"Urdu",ps:"Pashto"};
+  const targetLanguage=langNames[car.language]||"Kurdish Sorani";
+  const prompt=`You are generating cautious UK used-car reference information for a vehicle-check website.
+
+Vehicle: ${JSON.stringify(car)}
+
+Return ONLY JSON matching the schema below.
+Rules:
+- Use the exact make/model/year/engine/fuel information given.
+- If the exact derivative cannot be identified confidently, use null for performance, tyre size or insurance group rather than guessing.
+- If an exact field was supplied by the vehicle-data API (insuranceGroup, bhp, torqueNm, topSpeedMph, zeroTo60Seconds), preserve it.
+- Common problems must be known model/engine tendencies, not claims that this individual car has the fault.
+- Timing information must clearly say chain/belt only when reasonably confident. If uncertain set type to "Unknown".
+- Service intervals should be cautious typical guidance and tell the user to verify the manufacturer's schedule where appropriate.
+- Repair prices are rough independent-garage UK parts/labour ranges in GBP, including VAT only as an estimate. Give 6 useful repairs maximum.
+- previousSaleHistory MUST be [] because no verified historical classified-ad source is connected. Never invent adverts, dates, mileage or prices.
+- Human-readable titles/descriptions/notes must be in ${targetLanguage}. Keep units and technical abbreviations such as BHP, Nm, mph, MOT unchanged.
+
+Schema:
+{
+ "performance":{"zeroTo60Seconds":number|null,"bhp":number|null,"torqueNm":number|null,"topSpeedMph":number|null},
+ "insuranceGroup":string|null,
+ "timing":{"type":"Timing chain|Timing belt|Unknown","note":string},
+ "tyres":{"front":string|null,"rear":string|null,"note":string},
+ "commonProblems":[{"title":string,"risk":"Low|Medium|High","description":string}],
+ "serviceSchedule":[{"item":string,"interval":string,"note":string}],
+ "repairCosts":[{"repair":string,"partsMinGbp":number,"partsMaxGbp":number,"labourMinGbp":number,"labourMaxGbp":number,"totalMinGbp":number,"totalMaxGbp":number,"note":string}],
+ "previousSaleHistory":[],
+ "sourceLabel":string
+}`;
+
+  const models=["gemini-3.5-flash-lite","gemini-3.5-flash"]; let lastError="Unknown error";
+  for(const model of models){
+    try{
+      const response=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":GEMINI_API_KEY},body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt}]}],generationConfig:{responseMimeType:"application/json",maxOutputTokens:3000}})});
+      const raw=await response.text(); let data=null; try{data=JSON.parse(raw)}catch{}
+      if(!response.ok){lastError=data?.error?.message||raw||`HTTP ${response.status}`;continue}
+      let text=data?.candidates?.[0]?.content?.parts?.map(p=>p?.text||"").join("").trim(); if(!text){lastError="Empty Gemini response";continue}
+      text=text.replace(/^```json\s*/i,"").replace(/^```\s*/,"").replace(/```$/,"").trim(); let insights; try{insights=JSON.parse(text)}catch(e){lastError=e.message;continue}
+      insights.previousSaleHistory=[];
+      insights.performance=insights.performance||{};
+      for(const [bodyKey,outKey] of [["zeroTo60Seconds","zeroTo60Seconds"],["bhp","bhp"],["torqueNm","torqueNm"],["topSpeedMph","topSpeedMph"]]){if(car[bodyKey]!==null&&car[bodyKey]!==undefined&&car[bodyKey]!=="") insights.performance[outKey]=car[bodyKey]}
+      if(car.insuranceGroup) insights.insuranceGroup=car.insuranceGroup;
+      insights.sourceLabel=targetLanguage==="Kurdish Sorani"?"داتای ئۆتۆمبێل + ڕێنمایی Gemini (خەمڵاندنەکان بە نیشانەی خۆیانەوە)":"Vehicle data + Gemini guidance; estimates are indicative";
+      VEHICLE_INSIGHTS_CACHE.set(cacheKey,insights);
+      return res.json({ok:true,modelUsed:model,insights});
+    }catch(e){lastError=e?.message||String(e)}
+  }
+  return res.status(502).json({ok:false,error:`Vehicle insights failed: ${lastError}`});
+});
 
 app.post("/api/similar-listings", async (req, res) => {
   const make = String(req.body?.make || "").trim();
