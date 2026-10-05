@@ -9,6 +9,95 @@ const ZYFY_API_KEY = process.env.ZYFY_API_KEY;
 const ZYFY_BACKUP_API_KEY = process.env.ZYFY_BACKUP_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
+// DVSA MOT History API credentials (keep these only in Render Environment)
+const DVSA_API_KEY = process.env.DVSA_API_KEY;
+const DVSA_CLIENT_ID = process.env.DVSA_CLIENT_ID;
+const DVSA_CLIENT_SECRET = process.env.DVSA_CLIENT_SECRET;
+const DVSA_SCOPE = process.env.DVSA_SCOPE;
+const DVSA_TOKEN_URL = process.env.DVSA_TOKEN_URL;
+
+let dvsaAccessToken = null;
+let dvsaTokenExpiresAt = 0;
+
+async function getDvsaToken() {
+  if (dvsaAccessToken && Date.now() < dvsaTokenExpiresAt - 60000) {
+    return dvsaAccessToken;
+  }
+
+  if (!DVSA_CLIENT_ID || !DVSA_CLIENT_SECRET || !DVSA_SCOPE || !DVSA_TOKEN_URL) {
+    return null;
+  }
+
+  const body = new URLSearchParams({
+    grant_type: "client_credentials",
+    client_id: DVSA_CLIENT_ID,
+    client_secret: DVSA_CLIENT_SECRET,
+    scope: DVSA_SCOPE
+  });
+
+  const response = await fetch(DVSA_TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body
+  });
+
+  if (!response.ok) {
+    const txt = await response.text();
+    throw new Error(`DVSA token error ${response.status}: ${txt.slice(0, 200)}`);
+  }
+
+  const data = await response.json();
+  dvsaAccessToken = data.access_token;
+  dvsaTokenExpiresAt = Date.now() + Number(data.expires_in || 3600) * 1000;
+  return dvsaAccessToken;
+}
+
+async function fetchDvsaMotHistory(registration) {
+  if (!DVSA_API_KEY) return null;
+  const token = await getDvsaToken();
+  if (!token) return null;
+
+  const response = await fetch(
+    `https://history.mot.api.gov.uk/v1/trade/vehicles/registration/${encodeURIComponent(registration)}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-API-Key": DVSA_API_KEY,
+        Accept: "application/json"
+      }
+    }
+  );
+
+  if (response.status === 404) return { motTests: [] };
+  if (!response.ok) {
+    const txt = await response.text();
+    throw new Error(`DVSA MOT error ${response.status}: ${txt.slice(0, 200)}`);
+  }
+  return response.json();
+}
+
+function normaliseDvsaMotTests(payload) {
+  const tests = Array.isArray(payload?.motTests) ? payload.motTests : [];
+  return tests.map(test => {
+    const defects = Array.isArray(test.defects) ? test.defects : [];
+    return {
+      testDate: test.completedDate || test.testDate || null,
+      result: test.testResult || test.result || null,
+      expiryDate: test.expiryDate || null,
+      odometerMiles: test.odometerUnit === "mi" || !test.odometerUnit
+        ? Number(test.odometerValue ?? test.odometerMiles ?? 0) || null
+        : null,
+      odometer: test.odometerValue ?? null,
+      odometerUnit: test.odometerUnit || null,
+      advisories: defects.map(d => ({
+        text: d.text || d.description || d.comment || "",
+        type: d.type || d.defectType || null,
+        dangerous: Boolean(d.dangerous)
+      })).filter(d => d.text)
+    };
+  });
+}
+
 app.use(express.json());
 
 function پاککردنەوەی_ژمارە(value) {
@@ -1995,9 +2084,30 @@ app.post("/api/check", async (req, res) => {
       });
     }
 
+    let dvsaMot = null;
+    let motHistory = [];
+    let dvsaMotError = null;
+
+    try {
+      dvsaMot = await fetchDvsaMotHistory(vrm);
+      motHistory = normaliseDvsaMotTests(dvsaMot);
+    } catch (motError) {
+      console.error("DVSA MOT lookup failed for", vrm, motError.message);
+      dvsaMotError = motError.message;
+    }
+
+    const combinedData = {
+      ...(result.data && typeof result.data === "object" ? result.data : {}),
+      motHistory,
+      motTests: motHistory,
+      dvsaMot: dvsaMot || null,
+      motHistorySource: motHistory.length ? "DVSA" : null,
+      dvsaMotError
+    };
+
     return res.json({
       ok:true,
-      data:result.data
+      data:combinedData
     });
 
   } catch (error) {
