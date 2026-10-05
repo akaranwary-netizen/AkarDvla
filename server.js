@@ -315,8 +315,17 @@ body{
   border:1px solid rgba(215,179,106,.15);border-radius:12px;
   color:#c7cbd1;padding:12px;line-height:1.65;font-size:12px
 }
-.mot-item{padding:12px 0;border-bottom:1px solid var(--line)}
-.mot-item:last-child{border-bottom:0}
+.mot-item{margin:0 0 16px;padding:16px;border:1px solid rgba(215,179,106,.18);background:rgba(255,255,255,.025);border-radius:14px}
+.mot-item:last-child{margin-bottom:0}
+.mot-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.mot-date{font-weight:900;color:var(--gold2);font-size:15px;direction:ltr}
+.mot-result{font-weight:900;border-radius:999px;padding:5px 10px;font-size:12px;direction:ltr}
+.mot-result.pass{color:var(--green);background:rgba(93,211,158,.10);border:1px solid rgba(93,211,158,.25)}
+.mot-result.fail{color:var(--red);background:rgba(255,112,112,.10);border:1px solid rgba(255,112,112,.25)}
+.mot-section{margin-top:12px;padding:11px 12px;border-radius:10px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05)}
+.mot-section-title{font-size:12px;font-weight:900;margin-bottom:7px;color:#d9dde2}
+.mot-line{font-size:12px;color:#b9c0c8;line-height:1.65;padding:4px 0}
+.mot-line.dangerous{color:#ff8e8e}.mot-line.major{color:#ff9f7a}.mot-line.minor{color:#f7c76d}.mot-line.advisory{color:#c4c9d0}
 .small{font-size:12px;color:#a8afb8;line-height:1.6}
 
 
@@ -1930,20 +1939,48 @@ async function پشکنین(){
     if(Array.isArray(motDetails) && motDetails.length){
       دۆزینەوە("مێژووی_MOT").innerHTML = motDetails.map(test=>{
         const testDate = test.testDate || test.test_date || test.date || "—";
-        const resultText = test.result || test.testResult || "—";
+        const resultText = String(test.result || test.testResult || "—");
         const mileageVal = test.odometerMiles ?? test.odometer ?? test.mileage ?? null;
-        const notes = test.advisories || test.defects || test.rfrAndComments || [];
-        const notesHtml = Array.isArray(notes) ? notes.map(a=>{
-          const t = typeof a==="string" ? a : (a.text || a.comment || a.description || "");
-          return t ? '<div class="small">• '+پاراستنی_دەق(t)+'</div>' : "";
-        }).join("") : "";
+        const expiryDate = test.expiryDate || test.expiry_date || null;
+        const motTestNumber = test.motTestNumber || test.testNumber || null;
+        const rawNotes = test.rfrAndComments || test.defects || test.advisories || [];
+        const notes = Array.isArray(rawNotes) ? rawNotes : [];
+
+        const groups = { dangerous:[], major:[], minor:[], advisory:[], other:[] };
+        notes.forEach(a=>{
+          const obj = typeof a === "string" ? {text:a,type:""} : (a || {});
+          const text = obj.text || obj.comment || obj.description || "";
+          const type = String(obj.type || obj.defectType || obj.category || "").toLowerCase();
+          if(!text) return;
+          if(type.includes("danger")) groups.dangerous.push(text);
+          else if(type.includes("major") || type.includes("fail")) groups.major.push(text);
+          else if(type.includes("minor")) groups.minor.push(text);
+          else if(type.includes("advis")) groups.advisory.push(text);
+          else groups.other.push(text);
+        });
+
+        const section = (title,items,cls)=> items.length
+          ? '<div class="mot-section"><div class="mot-section-title">'+title+'</div>'+items.map(x=>'<div class="mot-line '+cls+'">• '+پاراستنی_دەق(x)+'</div>').join('')+'</div>'
+          : '';
+
+        const isPass = resultText.toUpperCase().includes("PASS");
+        const isFail = resultText.toUpperCase().includes("FAIL");
+        const resultClass = isPass ? "pass" : (isFail ? "fail" : "");
+        const resultLabel = isPass ? (currentLang === "ckb" ? "دەرچوو" : "PASS") : isFail ? (currentLang === "ckb" ? "ڕەتکرایەوە" : "FAIL") : پاراستنی_دەق(وەرگێڕانی_بەها(resultText));
 
         return '<div class="mot-item">'+
-          '<div class="row"><span class="label">'+(currentLang === "ckb" ? "بەروار" : translateString("بەروار"))+'</span><span class="value">'+پاراستنی_دەق(بەروار(testDate))+'</span></div>'+
-          '<div class="row"><span class="label">'+(currentLang === "ckb" ? "ئەنجام" : translateString("ئەنجام"))+'</span><span class="value">'+پاراستنی_دەق(وەرگێڕانی_بەها(resultText))+'</span></div>'+
-          '<div class="row"><span class="label">'+(currentLang === "ckb" ? "مایلیج" : translateString("مایلیج"))+'</span><span class="value">'+
-          (mileageVal !== null ? Number(mileageVal).toLocaleString("en-GB") + (currentLang !== "ckb" ? " " + translateString("miles") : " مایل") : (currentLang === "ckb" ? "بەردەست نییە" : translateString("بەردەست نییە")))+
-          '</span></div>'+notesHtml+'</div>';
+          '<div class="mot-head"><div class="mot-date">'+پاراستنی_دەق(بەروار(testDate))+'</div><div class="mot-result '+resultClass+'">'+resultLabel+'</div></div>'+
+          '<div class="row"><span class="label">'+(currentLang === "ckb" ? "مایلیج" : "Mileage")+'</span><span class="value">'+
+          (mileageVal !== null ? Number(mileageVal).toLocaleString("en-GB") + (currentLang !== "ckb" ? " miles" : " مایل") : (currentLang === "ckb" ? "بەردەست نییە" : "Not available"))+'</span></div>'+
+          (expiryDate ? '<div class="row"><span class="label">'+(currentLang === "ckb" ? "بەسەرچوونی MOT" : "MOT expiry")+'</span><span class="value">'+پاراستنی_دەق(بەروار(expiryDate))+'</span></div>' : '')+
+          (motTestNumber ? '<div class="row"><span class="label">'+(currentLang === "ckb" ? "ژمارەی تاقیکردنەوە" : "Test number")+'</span><span class="value">'+پاراستنی_دەق(motTestNumber)+'</span></div>' : '')+
+          section(currentLang === "ckb" ? "کێشەی مەترسیدار" : "Dangerous defects",groups.dangerous,"dangerous")+
+          section(currentLang === "ckb" ? "هۆکاری ڕەتکردنەوە / کێشەی گەورە" : "Refusal reasons / Major defects",groups.major,"major")+
+          section(currentLang === "ckb" ? "کێشەی بچووک" : "Minor defects",groups.minor,"minor")+
+          section(currentLang === "ckb" ? "تێبینییەکان" : "Advisories",groups.advisory,"advisory")+
+          section(currentLang === "ckb" ? "تێبینیی تر" : "Other comments",groups.other,"advisory")+
+          ((!notes.length) ? '<div class="mot-section"><div class="mot-section-title">'+(currentLang === "ckb" ? "تێبینی" : "Notes")+'</div><div class="mot-line">'+(currentLang === "ckb" ? "هیچ کێشە یان تێبینییەک تۆمار نەکراوە." : "No defects or advisories were recorded.")+'</div></div>' : '')+
+          '</div>';
       }).join("");
     }else{
       دۆزینەوە("مێژووی_MOT").innerHTML =
