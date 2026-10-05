@@ -660,6 +660,31 @@ body{
 @media(max-width:800px){.insight-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:480px){.insight-grid,.repair-price-grid{grid-template-columns:1fr}}
 
+
+.language-loading-overlay{
+  position:fixed;inset:0;z-index:10050;display:none;align-items:center;justify-content:center;
+  padding:22px;background:rgba(4,5,7,.88);backdrop-filter:blur(14px)
+}
+.language-loading-overlay.show{display:flex}
+.language-loading-box{
+  width:min(460px,100%);background:linear-gradient(145deg,#171a1f,#0d0f12);
+  border:1px solid rgba(215,179,106,.30);border-radius:24px;padding:26px;
+  box-shadow:0 30px 100px rgba(0,0,0,.58);text-align:center
+}
+.language-loading-icon{font-size:34px;margin-bottom:10px}
+.language-loading-title{font-size:22px;font-weight:900;color:#fff;margin-bottom:7px}
+.language-loading-status{font-size:13px;color:#aeb5be;min-height:20px;margin-bottom:16px}
+.language-progress-track{
+  direction:ltr;width:100%;height:12px;border-radius:999px;overflow:hidden;
+  background:#252a31;border:1px solid rgba(255,255,255,.07)
+}
+.language-progress-bar{
+  width:0%;height:100%;border-radius:999px;
+  background:linear-gradient(90deg,var(--gold),var(--gold2));
+  transition:width .35s ease
+}
+.language-progress-percent{direction:ltr;margin-top:9px;color:var(--gold2);font-weight:900;font-size:13px}
+
 footer{
   border-top:1px solid rgba(255,255,255,.05);
   text-align:center;color:#717984;font-size:12px;padding:28px 22px 40px
@@ -721,6 +746,15 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
   </div>
 </div>
 
+<div id="languageLoadingOverlay" class="language-loading-overlay" aria-live="polite" aria-busy="true">
+  <div class="language-loading-box">
+    <div class="language-loading-icon">🌐</div>
+    <div id="languageLoadingTitle" class="language-loading-title">Preparing language...</div>
+    <div id="languageLoadingStatus" class="language-loading-status">Please wait while the language is loaded.</div>
+    <div class="language-progress-track"><div id="languageProgressBar" class="language-progress-bar"></div></div>
+    <div id="languageProgressPercent" class="language-progress-percent">0%</div>
+  </div>
+</div>
 
 
 <header class="topbar">
@@ -1586,6 +1620,61 @@ const LANGUAGE_NAMES = {
 };
 
 
+const LANGUAGE_LOADING_TEXT = {
+  ckb:{title:"زمان ئامادە دەکرێت...",start:"تکایە چاوەڕێ بکە.",load:"وەرگێڕان بار دەکرێت...",apply:"زمان جێبەجێ دەکرێت...",done:"تەواو بوو ✓"},
+  en:{title:"Preparing language...",start:"Please wait while the language is loaded.",load:"Loading translations...",apply:"Applying language...",done:"Language ready ✓"},
+  ar:{title:"جارٍ تجهيز اللغة...",start:"يرجى الانتظار بينما يتم تحميل اللغة.",load:"جارٍ تحميل الترجمات...",apply:"جارٍ تطبيق اللغة...",done:"اللغة جاهزة ✓"},
+  fa:{title:"در حال آماده‌سازی زبان...",start:"لطفاً تا بارگذاری زبان صبر کنید.",load:"در حال بارگذاری ترجمه‌ها...",apply:"در حال اعمال زبان...",done:"زبان آماده است ✓"},
+  tr:{title:"Dil hazırlanıyor...",start:"Dil yüklenirken lütfen bekleyin.",load:"Çeviriler yükleniyor...",apply:"Dil uygulanıyor...",done:"Dil hazır ✓"},
+  fr:{title:"Préparation de la langue...",start:"Veuillez patienter pendant le chargement.",load:"Chargement des traductions...",apply:"Application de la langue...",done:"Langue prête ✓"},
+  de:{title:"Sprache wird vorbereitet...",start:"Bitte warten Sie, während die Sprache geladen wird.",load:"Übersetzungen werden geladen...",apply:"Sprache wird angewendet...",done:"Sprache bereit ✓"},
+  es:{title:"Preparando idioma...",start:"Espera mientras se carga el idioma.",load:"Cargando traducciones...",apply:"Aplicando idioma...",done:"Idioma listo ✓"},
+  ro:{title:"Se pregătește limba...",start:"Așteptați cât timp se încarcă limba.",load:"Se încarcă traducerile...",apply:"Se aplică limba...",done:"Limba este gata ✓"},
+  pl:{title:"Przygotowywanie języka...",start:"Poczekaj, aż język zostanie załadowany.",load:"Ładowanie tłumaczeń...",apply:"Stosowanie języka...",done:"Język gotowy ✓"},
+  ur:{title:"زبان تیار کی جا رہی ہے...",start:"زبان لوڈ ہونے تک انتظار کریں۔",load:"ترجمے لوڈ ہو رہے ہیں...",apply:"زبان لاگو کی جا رہی ہے...",done:"زبان تیار ہے ✓"},
+  ps:{title:"ژبه چمتو کېږي...",start:"مهرباني وکړئ د ژبې د پورته کېدو انتظار وکړئ.",load:"ژباړې پورته کېږي...",apply:"ژبه پلي کېږي...",done:"ژبه چمتو ده ✓"}
+};
+
+let languageProgressTimer = null;
+function languageLoadingText(){ return LANGUAGE_LOADING_TEXT[currentLang] || LANGUAGE_LOADING_TEXT.en; }
+function setLanguageProgress(percent,status){
+  const pct=Math.max(0,Math.min(100,Math.round(Number(percent)||0)));
+  const bar=document.getElementById("languageProgressBar");
+  const label=document.getElementById("languageProgressPercent");
+  const statusEl=document.getElementById("languageLoadingStatus");
+  if(bar) bar.style.width=pct+"%";
+  if(label) label.textContent=pct+"%";
+  if(statusEl && status) statusEl.textContent=status;
+}
+function showLanguageLoading(startAt){
+  const overlay=document.getElementById("languageLoadingOverlay");
+  const title=document.getElementById("languageLoadingTitle");
+  const t=languageLoadingText();
+  if(title) title.textContent=t.title;
+  if(overlay) overlay.classList.add("show");
+  setLanguageProgress(startAt==null?8:startAt,t.start);
+}
+function startLanguageProgress(from,to,status){
+  if(languageProgressTimer) clearInterval(languageProgressTimer);
+  let value=from;
+  setLanguageProgress(value,status);
+  languageProgressTimer=setInterval(function(){
+    if(value>=to){clearInterval(languageProgressTimer);languageProgressTimer=null;return;}
+    value=Math.min(to,value+Math.max(1,Math.ceil((to-value)/8)));
+    setLanguageProgress(value,status);
+  },180);
+}
+function finishLanguageLoading(){
+  if(languageProgressTimer){clearInterval(languageProgressTimer);languageProgressTimer=null;}
+  const t=languageLoadingText();
+  setLanguageProgress(100,t.done);
+  setTimeout(function(){
+    const overlay=document.getElementById("languageLoadingOverlay");
+    if(overlay) overlay.classList.remove("show");
+    try{sessionStorage.removeItem("akar_language_loading");}catch{}
+  },450);
+}
+
 function applyLanguageDirection(){
   const rtl = ["ckb","ar","fa","ur","ps"].includes(currentLang);
   document.documentElement.lang = currentLang === "ckb" ? "ckb" : currentLang;
@@ -1598,7 +1687,11 @@ function setLanguage(lang){
   currentLang = supported.includes(lang) ? lang : "ckb";
   localStorage.setItem("akar_language", currentLang);
   localStorage.setItem("akar_language_chosen", "1");
-  location.reload();
+  try{sessionStorage.setItem("akar_language_loading","1");}catch{}
+  closeLanguageModal();
+  showLanguageLoading(5);
+  startLanguageProgress(5,28,languageLoadingText().start);
+  setTimeout(function(){ location.reload(); },420);
 }
 
 function openLanguageModal(){
@@ -1612,7 +1705,19 @@ function closeLanguageModal(){
 }
 
 document.addEventListener("DOMContentLoaded",async ()=>{
+  let switching=false;
+  try{switching=sessionStorage.getItem("akar_language_loading")==="1";}catch{}
+  if(switching){
+    showLanguageLoading(30);
+    startLanguageProgress(30,72,languageLoadingText().load);
+  }
+
   await applyLanguage();
+
+  if(switching){
+    startLanguageProgress(74,96,languageLoadingText().apply);
+    setTimeout(finishLanguageLoading,420);
+  }
 
   if(!localStorage.getItem("akar_language_chosen")){
     setTimeout(openLanguageModal,250);
