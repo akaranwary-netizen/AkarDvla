@@ -1222,8 +1222,59 @@ const EXTRA_UI_ENGLISH = [
   "Suspension","Tyres","Tyre","Lights","Light","Bodywork","Exhaust",
   "Brakes","Brake","Steering","Visibility","Windscreen","Wipers","Washers",
   "Seatbelts","Seats","Doors","Mirrors","Horn","Registration plate",
-  "Emissions","Fuel system","Electrical","Engine","Chassis","Corrosion","Structure"
+  "Emissions","Fuel system","Electrical","Engine","Chassis","Corrosion","Structure",
+  "MOT expiry","Test number","Dangerous defects","Refusal reasons / Major defects",
+  "Minor defects","Advisories","Other comments","Notes",
+  "No defects or advisories were recorded.",
+  "Loading additional vehicle information...","Additional information unavailable:",
+  "Vehicle data + Gemini guidance; estimates are indicative",
+  "Repair cost estimate","Parts","Labour","Total",
+  "Information unavailable.","Repair-cost estimate unavailable.",
+  "No verified previous sale/ad history is available from the current data sources.",
+  "These are estimated UK market repair costs, not a garage quotation. Actual prices vary by location, parts used and labour time."
 ]
+
+function builtInLanguageSeed(lang){
+  const tables = {
+    ar:typeof AR_TRANSLATIONS!=="undefined"?AR_TRANSLATIONS:null,
+    fa:typeof FA_TRANSLATIONS!=="undefined"?FA_TRANSLATIONS:null,
+    tr:typeof TR_TRANSLATIONS!=="undefined"?TR_TRANSLATIONS:null,
+    fr:typeof FR_TRANSLATIONS!=="undefined"?FR_TRANSLATIONS:null,
+    de:typeof DE_TRANSLATIONS!=="undefined"?DE_TRANSLATIONS:null,
+    es:typeof ES_TRANSLATIONS!=="undefined"?ES_TRANSLATIONS:null,
+    ro:typeof RO_TRANSLATIONS!=="undefined"?RO_TRANSLATIONS:null,
+    pl:typeof PL_TRANSLATIONS!=="undefined"?PL_TRANSLATIONS:null,
+    ur:typeof UR_TRANSLATIONS!=="undefined"?UR_TRANSLATIONS:null,
+    ps:typeof PS_TRANSLATIONS!=="undefined"?PS_TRANSLATIONS:null
+  };
+  const table=tables[lang]||{};
+  const seed={};
+  Object.entries(table).forEach(function(pair){
+    const english=EN_TRANSLATIONS[pair[0]];
+    if(english) seed[english]=pair[1];
+  });
+  return seed;
+}
+
+async function ensureLanguageTexts(texts){
+  if(currentLang === "ckb" || currentLang === "en") return;
+  const clean=Array.from(new Set((texts||[]).map(function(v){return String(v??"").trim();}).filter(Boolean)));
+  const missing=clean.filter(function(t){return !Object.prototype.hasOwnProperty.call(ACTIVE_LANGUAGE_PACK,t);});
+  if(!missing.length) return;
+  try{
+    const response=await fetch("/api/language-pack",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({language:currentLang,texts:missing})
+    });
+    const data=await response.json();
+    if(response.ok && data.ok && data.translations){
+      Object.assign(ACTIVE_LANGUAGE_PACK,data.translations);
+      try{localStorage.setItem("akar_language_pack_v8_"+currentLang,JSON.stringify(ACTIVE_LANGUAGE_PACK));}catch{}
+    }
+  }catch(error){
+    console.error("On-demand translation failed:",error?.message||error);
+  }
+}
 
 async function loadLanguagePack(){
   if(currentLang === "ckb" || currentLang === "en"){
@@ -1232,14 +1283,17 @@ async function loadLanguagePack(){
     return;
   }
 
-  const cacheKey = "akar_language_pack_v5_" + currentLang;
+  const cacheKey = "akar_language_pack_v8_" + currentLang;
+  ACTIVE_LANGUAGE_PACK = builtInLanguageSeed(currentLang);
 
   try{
     const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
-    if(cached && typeof cached === "object" && Object.keys(cached).length >= 60){
-      ACTIVE_LANGUAGE_PACK = cached;
-      languagePackReady = true;
-      return;
+    if(cached && typeof cached === "object"){
+      Object.assign(ACTIVE_LANGUAGE_PACK,cached);
+      if(Object.keys(cached).length >= 60){
+        languagePackReady = true;
+        return;
+      }
     }
   }catch{}
 
@@ -1260,7 +1314,7 @@ async function loadLanguagePack(){
       const data = await response.json();
 
       if(response.ok && data.ok && data.translations){
-        ACTIVE_LANGUAGE_PACK = data.translations;
+        Object.assign(ACTIVE_LANGUAGE_PACK,data.translations);
         languagePackReady = true;
         try{ localStorage.setItem(cacheKey, JSON.stringify(ACTIVE_LANGUAGE_PACK)); }catch{}
         return;
@@ -1273,7 +1327,6 @@ async function loadLanguagePack(){
   }
 
   console.error("Language pack unavailable:", lastError);
-  ACTIVE_LANGUAGE_PACK = {};
   languagePackReady = true;
 }
 function translateString(txt){
@@ -1537,6 +1590,7 @@ function applyLanguageDirection(){
   const rtl = ["ckb","ar","fa","ur","ps"].includes(currentLang);
   document.documentElement.lang = currentLang === "ckb" ? "ckb" : currentLang;
   document.documentElement.dir = rtl ? "rtl" : "ltr";
+  if(document.body) document.body.dir = rtl ? "rtl" : "ltr";
 }
 
 function setLanguage(lang){
@@ -2275,6 +2329,18 @@ async function پشکنین(){
 
     const motDetails = وەرگرتن(d,["motHistory","mot_history","signals.motHistory","motTests"]);
     if(Array.isArray(motDetails) && motDetails.length){
+      if(currentLang !== "ckb" && currentLang !== "en"){
+        const motEnglishTexts=[];
+        motDetails.forEach(function(test){
+          const rawNotes=test.rfrAndComments||test.defects||test.advisories||[];
+          (Array.isArray(rawNotes)?rawNotes:[]).forEach(function(a){
+            const obj=typeof a==="string"?{text:a}:(a||{});
+            const t=String(obj.text||obj.comment||obj.description||"").trim();
+            if(t) motEnglishTexts.push(t);
+          });
+        });
+        await ensureLanguageTexts(motEnglishTexts);
+      }
       دۆزینەوە("مێژووی_MOT").innerHTML = motDetails.map(test=>{
         const testDate = test.testDate || test.test_date || test.date || "—";
         const resultText = String(test.result || test.testResult || "—");
@@ -2289,7 +2355,9 @@ async function پشکنین(){
           const obj = typeof a === "string" ? {text:a,type:""} : (a || {});
           const englishText = obj.text || obj.comment || obj.description || "";
           const kurdishText = obj.kurdishText || obj.kurdish_text || "";
-          const text = (currentLang === "ckb" && kurdishText) ? kurdishText : englishText;
+          const text = currentLang === "ckb"
+            ? (kurdishText || englishText)
+            : (currentLang === "en" ? englishText : translateString(englishText));
           const type = String(obj.type || obj.defectType || obj.category || "").toLowerCase();
           if(!text) return;
           if(type.includes("danger")) groups.dangerous.push(text);
@@ -2310,16 +2378,16 @@ async function پشکنین(){
 
         return '<div class="mot-item">'+
           '<div class="mot-head"><div class="mot-date">'+پاراستنی_دەق(بەروار(testDate))+'</div><div class="mot-result '+resultClass+'">'+resultLabel+'</div></div>'+
-          '<div class="row"><span class="label">'+(currentLang === "ckb" ? "مایلیج" : "Mileage")+'</span><span class="value">'+
-          (mileageVal !== null ? Number(mileageVal).toLocaleString("en-GB") + (currentLang !== "ckb" ? " miles" : " مایل") : (currentLang === "ckb" ? "بەردەست نییە" : "Not available"))+'</span></div>'+
-          (expiryDate ? '<div class="row"><span class="label">'+(currentLang === "ckb" ? "بەسەرچوونی MOT" : "MOT expiry")+'</span><span class="value">'+پاراستنی_دەق(بەروار(expiryDate))+'</span></div>' : '')+
-          (motTestNumber ? '<div class="row"><span class="label">'+(currentLang === "ckb" ? "ژمارەی تاقیکردنەوە" : "Test number")+'</span><span class="value">'+پاراستنی_دەق(motTestNumber)+'</span></div>' : '')+
-          section(currentLang === "ckb" ? "کێشەی مەترسیدار" : "Dangerous defects",groups.dangerous,"dangerous")+
-          section(currentLang === "ckb" ? "هۆکاری ڕەتکردنەوە / کێشەی گەورە" : "Refusal reasons / Major defects",groups.major,"major")+
-          section(currentLang === "ckb" ? "کێشەی بچووک" : "Minor defects",groups.minor,"minor")+
-          section(currentLang === "ckb" ? "تێبینییەکان" : "Advisories",groups.advisory,"advisory")+
-          section(currentLang === "ckb" ? "تێبینیی تر" : "Other comments",groups.other,"advisory")+
-          ((!notes.length) ? '<div class="mot-section"><div class="mot-section-title">'+(currentLang === "ckb" ? "تێبینی" : "Notes")+'</div><div class="mot-line">'+(currentLang === "ckb" ? "هیچ کێشە یان تێبینییەک تۆمار نەکراوە." : "No defects or advisories were recorded.")+'</div></div>' : '')+
+          '<div class="row"><span class="label">'+(currentLang === "ckb" ? "مایلیج" : translateString("Mileage"))+'</span><span class="value">'+
+          (mileageVal !== null ? Number(mileageVal).toLocaleString("en-GB") + (currentLang !== "ckb" ? " "+translateString("miles") : " مایل") : (currentLang === "ckb" ? "بەردەست نییە" : translateString("Not available")))+'</span></div>'+
+          (expiryDate ? '<div class="row"><span class="label">'+(currentLang === "ckb" ? "بەسەرچوونی MOT" : translateString("MOT expiry"))+'</span><span class="value">'+پاراستنی_دەق(بەروار(expiryDate))+'</span></div>' : '')+
+          (motTestNumber ? '<div class="row"><span class="label">'+(currentLang === "ckb" ? "ژمارەی تاقیکردنەوە" : translateString("Test number"))+'</span><span class="value">'+پاراستنی_دەق(motTestNumber)+'</span></div>' : '')+
+          section(currentLang === "ckb" ? "کێشەی مەترسیدار" : translateString("Dangerous defects"),groups.dangerous,"dangerous")+
+          section(currentLang === "ckb" ? "هۆکاری ڕەتکردنەوە / کێشەی گەورە" : translateString("Refusal reasons / Major defects"),groups.major,"major")+
+          section(currentLang === "ckb" ? "کێشەی بچووک" : translateString("Minor defects"),groups.minor,"minor")+
+          section(currentLang === "ckb" ? "تێبینییەکان" : translateString("Advisories"),groups.advisory,"advisory")+
+          section(currentLang === "ckb" ? "تێبینیی تر" : translateString("Other comments"),groups.other,"advisory")+
+          ((!notes.length) ? '<div class="mot-section"><div class="mot-section-title">'+(currentLang === "ckb" ? "تێبینی" : translateString("Notes"))+'</div><div class="mot-line">'+(currentLang === "ckb" ? "هیچ کێشە یان تێبینییەک تۆمار نەکراوە." : translateString("No defects or advisories were recorded."))+'</div></div>' : '')+
           '</div>';
       }).join("");
     }else{
@@ -2817,7 +2885,11 @@ Schema:
       insights.performance=insights.performance||{};
       for(const [bodyKey,outKey] of [["zeroTo60Seconds","zeroTo60Seconds"],["bhp","bhp"],["torqueNm","torqueNm"],["topSpeedMph","topSpeedMph"]]){if(car[bodyKey]!==null&&car[bodyKey]!==undefined&&car[bodyKey]!=="") insights.performance[outKey]=car[bodyKey]}
       if(car.insuranceGroup) insights.insuranceGroup=car.insuranceGroup;
-      insights.sourceLabel=targetLanguage==="Kurdish Sorani"?"داتای ئۆتۆمبێل + ڕێنمایی Gemini (خەمڵاندنەکان بە نیشانەی خۆیانەوە)":"Vehicle data + Gemini guidance; estimates are indicative";
+      if(!insights.sourceLabel){
+        insights.sourceLabel=targetLanguage==="Kurdish Sorani"
+          ? "داتای ئۆتۆمبێل + ڕێنمایی Gemini (خەمڵاندنەکان بە نیشانەی خۆیانەوە)"
+          : "Vehicle data + Gemini guidance; estimates are indicative";
+      }
       VEHICLE_INSIGHTS_CACHE.set(cacheKey,insights);
       return res.json({ok:true,modelUsed:model,insights});
     }catch(e){lastError=e?.message||String(e)}
