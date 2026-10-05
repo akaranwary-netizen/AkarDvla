@@ -345,6 +345,14 @@ body{
   color:#16120b;box-shadow:0 12px 30px rgba(215,179,106,.18)
 }
 .primary-btn:disabled{opacity:.55;cursor:wait}
+.check-another-wrap{display:flex;justify-content:center;margin:28px 0 4px}
+.check-another-btn{
+  width:min(520px,100%);border:1px solid rgba(215,179,106,.32);border-radius:15px;
+  padding:16px 22px;background:linear-gradient(145deg,rgba(27,30,35,.98),rgba(14,16,20,.98));
+  color:var(--gold2);font-size:16px;font-weight:900;cursor:pointer;
+  box-shadow:0 14px 35px rgba(0,0,0,.22);
+}
+.check-another-btn:hover{border-color:rgba(215,179,106,.6);transform:translateY(-1px)}
 .hero-note{margin-top:12px;color:#7f8791;font-size:12px}
 
 .quick-actions{
@@ -957,6 +965,9 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
       </div>
 
     </div>
+    <div class="check-another-wrap">
+      <button type="button" class="check-another-btn" onclick="checkAnotherCar()">🔄 پشکنینی ئۆتۆمبێلێکی تر</button>
+    </div>
   </section>
 </main>
 
@@ -1012,6 +1023,7 @@ const EN_TRANSLATIONS = {
   "پێش کڕین، دڵنیابەوە.":"Check before you buy.",
   "ژمارەی تۆماری ئۆتۆمبێل بنووسە بۆ بینینی MOT، باج، مایلیج و زانیارییە گرنگەکان لە یەک شوێندا.":"Enter a vehicle registration to see MOT, tax, mileage and important vehicle information in one place.",
   "پشکنینی ئۆتۆمبێل":"Check vehicle",
+  "پشکنینی ئۆتۆمبێلێکی تر":"Check another car",
   "زانیاری ڕاستەوخۆ لە سەرچاوەی داتا وەردەگیرێت.":"Live information is retrieved from the data source.",
   "پشکنینی بیمەی ئۆتۆمبێل":"Check vehicle insurance",
   "باجی ڕێگاوبان بدە":"Pay road tax",
@@ -2123,6 +2135,10 @@ function openRepairModal(){
   setTimeout(refreshSelectedLanguage,50);
 }
 function closeRepairModal(event){if(event&&event.target!==دۆزینەوە("repairModal"))return;const m=دۆزینەوە("repairModal");if(m)m.classList.remove("show");document.body.style.overflow=""}
+
+function checkAnotherCar(){
+  window.location.reload();
+}
 
 async function پشکنین(){
   const vrm = دۆزینەوە("ژمارە").value.toUpperCase().replace(/[^A-Z0-9]/g,"");
