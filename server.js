@@ -205,6 +205,7 @@ async function addSoraniToMotHistory(motHistory) {
 }
 
 app.use(express.json());
+app.use(express.static("public"));
 
 function پاککردنەوەی_ژمارە(value) {
   return String(value || "")
@@ -238,7 +239,14 @@ app.get("/", (req, res) => {
 <head>
 <meta name="google-site-verification" content="qFWdo65b2VIDInQWb2JmLyN2mY8LqHA_u4fNw5dUP74" />
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#070809">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Akar’s Car Check">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <meta name="description" content="Check any UK vehicle registration for MOT, tax, mileage, fuel cost, Clean Air Zone information and market price guidance with Akar's Car Check." />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Akar's Car Check – Free UK MOT, Tax, Mileage & CAZ Check" />
@@ -667,6 +675,16 @@ footer{
   .card.full{grid-column:auto}
   .summary-main{align-items:flex-start;flex-direction:column}
 }
+
+/* iPhone / PWA enhancements */
+body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+.pwa-install-hint{display:none;position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:9998;background:rgba(17,20,25,.97);border:1px solid rgba(215,179,106,.30);border-radius:16px;padding:14px 16px;box-shadow:0 18px 50px rgba(0,0,0,.45);direction:ltr}
+.pwa-install-hint.show{display:flex;gap:12px;align-items:flex-start}
+.pwa-install-hint strong{display:block;color:var(--gold2);margin-bottom:4px}
+.pwa-install-hint span{display:block;color:#c6cbd2;font-size:12px;line-height:1.5}
+.pwa-install-close{margin-left:auto;background:transparent;border:0;color:#fff;font-size:20px;cursor:pointer}
+@media(display-mode:standalone){.pwa-install-hint{display:none!important}}
+
 </style>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Akar's Car Check","url":"https://dvlabyakar.onrender.com/","description":"Check any UK vehicle registration for MOT, tax, mileage, fuel cost, Clean Air Zone information and market price guidance with Akar's Car Check.","inLanguage":["ckb","en-GB"]}</script>
 </head>
@@ -959,9 +977,34 @@ footer{
   </div>
 </div>
 
+
+<div id="pwaInstallHint" class="pwa-install-hint" role="status" aria-live="polite">
+  <div>📱</div>
+  <div><strong>Install Akar’s Car Check</strong><span>On iPhone: tap Share in Safari, then “Add to Home Screen”.</span></div>
+  <button class="pwa-install-close" type="button" aria-label="Close" onclick="dismissPwaHint()">×</button>
+</div>
+
 <footer>© 2026 Akar's Car Check</footer>
 
 <script>
+
+// PWA / iPhone install support
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(err => console.warn("Service worker:", err));
+  });
+}
+function isIosDevice(){ return /iphone|ipad|ipod/i.test(navigator.userAgent); }
+function isStandaloneApp(){ return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true; }
+function dismissPwaHint(){
+  localStorage.setItem("akar_pwa_hint_dismissed","1");
+  const el=document.getElementById("pwaInstallHint"); if(el) el.classList.remove("show");
+}
+window.addEventListener("load",()=>{
+  if(isIosDevice() && !isStandaloneApp() && !localStorage.getItem("akar_pwa_hint_dismissed")){
+    setTimeout(()=>document.getElementById("pwaInstallHint")?.classList.add("show"),1500);
+  }
+});
 
 const SUPPORTED_LANGS = ["ckb","en","ar","fa","tr","fr","de","es","ro","pl","ur","ps"];
 let currentLang = SUPPORTED_LANGS.includes(localStorage.getItem("akar_language"))
