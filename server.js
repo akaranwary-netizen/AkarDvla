@@ -98,6 +98,112 @@ function normaliseDvsaMotTests(payload) {
   });
 }
 
+
+const MOT_SORANI_CACHE = new Map();
+
+async function translateMotTextsToSorani(texts) {
+  const cleanTexts = [...new Set((texts || []).map(v => String(v || "").trim()).filter(Boolean))];
+  if (!cleanTexts.length || !GEMINI_API_KEY) return {};
+
+  const result = {};
+  const missing = [];
+  for (const text of cleanTexts) {
+    if (MOT_SORANI_CACHE.has(text)) result[text] = MOT_SORANI_CACHE.get(text);
+    else missing.push(text);
+  }
+  if (!missing.length) return result;
+
+  const models = ["gemini-3.5-flash-lite", "gemini-3.5-flash"];
+
+  for (let offset = 0; offset < missing.length; offset += 20) {
+    const batch = missing.slice(offset, offset + 20);
+    let translated = null;
+
+    for (const model of models) {
+      try {
+        const prompt = `Translate these UK MOT defect/advisory descriptions from English into natural, clear Kurdish Sorani (Central Kurdish).
+
+STRICT RULES:
+- Return ONLY a JSON array of strings.
+- Same number of items and same order as the input.
+- Translate the meaning fully, including words such as worn, fractured, corroded, play, leaking, insecure, damaged and weakened.
+- Keep MOT technical inspection reference codes exactly unchanged, for example (5.3.1 (b) (i)).
+- Keep measurements, numbers, tyre sizes, registration numbers and abbreviations unchanged.
+- Use wording understandable to an ordinary Kurdish Sorani speaker, while preserving the mechanical meaning.
+- Do not add explanations or advice.
+
+INPUT:
+${JSON.stringify(batch)}`;
+
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-goog-api-key": GEMINI_API_KEY
+            },
+            body: JSON.stringify({
+              contents: [{ role: "user", parts: [{ text: prompt }] }],
+              generationConfig: { responseMimeType: "application/json", maxOutputTokens: 5000 }
+            })
+          }
+        );
+
+        const raw = await response.text();
+        let data = null;
+        try { data = JSON.parse(raw); } catch {}
+        if (!response.ok) continue;
+
+        let modelText = data?.candidates?.[0]?.content?.parts?.map(p => p?.text || "").join("").trim();
+        if (!modelText) continue;
+        modelText = modelText.replace(/^```json\s*/i, "").replace(/^```\s*/, "").replace(/```$/, "").trim();
+
+        let arr = null;
+        try { arr = JSON.parse(modelText); } catch {}
+        if (Array.isArray(arr) && arr.length === batch.length) {
+          translated = arr.map(v => String(v || "").trim());
+          break;
+        }
+      } catch (e) {
+        console.error("Gemini MOT Sorani translation error:", e.message);
+      }
+    }
+
+    if (translated) {
+      batch.forEach((source, i) => {
+        const target = translated[i] || source;
+        MOT_SORANI_CACHE.set(source, target);
+        result[source] = target;
+      });
+    } else {
+      batch.forEach(source => { result[source] = source; });
+    }
+  }
+
+  return result;
+}
+
+async function addSoraniToMotHistory(motHistory) {
+  if (!Array.isArray(motHistory) || !motHistory.length || !GEMINI_API_KEY) return motHistory;
+  const allTexts = [];
+  motHistory.forEach(test => {
+    const notes = Array.isArray(test.advisories) ? test.advisories : [];
+    notes.forEach(note => {
+      const text = typeof note === "string" ? note : note?.text;
+      if (text) allTexts.push(text);
+    });
+  });
+  const translations = await translateMotTextsToSorani(allTexts);
+  return motHistory.map(test => ({
+    ...test,
+    advisories: (Array.isArray(test.advisories) ? test.advisories : []).map(note => {
+      if (typeof note === "string") return { text: note, kurdishText: translations[note] || note, type: null };
+      return { ...note, kurdishText: translations[note?.text] || note?.text || "" };
+    })
+  }));
+}
+
 app.use(express.json());
 
 function پاککردنەوەی_ژمارە(value) {
@@ -1949,7 +2055,9 @@ async function پشکنین(){
         const groups = { dangerous:[], major:[], minor:[], advisory:[], other:[] };
         notes.forEach(a=>{
           const obj = typeof a === "string" ? {text:a,type:""} : (a || {});
-          const text = obj.text || obj.comment || obj.description || "";
+          const englishText = obj.text || obj.comment || obj.description || "";
+          const kurdishText = obj.kurdishText || obj.kurdish_text || "";
+          const text = (currentLang === "ckb" && kurdishText) ? kurdishText : englishText;
           const type = String(obj.type || obj.defectType || obj.category || "").toLowerCase();
           if(!text) return;
           if(type.includes("danger")) groups.dangerous.push(text);
@@ -2128,6 +2236,7 @@ app.post("/api/check", async (req, res) => {
     try {
       dvsaMot = await fetchDvsaMotHistory(vrm);
       motHistory = normaliseDvsaMotTests(dvsaMot);
+      motHistory = await addSoraniToMotHistory(motHistory);
     } catch (motError) {
       console.error("DVSA MOT lookup failed for", vrm, motError.message);
       dvsaMotError = motError.message;
