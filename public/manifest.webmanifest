@@ -1,0 +1,15 @@
+{
+  "name": "Akar's Car Check",
+  "short_name": "Car Check",
+  "description": "UK vehicle MOT, tax, mileage and vehicle information checker.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#070809",
+  "theme_color": "#070809",
+  "orientation": "portrait-primary",
+  "icons": [
+    {"src":"/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ]
+}
