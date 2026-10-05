@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Akar's Car Check</title>
+  <style>
+    :root{color-scheme:dark;--bg:#090a0d;--card:#14161b;--line:#2b2e35;--gold:#d8b26a;--muted:#9da3ad;--good:#4ade80;--bad:#f87171;--warn:#fbbf24}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+    header{position:sticky;top:0;z-index:2;background:#0b0c10;border-bottom:1px solid #1d2026;padding:20px 16px;text-align:center}
+    h1{margin:0;font-size:30px;letter-spacing:.5px} h1 span{color:var(--gold)}
+    main{max-width:760px;margin:auto;padding:22px 16px 70px}.search{display:flex;gap:10px;margin-bottom:18px}
+    input{flex:1;padding:15px 16px;border-radius:14px;border:1px solid var(--line);background:#111318;color:#fff;font-size:18px;text-transform:uppercase}
+    button{padding:0 20px;border:0;border-radius:14px;background:var(--gold);color:#111;font-weight:800;font-size:16px}
+    .status{margin:8px 0 18px;color:var(--muted);min-height:22px}.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px;margin:16px 0}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.item{padding:12px;background:#101217;border-radius:14px}.k{font-size:12px;color:var(--muted);text-transform:uppercase}.v{font-size:18px;font-weight:700;margin-top:5px}
+    h2{margin:0 0 15px;font-size:22px}.test{border-top:1px solid var(--line);padding:18px 0}.test:first-child{border-top:0;padding-top:0}.row{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.pass{color:var(--good);font-weight:800}.fail{color:var(--bad);font-weight:800}.defect{margin:8px 0;padding:10px 12px;border-radius:10px;background:#101217}.defect small{color:var(--warn);font-weight:700}.muted{color:var(--muted)}
+    .hidden{display:none}.error{color:var(--bad)} footer{text-align:center;color:#777;padding:28px 0 10px}
+    @media(max-width:560px){h1{font-size:25px}.grid{grid-template-columns:1fr}.search{flex-direction:column}button{padding:15px}}
+  </style>
+</head>
+<body>
+<header><h1>AKAR'S <span>CAR CHECK</span></h1></header>
+<main>
+  <div class="search">
+    <input id="reg" maxlength="8" placeholder="Enter registration" autocomplete="off" />
+    <button id="check">CHECK</button>
+  </div>
+  <div id="status" class="status">Enter a UK registration to see DVLA details and DVSA MOT history.</div>
+
+  <section id="vehicleCard" class="card hidden">
+    <h2>Vehicle details</h2><div id="vehicle" class="grid"></div>
+  </section>
+
+  <section id="motCard" class="card hidden">
+    <div class="row"><h2>MOT history</h2><div id="motCount" class="muted"></div></div>
+    <div id="motHistory"></div>
+  </section>
+
+  <footer>Akar's Car Check 2026 ©</footer>
+</main>
+<script>
+const reg=document.getElementById('reg'); const btn=document.getElementById('check'); const statusEl=document.getElementById('status');
+const vehicleCard=document.getElementById('vehicleCard'); const vehicleEl=document.getElementById('vehicle'); const motCard=document.getElementById('motCard'); const motEl=document.getElementById('motHistory'); const motCount=document.getElementById('motCount');
+const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+const fmtDate=s=>{if(!s)return '—'; const d=new Date(s); return isNaN(d)?esc(s):d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});};
+function item(k,v){return `<div class="item"><div class="k">${esc(k)}</div><div class="v">${esc(v??'—')}</div></div>`}
+function resultClass(v){return String(v||'').toUpperCase().includes('PASS')?'pass':'fail'}
+async function check(){
+ const registration=reg.value.toUpperCase().replace(/[^A-Z0-9]/g,''); reg.value=registration;
+ if(registration.length<2){statusEl.innerHTML='<span class="error">Enter a valid registration.</span>';return;}
+ btn.disabled=true; statusEl.textContent='Checking DVLA and DVSA…'; vehicleCard.classList.add('hidden'); motCard.classList.add('hidden');
+ try{
+   const r=await fetch('/api/check',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({registration})});
+   const data=await r.json(); if(!r.ok) throw new Error(data.error||'Check failed');
+   if(data.vehicle){const v=data.vehicle; vehicleEl.innerHTML=[item('Registration',v.registrationNumber||data.registration),item('Make',v.make),item('Colour',v.colour),item('Fuel',v.fuelType),item('Year',v.yearOfManufacture),item('Engine',v.engineCapacity?`${v.engineCapacity} cc`:'—'),item('Tax',v.taxStatus),item('MOT',v.motStatus),item('MOT expiry',fmtDate(v.motExpiryDate))].join(''); vehicleCard.classList.remove('hidden');}
+   const tests=Array.isArray(data.motHistory)?data.motHistory:[]; motCount.textContent=`${tests.length} test${tests.length===1?'':'s'}`;
+   if(tests.length){
+     motEl.innerHTML=tests.map((t,i)=>{const defects=Array.isArray(t.defects)?t.defects:[]; return `<article class="test"><div class="row"><div><div class="${resultClass(t.testResult)}">${esc(t.testResult||'Unknown')}</div><div class="muted">${fmtDate(t.completedDate)}</div></div><div style="text-align:right"><strong>${esc(t.odometerValue||'—')} ${esc(t.odometerUnit||'')}</strong><div class="muted">Expiry: ${fmtDate(t.expiryDate)}</div></div></div>${defects.length?`<div style="margin-top:12px">${defects.map(d=>`<div class="defect"><small>${esc(d.type||'Defect')}</small><div>${esc(d.text||'')}</div></div>`).join('')}</div>`:'<div class="muted" style="margin-top:10px">No recorded defects/advisories.</div>'}</article>`}).join('');
+   } else {motEl.innerHTML='<div class="muted">No MOT history returned for this vehicle.</div>'}
+   motCard.classList.remove('hidden');
+   if(data.services?.dvsaMotHistory?.ok){statusEl.textContent='Live DVLA + DVSA data loaded.'} else {statusEl.innerHTML=`Vehicle loaded, but DVSA MOT history failed: <span class="error">${esc(data.services?.dvsaMotHistory?.error||'Not available')}</span>`}
+ }catch(e){statusEl.innerHTML=`<span class="error">${esc(e.message)}</span>`;} finally{btn.disabled=false;}
+}
+btn.addEventListener('click',check); reg.addEventListener('keydown',e=>{if(e.key==='Enter')check()});
+</script>
+</body>
+</html>
