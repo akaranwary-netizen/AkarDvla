@@ -353,6 +353,46 @@ body{
   box-shadow:0 14px 35px rgba(0,0,0,.22);
 }
 .check-another-btn:hover{border-color:rgba(215,179,106,.6);transform:translateY(-1px)}
+.report-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:28px 0 4px}
+.report-actions .check-another-btn{width:min(360px,100%)}
+.print-report-btn{
+  width:min(360px,100%);border:0;border-radius:15px;padding:16px 22px;
+  background:linear-gradient(135deg,var(--gold2),var(--gold));color:#17120a;
+  font-size:16px;font-weight:900;cursor:pointer;box-shadow:0 14px 35px rgba(215,179,106,.16)
+}
+.print-report-btn:hover{filter:brightness(1.04);transform:translateY(-1px)}
+.print-only{display:none}
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important;color:#111!important}
+  body{font-family:Arial,Tahoma,sans-serif!important}
+  .topbar,.hero,.quick-actions,.message,footer,.report-actions,.action-row,.caz-pay-button,.language-modal,.language-loading-overlay,.modal-overlay{display:none!important}
+  .content{max-width:none!important;padding:0!important;margin:0!important}
+  .report{display:block!important}
+  .print-only{display:block!important}
+  .summary,.card,.mot-item,.mot-section,.fuel-cost-box,.market-box,.caz-row,.issue-item,.service-item,.repair-item{
+    background:#fff!important;color:#111!important;box-shadow:none!important;border-color:#bbb!important;
+    break-inside:avoid;page-break-inside:avoid
+  }
+  .grid{display:block!important}
+  .card{margin:0 0 12px!important;padding:14px!important}
+  .card.full{display:block!important}
+  .expand-box{display:block!important}
+  .section-title{margin:16px 0 10px!important}
+  .section-title h2,.card h3,.car-name,.issue-title,.repair-title{color:#111!important}
+  .label,.muted,.small,.car-sub,.note,.mot-line,.mot-section-title{color:#333!important}
+  .value,.plate,.mot-date,.market-box strong,.fuel-cost-box strong{color:#111!important}
+  .plate{border:1px solid #111!important;background:#f4d33d!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .score{background:none!important;border:2px solid #444!important;width:64px!important;height:64px!important}
+  .score::before{display:none!important}
+  .score strong{color:#111!important}
+  #printReportHeader{display:flex!important;justify-content:space-between;align-items:flex-end;gap:20px;border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:16px}
+  #printReportHeader strong{font-size:20px}
+  #printReportMeta{font-size:11px;color:#444;text-align:end}
+  #printRepairSection{margin-top:12px}
+  .repair-price-grid{grid-template-columns:repeat(3,1fr)!important}
+  a{color:#111!important;text-decoration:none!important}
+}
 .hero-note{margin-top:12px;color:#7f8791;font-size:12px}
 
 .quick-actions{
@@ -824,6 +864,10 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
   <div id="پەیام" class="message"></div>
 
   <section id="ڕاپۆرت" class="report">
+    <div id="printReportHeader" class="print-only">
+      <strong>AKAR'S CAR CHECK</strong>
+      <div id="printReportMeta"></div>
+    </div>
     <div class="summary">
       <div class="summary-main">
         <div id="تابلۆ" class="plate">—</div>
@@ -998,8 +1042,15 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
         <div id="مێژووی_MOT"></div>
       </div>
 
+      <div id="printRepairSection" class="card full print-only">
+        <h3><span class="icon">💷</span> <span>خەمڵاندنی نرخی چاککردنەوە</span></h3>
+        <div id="printRepairList"></div>
+        <div class="note">ئەم نرخانە خەمڵاندنی بازاڕی UK ـن، نەک نرخنامەی گەراج. نرخی ڕاستەقینە بە شوێن، جۆری پارچە و کاتی کار دەگۆڕێت.</div>
+      </div>
+
     </div>
-    <div class="check-another-wrap">
+    <div class="report-actions">
+      <button type="button" class="print-report-btn" onclick="printVehicleReport()">📄 چاپ / پاشەکەوتکردنی ڕاپۆرت</button>
       <button type="button" class="check-another-btn" onclick="checkAnotherCar()">🔄 پشکنینی ئۆتۆمبێلێکی تر</button>
     </div>
   </section>
@@ -1058,6 +1109,8 @@ const EN_TRANSLATIONS = {
   "ژمارەی تۆماری ئۆتۆمبێل بنووسە بۆ بینینی MOT، باج، مایلیج و زانیارییە گرنگەکان لە یەک شوێندا.":"Enter a vehicle registration to see MOT, tax, mileage and important vehicle information in one place.",
   "پشکنینی ئۆتۆمبێل":"Check vehicle",
   "پشکنینی ئۆتۆمبێلێکی تر":"Check another car",
+  "چاپ / پاشەکەوتکردنی ڕاپۆرت":"Print / Save report",
+  "ڕاپۆرت دروستکرا":"Report generated",
   "زانیاری ڕاستەوخۆ لە سەرچاوەی داتا وەردەگیرێت.":"Live information is retrieved from the data source.",
   "پشکنینی بیمەی ئۆتۆمبێل":"Check vehicle insurance",
   "باجی ڕێگاوبان بدە":"Pay road tax",
@@ -1262,7 +1315,7 @@ const EXTRA_UI_ENGLISH = [
   "No defects or advisories were recorded.",
   "Loading additional vehicle information...","Additional information unavailable:",
   "Vehicle data + Gemini guidance; estimates are indicative",
-  "Repair cost estimate","Parts","Labour","Total",
+  "Repair cost estimate","Parts","Labour","Total","Print / Save report","Report generated",
   "Information unavailable.","Repair-cost estimate unavailable.",
   "No verified previous sale/ad history is available from the current data sources.",
   "These are estimated UK market repair costs, not a garage quotation. Actual prices vary by location, parts used and labour time."
@@ -2294,6 +2347,42 @@ function openRepairModal(){
   setTimeout(refreshSelectedLanguage,50);
 }
 function closeRepairModal(event){if(event&&event.target!==دۆزینەوە("repairModal"))return;const m=دۆزینەوە("repairModal");if(m)m.classList.remove("show");document.body.style.overflow=""}
+
+async function printVehicleReport(){
+  if(!latestCheckedVehicle){return;}
+  try{
+    await ensureLanguageTexts(["Print / Save report","Report generated","Repair cost estimate","Parts","Labour","Total","Repair-cost estimate unavailable.","These are estimated UK market repair costs, not a garage quotation. Actual prices vary by location, parts used and labour time."]);
+    refreshSelectedLanguage();
+  }catch{}
+
+  const v=latestCheckedVehicle||{};
+  const reg=String(v.registration||v.registrationNumber||v.vrm||document.getElementById("تابلۆ")?.textContent||"").trim();
+  const generatedLabel=currentLang==="ckb"?"ڕاپۆرت دروستکرا":translateString("ڕاپۆرت دروستکرا");
+  const localeMap={ckb:"ckb-IQ",en:"en-GB",ar:"ar",fa:"fa-IR",tr:"tr-TR",fr:"fr-FR",de:"de-DE",es:"es-ES",ro:"ro-RO",pl:"pl-PL",ur:"ur-PK",ps:"ps-AF"};
+  let dateText="";
+  try{dateText=new Intl.DateTimeFormat(localeMap[currentLang]||"en-GB",{dateStyle:"long",timeStyle:"short"}).format(new Date())}catch{dateText=new Date().toLocaleString("en-GB")}
+  const meta=document.getElementById("printReportMeta");
+  if(meta) meta.innerHTML=(reg?'<div style="font-weight:800;direction:ltr">'+پاراستنی_دەق(reg)+'</div>':'')+'<div>'+پاراستنی_دەق(generatedLabel)+': '+پاراستنی_دەق(dateText)+'</div>';
+
+  const repairs=Array.isArray(latestExtraInsights?.repairCosts)?latestExtraInsights.repairCosts:[];
+  const list=document.getElementById("printRepairList");
+  if(list){
+    const partsLabel=currentLang==="ckb"?"پارچە":translateString("Parts");
+    const labourLabel=currentLang==="ckb"?"کار":translateString("Labour");
+    const totalLabel=currentLang==="ckb"?"کۆی گشتی":translateString("Total");
+    list.innerHTML=repairs.length?repairs.map(function(i){
+      return '<div class="repair-item"><div class="repair-title">'+پاراستنی_دەق(i.repair||"—")+'</div><div class="repair-price-grid">'+
+        '<div class="repair-price"><small>'+پاراستنی_دەق(partsLabel)+'</small><b>'+moneyRange(i.partsMinGbp,i.partsMaxGbp)+'</b></div>'+ 
+        '<div class="repair-price"><small>'+پاراستنی_دەق(labourLabel)+'</small><b>'+moneyRange(i.labourMinGbp,i.labourMaxGbp)+'</b></div>'+ 
+        '<div class="repair-price"><small>'+پاراستنی_دەق(totalLabel)+'</small><b>'+moneyRange(i.totalMinGbp,i.totalMaxGbp)+'</b></div>'+ 
+        '</div>'+(i.note?'<div class="small" style="margin-top:9px">'+پاراستنی_دەق(i.note)+'</div>':'')+'</div>';
+    }).join(""):'<div class="muted">'+پاراستنی_دەق(currentLang==="ckb"?"خەمڵاندنی نرخی چاککردنەوە بەردەست نییە.":translateString("Repair-cost estimate unavailable."))+'</div>';
+  }
+
+  const oldTitle=document.title;
+  document.title=(reg?reg+" - ":"")+"Akar's Car Check";
+  setTimeout(function(){window.print();setTimeout(function(){document.title=oldTitle;},500);},120);
+}
 
 function checkAnotherCar(){
   window.location.reload();
