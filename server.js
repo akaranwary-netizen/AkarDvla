@@ -353,6 +353,34 @@ body{
   box-shadow:0 14px 35px rgba(0,0,0,.22);
 }
 .check-another-btn:hover{border-color:rgba(215,179,106,.6);transform:translateY(-1px)}
+
+
+/* Compare two cars */
+.compare-action{grid-column:1/-1;border-color:rgba(215,179,106,.32);background:linear-gradient(135deg,rgba(215,179,106,.13),rgba(18,21,26,.98));cursor:pointer;font:inherit}
+.compare-action:hover{transform:translateY(-2px);border-color:rgba(215,179,106,.5)}
+.compare-modal{width:min(980px,100%);max-height:92vh;overflow:auto;background:linear-gradient(145deg,#15181d,#0b0d10);border:1px solid rgba(215,179,106,.28);border-radius:24px;padding:22px;box-shadow:0 28px 90px rgba(0,0,0,.6)}
+.compare-input-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+.compare-input-card{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:16px}
+.compare-input-card label{display:block;font-weight:900;margin-bottom:8px}
+.compare-plate{width:100%;background:#f7d33c;color:#111;border:0;border-radius:10px;padding:14px;text-align:center;font-size:21px;font-weight:900;letter-spacing:2px;text-transform:uppercase;outline:none;box-shadow:inset 0 0 0 2px #151515}
+.compare-run-btn{width:100%;border:0;border-radius:13px;padding:15px 18px;font-weight:900;font-size:15px;cursor:pointer;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#17120a}
+.compare-run-btn:disabled{opacity:.6;cursor:wait}
+.compare-status{display:none;margin:14px 0;padding:12px;border-radius:12px;background:rgba(215,179,106,.07);border:1px solid rgba(215,179,106,.15);color:#d7dbe0;text-align:center}
+.compare-results{display:none;margin-top:18px}
+.compare-head-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.compare-car{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:16px}
+.compare-car.winner{border-color:rgba(93,211,158,.45);box-shadow:0 0 0 1px rgba(93,211,158,.12) inset}
+.compare-car h3{margin:0 0 4px;font-size:20px}.compare-reg{color:var(--gold2);font-weight:900;direction:ltr}
+.compare-score{font-size:28px;font-weight:900;margin:10px 0;color:var(--gold2)}
+.compare-table{margin-top:14px;border:1px solid rgba(255,255,255,.07);border-radius:16px;overflow:hidden}
+.compare-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border-bottom:1px solid var(--line)}
+.compare-row:last-child{border-bottom:0}.compare-row>div{padding:11px 12px;font-size:12px}.compare-row>div:not(:last-child){border-left:1px solid var(--line)}
+.compare-row .compare-label{color:var(--muted);font-weight:800}.compare-row .compare-value{direction:ltr;text-align:center;font-weight:800}
+.compare-ai{margin-top:16px;background:radial-gradient(circle at 85% 0%,rgba(215,179,106,.12),transparent 35%),rgba(255,255,255,.035);border:1px solid rgba(215,179,106,.2);border-radius:18px;padding:18px}
+.compare-ai h3{margin:0 0 10px}.compare-verdict{font-size:18px;font-weight:900;color:var(--gold2);margin-bottom:10px}.compare-summary{line-height:1.8;color:#d4d8dd}
+.compare-points{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.compare-point{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:10px;font-size:12px;line-height:1.55}
+@media(max-width:700px){.compare-input-grid,.compare-head-grid,.compare-points{grid-template-columns:1fr}.compare-row{grid-template-columns:1fr 1fr 1fr}.compare-row>div{padding:9px 6px;font-size:11px}}
+
 .report-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:28px 0 4px}
 .report-actions .check-another-btn{width:min(360px,100%)}
 .print-report-btn{
@@ -857,6 +885,7 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
 <div class="quick-actions">
   <a class="quick-action gold" href="https://enquiry.navigate.mib.org.uk/checkyourvehicle" target="_blank" rel="noopener noreferrer">🛡️ پشکنینی بیمەی ئۆتۆمبێل</a>
   <a class="quick-action" href="https://www.gov.uk/vehicle-tax" target="_blank" rel="noopener noreferrer">💷 باجی ڕێگاوبان بدە</a>
+  <button type="button" class="quick-action compare-action" onclick="openCompareModal()">⚔️ بەراوردکردنی 2 ئۆتۆمبێل</button>
   <a class="quick-action" href="https://www.gov.uk/sold-bought-vehicle" target="_blank" rel="noopener noreferrer">🚗 لۆگ بووک بگۆڕە</a>
 </div>
 
@@ -1056,6 +1085,35 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
   </section>
 </main>
 
+<div id="compareModal" class="modal-overlay" onclick="closeCompareModal(event)">
+  <div class="compare-modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h2>⚔️ بەراوردکردنی 2 ئۆتۆمبێل</h2>
+      <button type="button" class="modal-close" onclick="closeCompareModal()">×</button>
+    </div>
+    <div class="muted">دوو ژمارەی تۆمار بنووسە. MOT، مایلیج، نرخی بازاڕ، سووتەمەنی، مەترسی چاککردنەوە و زانیارییە گرنگەکان بەراورد دەکرێن.</div>
+    <div class="compare-input-grid">
+      <div class="compare-input-card"><label>ئۆتۆمبێلی 1</label><input id="compareReg1" class="compare-plate" maxlength="8" placeholder="AB12 CDE"></div>
+      <div class="compare-input-card"><label>ئۆتۆمبێلی 2</label><input id="compareReg2" class="compare-plate" maxlength="8" placeholder="XY65 XYZ"></div>
+    </div>
+    <button id="compareRunBtn" class="compare-run-btn" type="button" onclick="runCarComparison()">⚔️ بەراوردی ئۆتۆمبێلەکان</button>
+    <div id="compareStatus" class="compare-status"></div>
+    <div id="compareResults" class="compare-results">
+      <div class="compare-head-grid">
+        <div id="compareCar1" class="compare-car"></div>
+        <div id="compareCar2" class="compare-car"></div>
+      </div>
+      <div id="compareTable" class="compare-table"></div>
+      <div class="compare-ai">
+        <h3>✨ کورتەی AI</h3>
+        <div id="compareVerdict" class="compare-verdict"></div>
+        <div id="compareSummary" class="compare-summary"></div>
+        <div id="comparePoints" class="compare-points"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="repairModal" class="modal-overlay" onclick="closeRepairModal(event)">
   <div class="repair-modal" onclick="event.stopPropagation()">
     <div class="modal-head">
@@ -1109,6 +1167,11 @@ const EN_TRANSLATIONS = {
   "ژمارەی تۆماری ئۆتۆمبێل بنووسە بۆ بینینی MOT، باج، مایلیج و زانیارییە گرنگەکان لە یەک شوێندا.":"Enter a vehicle registration to see MOT, tax, mileage and important vehicle information in one place.",
   "پشکنینی ئۆتۆمبێل":"Check vehicle",
   "پشکنینی ئۆتۆمبێلێکی تر":"Check another car",
+  "بەراوردکردنی 2 ئۆتۆمبێل":"Compare 2 cars",
+  "ئۆتۆمبێلی 1":"Car 1",
+  "ئۆتۆمبێلی 2":"Car 2",
+  "بەراوردی ئۆتۆمبێلەکان":"Compare cars",
+  "کورتەی AI":"AI summary",
   "چاپ / پاشەکەوتکردنی ڕاپۆرت":"Print / Save report",
   "ڕاپۆرت دروستکرا":"Report generated",
   "زانیاری ڕاستەوخۆ لە سەرچاوەی داتا وەردەگیرێت.":"Live information is retrieved from the data source.",
@@ -2348,6 +2411,102 @@ function openRepairModal(){
 }
 function closeRepairModal(event){if(event&&event.target!==دۆزینەوە("repairModal"))return;const m=دۆزینەوە("repairModal");if(m)m.classList.remove("show");document.body.style.overflow=""}
 
+
+function compareText(ckb,en){ return currentLang==="ckb" ? ckb : translateString(en); }
+function openCompareModal(){
+  const m=دۆزینەوە("compareModal"); if(!m)return;
+  m.classList.add("show"); document.body.style.overflow="hidden";
+  دۆزینەوە("compareResults").style.display="none";
+  دۆزینەوە("compareStatus").style.display="none";
+  setTimeout(refreshSelectedLanguage,30);
+}
+function closeCompareModal(event){
+  if(event&&event.target!==دۆزینەوە("compareModal"))return;
+  const m=دۆزینەوە("compareModal");if(m)m.classList.remove("show");document.body.style.overflow="";
+}
+function cleanCompareReg(v){return String(v||"").toUpperCase().replace(/[^A-Z0-9]/g,"");}
+function compareMedianPrice(cars){
+  const nums=(Array.isArray(cars)?cars:[]).map(x=>Number(x?.price)).filter(n=>Number.isFinite(n)&&n>0).sort((a,b)=>a-b);
+  if(!nums.length)return null; const mid=Math.floor(nums.length/2); return nums.length%2?nums[mid]:(nums[mid-1]+nums[mid])/2;
+}
+function compareMoney(v){return Number.isFinite(Number(v))?"£"+Math.round(Number(v)).toLocaleString("en-GB"):"—";}
+function compareMiles(v){return Number.isFinite(Number(v))?Math.round(Number(v)).toLocaleString("en-GB")+" mi":"—";}
+function comparePercent(v){const n=Number(v);return Number.isFinite(n)?Math.round(n*100)+"%":"—";}
+function compareVehicleName(d){return [d?.make,d?.model,d?.yearOfManufacture].filter(Boolean).join(" ")||"—";}
+function compareAvgRepair(insights){
+  const arr=Array.isArray(insights?.repairCosts)?insights.repairCosts:[];
+  const vals=arr.map(x=>{const a=Number(x.totalMinGbp),b=Number(x.totalMaxGbp);return Number.isFinite(a)&&Number.isFinite(b)?(a+b)/2:null}).filter(Number.isFinite);
+  return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):null;
+}
+async function comparePost(url,body){
+  const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  const j=await r.json().catch(()=>({})); if(!r.ok||j.ok===false)throw new Error(j.error||"Request failed"); return j;
+}
+async function compareEnrich(d){
+  const base={registration:d.registration||d.registrationNumber||d.vrm||null,make:d.make||null,model:d.model||null,year:d.yearOfManufacture||null,fuelType:d.fuelType||null,engineCapacityCc:d.engineCapacityCc||null,mileage:d.signals?.latestOdometerMiles??null,language:currentLang};
+  const [marketR,fuelR,insightR]=await Promise.allSettled([
+    comparePost("/api/similar-listings",{make:base.make,model:base.model,year:base.year,mileage:base.mileage}),
+    comparePost("/api/fuel-estimate",base),
+    comparePost("/api/vehicle-insights",base)
+  ]);
+  return {
+    marketCars:marketR.status==="fulfilled"?(marketR.value.cars||[]):[],
+    marketPrice:marketR.status==="fulfilled"?compareMedianPrice(marketR.value.cars):null,
+    fuel:fuelR.status==="fulfilled"?(fuelR.value.fuel||null):null,
+    insights:insightR.status==="fulfilled"?(insightR.value.insights||null):null
+  };
+}
+function comparePack(d,e){
+  const s=d.signals||{},q=d.summary||{};
+  return {registration:d.registration||d.registrationNumber||d.vrm||null,name:compareVehicleName(d),make:d.make||null,model:d.model||null,year:d.yearOfManufacture||null,age:d.vehicleAgeYears??null,fuelType:d.fuelType||null,engineCapacityCc:d.engineCapacityCc??null,mileage:s.latestOdometerMiles??null,motStatus:s.motStatus??null,taxStatus:s.taxStatus??null,motPassRate:s.motPassRate??null,totalMotTests:s.totalMotTests??null,totalMotFailures:s.totalMotFailures??null,totalAdvisories:s.totalMotAdvisories??s.totalAdvisories??q.totalMotAdvisories??null,latestAdvisories:s.latestMotAdvisoryCount??s.latestAdvisoryCount??null,mileageRisk:q.mileageAnomalyRisk??null,motRisk:q.motRiskLevel??null,vehicleRisk:q.vehicleRiskLevel??null,buyRecommendation:q.buyRecommendation??null,marketPrice:e.marketPrice??null,annualFuelCost:e.fuel?.cost12000MilesGbp??null,estimatedMpg:e.fuel?.estimatedMpg??null,commonProblems:Array.isArray(e.insights?.commonProblems)?e.insights.commonProblems.slice(0,4):[],averageRepair:e.insights?compareAvgRepair(e.insights):null};
+}
+function renderCompareCar(el,c,score,winner){
+  el.classList.toggle("winner",!!winner);
+  el.innerHTML='<div class="compare-reg">'+پاراستنی_دەق(c.registration||"—")+'</div><h3>'+پاراستنی_دەق(c.name||"—")+'</h3><div class="compare-score">'+پاراستنی_دەق(score!=null?score+"/100":"—")+'</div><div class="small">'+پاراستنی_دەق([c.fuelType,c.engineCapacityCc?c.engineCapacityCc+" cc":null].filter(Boolean).join(" · "))+'</div>';
+}
+function compareRow(label,a,b){return '<div class="compare-row"><div class="compare-label">'+پاراستنی_دەق(label)+'</div><div class="compare-value">'+پاراستنی_دەق(a??"—")+'</div><div class="compare-value">'+پاراستنی_دەق(b??"—")+'</div></div>';}
+async function runCarComparison(){
+  const r1=cleanCompareReg(دۆزینەوە("compareReg1").value), r2=cleanCompareReg(دۆزینەوە("compareReg2").value);
+  if(r1.length<2||r2.length<2){alert(compareText("تکایە هەردوو ژمارەی تۆمار بنووسە.","Please enter both registrations."));return;}
+  if(r1===r2){alert(compareText("دوو ژمارەی جیاواز بنووسە.","Please enter two different registrations."));return;}
+  const btn=دۆزینەوە("compareRunBtn"),status=دۆزینەوە("compareStatus"),results=دۆزینەوە("compareResults");
+  btn.disabled=true;results.style.display="none";status.style.display="block";status.textContent=compareText("زانیاری هەردوو ئۆتۆمبێل دەهێنرێت...","Checking both vehicles...");
+  try{
+    await ensureLanguageTexts(["Compare 2 cars","Car 1","Car 2","Compare cars","AI summary","Please enter both registrations.","Please enter two different registrations.","Checking both vehicles...","Comparing market price, MOT, mileage, fuel and repair risk...","Market price guide","Mileage","MOT pass rate","MOT failures","MOT advisories","Annual fuel estimate","Average repair estimate","Overall risk","MOT status","Tax status","Overall winner","Best value","Lower running cost","Lower repair risk","Better MOT history"]);
+    const [c1r,c2r]=await Promise.all([comparePost("/api/check",{registration:r1}),comparePost("/api/check",{registration:r2})]);
+    const d1=c1r.data||{},d2=c2r.data||{};
+    status.textContent=compareText("نرخی بازاڕ، MOT، مایلیج، سووتەمەنی و مەترسی چاککردنەوە بەراورد دەکرێت...","Comparing market price, MOT, mileage, fuel and repair risk...");
+    const [e1,e2]=await Promise.all([compareEnrich(d1),compareEnrich(d2)]);
+    const p1=comparePack(d1,e1),p2=comparePack(d2,e2);
+    const summaryR=await comparePost("/api/compare-summary",{language:currentLang,car1:p1,car2:p2});
+    const a=summaryR.comparison||{};
+    renderCompareCar(دۆزینەوە("compareCar1"),p1,a.car1Score,a.overallWinner==="car1");
+    renderCompareCar(دۆزینەوە("compareCar2"),p2,a.car2Score,a.overallWinner==="car2");
+    دۆزینەوە("compareTable").innerHTML=
+      compareRow(currentLang==="ckb"?"نرخی بازاڕ":translateString("Market price guide"),compareMoney(p1.marketPrice),compareMoney(p2.marketPrice))+
+      compareRow(currentLang==="ckb"?"مایلیج":translateString("Mileage"),compareMiles(p1.mileage),compareMiles(p2.mileage))+
+      compareRow(currentLang==="ckb"?"ڕێژەی سەرکەوتنی MOT":translateString("MOT pass rate"),comparePercent(p1.motPassRate),comparePercent(p2.motPassRate))+
+      compareRow(currentLang==="ckb"?"شکستی MOT":translateString("MOT failures"),p1.totalMotFailures??"—",p2.totalMotFailures??"—")+
+      compareRow(currentLang==="ckb"?"تێبینییەکانی MOT":translateString("MOT advisories"),p1.totalAdvisories??"—",p2.totalAdvisories??"—")+
+      compareRow(currentLang==="ckb"?"سووتەمەنی ساڵانە":translateString("Annual fuel estimate"),compareMoney(p1.annualFuelCost),compareMoney(p2.annualFuelCost))+
+      compareRow(currentLang==="ckb"?"ناوەندی چاککردنەوە":translateString("Average repair estimate"),compareMoney(p1.averageRepair),compareMoney(p2.averageRepair))+
+      compareRow(currentLang==="ckb"?"مەترسی گشتی":translateString("Overall risk"),p1.vehicleRisk||"—",p2.vehicleRisk||"—")+
+      compareRow(currentLang==="ckb"?"دۆخی MOT":translateString("MOT status"),p1.motStatus||"—",p2.motStatus||"—")+
+      compareRow(currentLang==="ckb"?"دۆخی باج":translateString("Tax status"),p1.taxStatus||"—",p2.taxStatus||"—");
+    دۆزینەوە("compareVerdict").textContent=a.verdict||"";
+    دۆزینەوە("compareSummary").textContent=a.summary||"";
+    const points=[];
+    if(a.bestValue)points.push((currentLang==="ckb"?"باشترین بەها: ":translateString("Best value")+": ")+a.bestValue);
+    if(a.lowerRunningCost)points.push((currentLang==="ckb"?"کەمترین تێچووی بەکارهێنان: ":translateString("Lower running cost")+": ")+a.lowerRunningCost);
+    if(a.lowerRepairRisk)points.push((currentLang==="ckb"?"کەمترین مەترسی چاککردنەوە: ":translateString("Lower repair risk")+": ")+a.lowerRepairRisk);
+    if(a.betterMotHistory)points.push((currentLang==="ckb"?"باشترین مێژووی MOT: ":translateString("Better MOT history")+": ")+a.betterMotHistory);
+    (Array.isArray(a.keyReasons)?a.keyReasons:[]).forEach(x=>points.push(x));
+    دۆزینەوە("comparePoints").innerHTML=points.map(x=>'<div class="compare-point">'+پاراستنی_دەق(x)+'</div>').join("");
+    results.style.display="block";status.style.display="none";
+  }catch(e){status.style.display="block";status.textContent=(currentLang==="ckb"?"بەراوردکردن سەرکەوتوو نەبوو: ":"Comparison failed: ")+(e.message||e);}
+  finally{btn.disabled=false;}
+}
+
 async function printVehicleReport(){
   if(!latestCheckedVehicle){return;}
   try{
@@ -3089,6 +3248,32 @@ Schema:
     }catch(e){lastError=e?.message||String(e)}
   }
   return res.status(502).json({ok:false,error:`Vehicle insights failed: ${lastError}`});
+});
+
+
+app.post("/api/compare-summary", async (req, res) => {
+  if(!GEMINI_API_KEY) return res.status(503).json({ok:false,error:"GEMINI_API_KEY is not configured."});
+  const body=req.body||{}, car1=body.car1||{}, car2=body.car2||{};
+  if(!car1.registration||!car2.registration) return res.status(400).json({ok:false,error:"Two vehicles are required."});
+  const langNames={ckb:"Kurdish Sorani",en:"English",ar:"Arabic",fa:"Persian",tr:"Turkish",fr:"French",de:"German",es:"Spanish",ro:"Romanian",pl:"Polish",ur:"Urdu",ps:"Pashto"};
+  const targetLanguage=langNames[body.language]||"English";
+  const prompt=`Compare these two UK used vehicles using ONLY the supplied data. Do not invent specifications, prices, faults or history.\n\nCAR 1:\n${JSON.stringify(car1,null,2)}\n\nCAR 2:\n${JSON.stringify(car2,null,2)}\n\nRules:\n- Market price is only a guide based on current similar asking prices, not a confirmed valuation.\n- Fuel figures and repair figures are estimates; treat them as estimates.\n- Common problems are model tendencies, not confirmed faults on the individual vehicle.\n- Give each car a fair 0-100 comparison score based on available evidence: MOT record, mileage consistency/risk, running-cost estimate, repair-risk estimate, current MOT/tax state and market-price guidance.\n- Missing data must not count as a negative.\n- If there is no clear winner, use tie.\n- Write all human-readable text in ${targetLanguage}. Vehicle registrations, makes, models, MOT and units stay unchanged.\n- bestValue/lowerRunningCost/lowerRepairRisk/betterMotHistory must be the registration of car1, registration of car2, or \"Tie\" (translated if appropriate).\nReturn ONLY JSON:\n{\n "car1Score":0,\n "car2Score":0,\n "overallWinner":"car1|car2|tie",\n "verdict":"short headline naming the better overall choice or tie",\n "summary":"clear 3-6 sentence comparison including price/value and the most important trade-offs",\n "bestValue":"...",\n "lowerRunningCost":"...",\n "lowerRepairRisk":"...",\n "betterMotHistory":"...",\n "keyReasons":["reason 1","reason 2","reason 3","reason 4"]\n}`;
+  const models=["gemini-3.5-flash-lite","gemini-3.5-flash"]; let lastError="Unknown error";
+  for(const model of models){
+    try{
+      const response=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":GEMINI_API_KEY},body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt}]}],generationConfig:{responseMimeType:"application/json",maxOutputTokens:1600}})});
+      const raw=await response.text();let data=null;try{data=JSON.parse(raw)}catch{}
+      if(!response.ok){lastError=data?.error?.message||raw||`HTTP ${response.status}`;continue}
+      let text=data?.candidates?.[0]?.content?.parts?.map(p=>p?.text||"").join("").trim();if(!text){lastError="Empty Gemini response";continue}
+      text=text.replace(/^```json\s*/i,"").replace(/^```\s*/,"").replace(/```$/,"").trim();let comparison;try{comparison=JSON.parse(text)}catch(e){lastError=e.message;continue}
+      comparison.car1Score=Math.max(0,Math.min(100,Math.round(Number(comparison.car1Score)||0)));
+      comparison.car2Score=Math.max(0,Math.min(100,Math.round(Number(comparison.car2Score)||0)));
+      if(!["car1","car2","tie"].includes(comparison.overallWinner)) comparison.overallWinner="tie";
+      comparison.keyReasons=Array.isArray(comparison.keyReasons)?comparison.keyReasons.slice(0,6):[];
+      return res.json({ok:true,modelUsed:model,comparison});
+    }catch(e){lastError=e?.message||String(e)}
+  }
+  return res.status(502).json({ok:false,error:`Car comparison failed: ${lastError}`});
 });
 
 app.post("/api/similar-listings", async (req, res) => {
