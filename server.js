@@ -1,5 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
+import { theoryQuestions } from "./theory-data.js";
+import { theoryPage } from "./theory-page.js";
 
 dotenv.config();
 
@@ -231,6 +233,14 @@ app.get("/sitemap.xml", (req, res) => {
     <priority>1.0</priority>
   </url>
 </urlset>`);
+});
+
+app.get("/theory", (req, res) => {
+  res.type("html").send(theoryPage());
+});
+
+app.get("/api/theory/questions", (req, res) => {
+  res.json(theoryQuestions);
 });
 
 app.get("/", (req, res) => {
@@ -883,6 +893,7 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
 </section>
 
 <div class="quick-actions">
+  <a class="quick-action gold" href="/theory">🎓 UK Theory Test — 700 Questions</a>
   <a class="quick-action gold" href="https://enquiry.navigate.mib.org.uk/checkyourvehicle" target="_blank" rel="noopener noreferrer">🛡️ پشکنینی بیمەی ئۆتۆمبێل</a>
   <a class="quick-action" href="https://www.gov.uk/vehicle-tax" target="_blank" rel="noopener noreferrer">💷 باجی ڕێگاوبان بدە</a>
   <button type="button" class="quick-action compare-action" onclick="openCompareModal()">⚔️ بەراوردکردنی 2 ئۆتۆمبێل</button>
@@ -2932,6 +2943,7 @@ app.post("/api/language-pack", async (req, res) => {
       : [];
 
     const languageNames = {
+      ckb:"Kurdish (Sorani)",
       ar:"Arabic",
       fa:"Persian (Farsi)",
       tr:"Turkish",
