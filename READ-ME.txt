@@ -1,0 +1,25 @@
+REPLACE ONE FILE ONLY
+
+1. Open your GitHub AkarDvla repository.
+2. Open server.js.
+3. Replace the existing server.js with the server.js in this ZIP.
+4. Commit the change.
+5. Render Auto Deploy should deploy it.
+
+This server.js was built from the exact current live GitHub server.js version.
+The car-check/DVSA code is preserved. Only the built-in Theory page was replaced.
+
+NEW THEORY:
+- Theory Home dashboard first
+- Learn & Practice
+- 14 sections
+- Test Yourself (10)
+- Mock Test (50) with 57-minute timer
+- Road Signs
+- Saved Questions
+- Wrong Answers
+- My Progress
+- English always visible
+- Selected translation underneath English
+- Back + Theory Home navigation
+- Car Check return button
