@@ -136,7 +136,7 @@ button,a,select{font:inherit}.top{position:sticky;top:0;z-index:30;background:#0
 @keyframes spin{to{transform:rotate(360deg)}}.loadingBox b{display:block;font-size:18px}.loadingBox small{display:block;color:var(--muted);margin-top:7px;line-height:1.45}
 .learnCorrect{border-color:var(--ok)!important;background:#48c98b18!important}.learnTag{display:inline-block;margin-top:8px;color:var(--ok);font-weight:900}
 .qvisual{margin:0 0 16px;border:1px solid #303741;background:#dfe8ee;border-radius:17px;min-height:170px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:10px}.qvisual svg{width:100%;max-width:430px;height:170px}.qvisual.hidden{display:none!important}
-.signGallery{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;margin:14px 0}.signCard{background:#13171c;border:1px solid var(--line);border-radius:17px;padding:14px;text-align:center}.signCard svg{width:115px;height:115px}.signCard b{display:block;margin-top:8px}.signCard .biTr{font-size:13px}@media(max-width:520px){.qvisual svg{height:150px}.signGallery{grid-template-columns:1fr 1fr}}
+.signGallery{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;margin:14px 0}.signCard{background:#13171c;border:1px solid var(--line);border-radius:17px;padding:14px;text-align:center}.signCard svg{width:115px;height:115px}.signCard img{width:100%;height:145px;object-fit:contain;background:#fff;border-radius:12px;padding:7px}.signCard b{display:block;margin-top:8px}.signCard .biTr{font-size:13px}@media(max-width:520px){.qvisual svg{height:150px}.signGallery{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.grid{grid-template-columns:1fr}.tile{min-height:92px}.hero h1{font-size:27px}.en{font-size:19px}.wrap{padding-top:17px}}
 </style></head><body>
 <header class="top"><div class="topin"><a class="iconbtn" href="/">🚗 Car Check</a><div class="brand">AKAR'S <span>THEORY</span></div><button class="lang" id="langBtn">🌐 English</button></div></header>
@@ -154,7 +154,7 @@ button,a,select{font:inherit}.top{position:sticky;top:0;z-index:30;background:#0
  </div>
 </section>
 <section id="sections" class="hidden"><h2 class="title"><span class="biEn">Select a section</span><span class="biTr rtl" id="sectionsTitleTr"></span></h2><p class="sub"><span class="biEn">Choose what you want to learn and practise.</span><span class="biTr rtl" id="sectionsSubTr"></span></p><div id="sectionList" class="sectionlist"></div></section>
-<section id="signs" class="hidden"><h2 class="title">🚦 Road Signs</h2><p class="sub">Learn each sign picture and its English meaning. Translation appears underneath.</p><div id="signGallery" class="signGallery"></div><button class="section" onclick="startCategory('Road signs')"><span>📝</span><b>Start Road & Traffic Signs Questions</b><span>›</span></button></section>
+<section id="signs" class="hidden"><h2 class="title">🚦 Road Signs</h2><p class="sub">Learn each sign picture and its English meaning. Translation appears underneath.</p><div class="notice">Official UK traffic sign images. © Crown copyright. Reproduced from Department for Transport traffic sign image resources.</div><div id="signGallery" class="signGallery"></div><button class="section" onclick="startCategory('Road signs')"><span>📝</span><b>Start Road & Traffic Signs Questions</b><span>›</span></button></section>
 <section id="progressPage" class="hidden"><h2 class="title">📊 My Progress</h2><div class="stats"><div class="stat"><b id="pAnswered">0</b><small>Answered</small></div><div class="stat"><b id="pCorrect">0</b><small>Correct</small></div><div class="stat"><b id="pAccuracy">0%</b><small>Accuracy</small></div></div></section>
 <section id="quiz" class="hidden">
  <div class="stats"><div class="stat"><b id="answered">0</b><small>Answered</small></div><div class="stat"><b id="correct">0</b><small>Correct</small></div><div class="stat"><b id="accuracy">0%</b><small>Accuracy</small></div></div>
@@ -236,8 +236,8 @@ function visualForQuestion(q){
  if(['Hazard awareness','Rules of the road','Vehicle handling','Safety margins','Vulnerable road users','Motorway rules','Vehicle loading'].includes(q.category))return roadScene('road');
  return '';
 }
-const signLessons=[['STOP','stop'],['Give Way','giveway'],['30 mph speed limit','30'],['No entry','noentry'],['Warning sign','warning'],['Roundabout','roundabout'],['Red X - lane closed','redx']];
-async function buildSignGallery(){const g=$('signGallery');if(!g)return;g.innerHTML='';let tr={};if(lang!=='en'){const texts=signLessons.map(x=>x[0]);try{const r=await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language:lang,texts})});const d=await r.json();if(d.ok)tr=d.translations||{}}catch(e){}}signLessons.forEach(([name,type])=>{const d=document.createElement('div');d.className='signCard';d.innerHTML=signSVG(type)+'<b>'+name+'</b>'+(lang!=='en'?'<span class="biTr rtl">'+(tr[name]||name)+'</span>':'');g.appendChild(d)})}
+const signLessons=[];
+async function buildSignGallery(){const g=$('signGallery');if(!g)return;g.innerHTML='<div class="notice">Loading official UK traffic signs…</div>';try{const r=await fetch('/api/road-signs');const data=await r.json();g.innerHTML='';data.forEach(x=>{const d=document.createElement('div');d.className='signCard';d.innerHTML='<img loading="lazy" src="'+x.src+'" alt="UK traffic sign '+x.diagram+'"><b>Diagram '+x.diagram+'</b><span class="biTr">'+x.category+'</span>';g.appendChild(d)});}catch(e){g.innerHTML='<div class="notice">Could not load road signs.</div>'}}
 async function translateVisibleUI(){
  const staticEls=[...Object.values(uiTargets),...categories.map((_,i)=>'sectionTr'+i)].map(id=>$(id)).filter(Boolean);
  if(lang==='en'){staticEls.forEach(e=>e.textContent='');return}
@@ -550,6 +550,34 @@ app.get("/theory", (req, res) => {
 
 app.get("/api/theory/questions", (req, res) => {
   res.json(theoryQuestions);
+});
+
+app.get("/api/road-signs", (req, res) => {
+  const fs = require("fs");
+  const path = require("path");
+  const root = path.join(process.cwd(), "public", "road-signs");
+  const labels = {
+    "bus-and-cycle-signs":"Bus and cycle signs",
+    "direction-and-tourist-signs":"Direction and tourist signs",
+    "information-signs":"Information signs",
+    "level-crossing-signs":"Level crossing signs",
+    "low-bridge-signs":"Low bridge signs",
+    "miscellaneous":"Miscellaneous signs",
+    "motorway-signs":"Motorway signs",
+    "on-street-parking":"On-street parking signs",
+    "pedestrian-cycle-equestrian":"Pedestrian, cycle and equestrian signs",
+    "pedestrian-zone-signs":"Pedestrian zone signs"
+  };
+  try {
+    const result=[];
+    for (const folder of fs.readdirSync(root)) {
+      const dir=path.join(root,folder); if(!fs.statSync(dir).isDirectory()) continue;
+      for (const file of fs.readdirSync(dir).filter(f=>/\.jpe?g$/i.test(f)).sort()) {
+        result.push({category:labels[folder]||folder,diagram:file.replace(/\.jpe?g$/i,''),src:'/road-signs/'+folder+'/'+encodeURIComponent(file)});
+      }
+    }
+    res.json(result);
+  } catch(e) { res.status(500).json({error:'Could not load road signs'}); }
 });
 
 app.get("/", (req, res) => {
