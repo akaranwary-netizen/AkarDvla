@@ -1,5 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
 
 // Built-in Theory Test module — kept inside server.js so one replacement is enough.
 const seeds = [
@@ -553,8 +555,6 @@ app.get("/api/theory/questions", (req, res) => {
 });
 
 app.get("/api/road-signs", (req, res) => {
-  const fs = require("fs");
-  const path = require("path");
   const root = path.join(process.cwd(), "public", "road-signs");
   const labels = {
     "bus-and-cycle-signs":"Bus and cycle signs",
