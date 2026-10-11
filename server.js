@@ -121,7 +121,7 @@ button,a,select{font:inherit}.top{position:sticky;top:0;z-index:30;background:#0
 .wrap{max-width:780px;margin:auto;padding:22px 14px 95px}.hero{text-align:center;padding:12px 4px 22px}.hero h1{margin:7px 0;font-size:31px}.hero h1 span{color:var(--gold2)}.hero p{color:var(--muted);line-height:1.55;margin:8px auto;max-width:620px}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}.tile{border:1px solid var(--line);background:linear-gradient(160deg,#171b20,#101216);border-radius:18px;padding:18px;text-align:left;color:#fff;min-height:112px;box-shadow:0 16px 45px #0003}
 .tile strong{display:block;font-size:17px;margin:7px 0 4px}.tile small{color:var(--muted);line-height:1.35}.tile .emoji{font-size:27px}.tile.gold{border-color:#6e5a32;background:linear-gradient(160deg,#211b10,#111316)}
-.title{font-size:25px;margin:5px 0}.sub{color:var(--muted);margin:0 0 18px;line-height:1.5}.sectionlist{display:grid;gap:9px}.section{width:100%;border:1px solid var(--line);background:#13171c;color:#fff;border-radius:14px;padding:15px;text-align:left;display:flex;gap:12px;align-items:center}.section b{flex:1}.section span{font-size:22px}
+.title{font-size:25px;margin:5px 0}.sub{color:var(--muted);margin:0 0 18px;line-height:1.5}.sectionlist{display:grid;gap:9px}.section{width:100%;border:1px solid var(--line);background:#13171c;color:#fff;border-radius:14px;padding:15px;text-align:left;display:flex;gap:12px;align-items:center}.section b{flex:1}.section span{font-size:22px}.biEn{display:block}.biTr{display:block;color:#e8cf96;font-size:.88em;margin-top:5px;line-height:1.45}.uiTr{display:block;color:#e8cf96;font-size:.78em;margin-top:3px;line-height:1.35}.section .biTr{font-size:14px;font-weight:650}
 .card{background:linear-gradient(180deg,#15181d,#0f1115);border:1px solid var(--line);border-radius:20px;overflow:hidden}.qbody{padding:19px}.meta{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px}.pill{font-size:12px;color:#d8dce2;border:1px solid #3a414a;border-radius:99px;padding:5px 9px}
 .en{font-size:20px;font-weight:850;line-height:1.4}.tr{font-size:17px;line-height:1.65;color:#f0d99f;margin-top:7px}.rtl{direction:rtl;text-align:right}
 .answers{display:grid;gap:10px;margin-top:17px}.answer{width:100%;border:1px solid #353c45;background:#181c22;color:#fff;border-radius:14px;padding:13px;text-align:left}.answer .enA{display:block;line-height:1.45}.answer .trA{display:block;color:#e8cf96;margin-top:6px;line-height:1.55}.answer.correct{border-color:var(--ok);background:#48c98b18}.answer.wrong{border-color:var(--bad);background:#ef666618}
@@ -140,18 +140,18 @@ button,a,select{font:inherit}.top{position:sticky;top:0;z-index:30;background:#0
 <header class="top"><div class="topin"><a class="iconbtn" href="/">🚗 Car Check</a><div class="brand">AKAR'S <span>THEORY</span></div><button class="lang" id="langBtn">🌐 English</button></div></header>
 <main class="wrap">
 <section id="home">
- <div class="hero"><div>🇬🇧 UK Driving Theory Learning</div><h1>Learn. Practise. <span>Pass.</span></h1><p>English always stays visible. Choose another language for learning help underneath the real English wording.</p></div>
+ <div class="hero"><div><span class="biEn">🇬🇧 UK Driving Theory Learning</span><span class="biTr rtl" id="heroTopTr"></span></div><h1><span class="biEn">Learn. Practise. <span>Pass.</span></span><span class="biTr rtl" id="heroTitleTr"></span></h1><p><span class="biEn">English always stays visible. Choose another language for learning help underneath the real English wording.</span><span class="biTr rtl" id="heroSubTr"></span></p></div>
  <div class="grid">
-  <button class="tile gold" onclick="showSections()"><div class="emoji">📚</div><strong>Learn & Practice</strong><small>Choose one of the 14 DVSA-style learning sections</small></button>
-  <button class="tile" onclick="startMode('quick')"><div class="emoji">⚡</div><strong>Test Yourself</strong><small>10 mixed practice questions</small></button>
-  <button class="tile" onclick="startMode('mock')"><div class="emoji">📝</div><strong>Mock Test</strong><small>50 mixed questions</small></button>
-  <button class="tile" onclick="showSigns()"><div class="emoji">🚦</div><strong>Road Signs</strong><small>Learn road and traffic signs</small></button>
-  <button class="tile" onclick="showSaved()"><div class="emoji">⭐</div><strong>Saved Questions</strong><small>Return to questions you saved for later</small></button>
-  <button class="tile" onclick="showWrong()"><div class="emoji">❌</div><strong>Wrong Answers</strong><small>Practise questions you got wrong</small></button>
-  <button class="tile" onclick="showProgress()"><div class="emoji">📊</div><strong>My Progress</strong><small>Answered, correct and accuracy</small></button>
+  <button class="tile gold" onclick="showSections()"><div class="emoji">📚</div><strong><span class="biEn">Learn & Practice</span><span class="uiTr rtl" id="tileLearnTitleTr"></span></strong><small><span class="biEn">Choose one of the 14 DVSA-style learning sections</span><span class="uiTr rtl" id="tileLearnSubTr"></span></small></button>
+  <button class="tile" onclick="startMode('quick')"><div class="emoji">⚡</div><strong><span class="biEn">Test Yourself</span><span class="uiTr rtl" id="tileTestTitleTr"></span></strong><small><span class="biEn">10 mixed practice questions</span><span class="uiTr rtl" id="tileTestSubTr"></span></small></button>
+  <button class="tile" onclick="startMode('mock')"><div class="emoji">📝</div><strong><span class="biEn">Mock Test</span><span class="uiTr rtl" id="tileMockTitleTr"></span></strong><small><span class="biEn">50 mixed questions</span><span class="uiTr rtl" id="tileMockSubTr"></span></small></button>
+  <button class="tile" onclick="showSigns()"><div class="emoji">🚦</div><strong><span class="biEn">Road Signs</span><span class="uiTr rtl" id="tileSignsTitleTr"></span></strong><small><span class="biEn">Learn road and traffic signs</span><span class="uiTr rtl" id="tileSignsSubTr"></span></small></button>
+  <button class="tile" onclick="showSaved()"><div class="emoji">⭐</div><strong><span class="biEn">Saved Questions</span><span class="uiTr rtl" id="tileSavedTitleTr"></span></strong><small><span class="biEn">Return to questions you saved for later</span><span class="uiTr rtl" id="tileSavedSubTr"></span></small></button>
+  <button class="tile" onclick="showWrong()"><div class="emoji">❌</div><strong><span class="biEn">Wrong Answers</span><span class="uiTr rtl" id="tileWrongTitleTr"></span></strong><small><span class="biEn">Practise questions you got wrong</span><span class="uiTr rtl" id="tileWrongSubTr"></span></small></button>
+  <button class="tile" onclick="showProgress()"><div class="emoji">📊</div><strong><span class="biEn">My Progress</span><span class="uiTr rtl" id="tileProgressTitleTr"></span></strong><small><span class="biEn">Answered, correct and accuracy</span><span class="uiTr rtl" id="tileProgressSubTr"></span></small></button>
  </div>
 </section>
-<section id="sections" class="hidden"><h2 class="title">Select a section</h2><p class="sub">Choose what you want to learn and practise.</p><div id="sectionList" class="sectionlist"></div></section>
+<section id="sections" class="hidden"><h2 class="title"><span class="biEn">Select a section</span><span class="biTr rtl" id="sectionsTitleTr"></span></h2><p class="sub"><span class="biEn">Choose what you want to learn and practise.</span><span class="biTr rtl" id="sectionsSubTr"></span></p><div id="sectionList" class="sectionlist"></div></section>
 <section id="signs" class="hidden"><h2 class="title">🚦 Road Signs</h2><p class="sub">Learn road and traffic signs, then practise the Road and traffic signs section.</p><div class="notice">Road signs learning is organised separately so learners can recognise the sign and learn its English meaning before answering questions.</div><button class="section" onclick="startCategory('Road signs')"><span>⛔</span><b>Start Road & Traffic Signs Questions</b><span>›</span></button></section>
 <section id="progressPage" class="hidden"><h2 class="title">📊 My Progress</h2><div class="stats"><div class="stat"><b id="pAnswered">0</b><small>Answered</small></div><div class="stat"><b id="pCorrect">0</b><small>Correct</small></div><div class="stat"><b id="pAccuracy">0%</b><small>Accuracy</small></div></div></section>
 <section id="quiz" class="hidden">
@@ -169,12 +169,54 @@ let bank=[],session=[],idx=0,lang='en',historyStack=['home'],translationCache={}
 const $=x=>document.getElementById(x); const pages=['home','sections','signs','progressPage','quiz'];
 function showPage(id,push=true){pages.forEach(p=>$(p).classList.toggle('hidden',p!==id));if(push&&historyStack.at(-1)!==id)historyStack.push(id);window.scrollTo(0,0)}
 function theoryHome(){stopTimer();historyStack=['home'];showPage('home',false)} function goBack(){if(historyStack.length>1){historyStack.pop();showPage(historyStack.at(-1),false)}else location.href='/'}
-function showSections(){showPage('sections')} function showSigns(){showPage('signs')} function showProgress(){updateStats();showPage('progressPage')}
+async function showSections(){showPage('sections');if(lang!=='en')await translateVisibleUI()} function showSigns(){showPage('signs')} function showProgress(){updateStats();showPage('progressPage')}
 function updateStats(){$('answered').textContent=answered;$('correct').textContent=correct;$('accuracy').textContent=answered?Math.round(correct/answered*100)+'%':'0%';$('pAnswered').textContent=answered;$('pCorrect').textContent=correct;$('pAccuracy').textContent=answered?Math.round(correct/answered*100)+'%':'0%'}
 function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
 function showLoading(title='Translating…',text='Please wait while this learning content is prepared.'){$('loadingTitle').textContent=title;$('loadingText').textContent=text;$('loadingOverlay').classList.remove('hidden')}
 function hideLoading(){$('loadingOverlay').classList.add('hidden')}
-async function load(){try{bank=await (await fetch('/api/theory/questions')).json()}catch(e){alert('Could not load questions.');return} const list=$('sectionList');categories.forEach(([c,ic])=>{const b=document.createElement('button');b.className='section';const label=c==='Road signs'?'Road and traffic signs':(c==='Incidents and emergencies'?'Incidents, accidents and emergencies':c);b.innerHTML='<span>'+ic+'</span><b>'+label+'</b><span>›</span>';b.onclick=()=>startCategory(c);list.appendChild(b)});updateStats()}
+
+const uiEnglish={
+ heroTop:'🇬🇧 UK Driving Theory Learning',
+ heroTitle:'Learn. Practise. Pass.',
+ heroSub:'English always stays visible. Choose another language for learning help underneath the real English wording.',
+ sectionsTitle:'Select a section',
+ sectionsSub:'Choose what you want to learn and practise.',
+ tileLearnTitle:'Learn & Practice',tileLearnSub:'Choose one of the 14 DVSA-style learning sections',
+ tileTestTitle:'Test Yourself',tileTestSub:'10 mixed practice questions',
+ tileMockTitle:'Mock Test',tileMockSub:'50 mixed questions',
+ tileSignsTitle:'Road Signs',tileSignsSub:'Learn road and traffic signs',
+ tileSavedTitle:'Saved Questions',tileSavedSub:'Return to questions you saved for later',
+ tileWrongTitle:'Wrong Answers',tileWrongSub:'Practise questions you got wrong',
+ tileProgressTitle:'My Progress',tileProgressSub:'Answered, correct and accuracy'
+};
+const uiTargets={
+ heroTop:'heroTopTr',heroTitle:'heroTitleTr',heroSub:'heroSubTr',
+ sectionsTitle:'sectionsTitleTr',sectionsSub:'sectionsSubTr',
+ tileLearnTitle:'tileLearnTitleTr',tileLearnSub:'tileLearnSubTr',
+ tileTestTitle:'tileTestTitleTr',tileTestSub:'tileTestSubTr',
+ tileMockTitle:'tileMockTitleTr',tileMockSub:'tileMockSubTr',
+ tileSignsTitle:'tileSignsTitleTr',tileSignsSub:'tileSignsSubTr',
+ tileSavedTitle:'tileSavedTitleTr',tileSavedSub:'tileSavedSubTr',
+ tileWrongTitle:'tileWrongTitleTr',tileWrongSub:'tileWrongSubTr',
+ tileProgressTitle:'tileProgressTitleTr',tileProgressSub:'tileProgressSubTr'
+};
+async function translateVisibleUI(){
+ const staticEls=[...Object.values(uiTargets),...categories.map((_,i)=>'sectionTr'+i)].map(id=>$(id)).filter(Boolean);
+ if(lang==='en'){staticEls.forEach(e=>e.textContent='');return}
+ const sectionLabels=categories.map(([c])=>c==='Road signs'?'Road and traffic signs':(c==='Incidents and emergencies'?'Incidents, accidents and emergencies':c));
+ const keys=Object.keys(uiEnglish),texts=[...keys.map(k=>uiEnglish[k]),...sectionLabels];
+ showLoading('Translating…','Translating all visible learning text into '+(langs.find(x=>x[0]===lang)?.[1]||'the selected language')+'.');
+ try{
+   const r=await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language:lang,texts})});
+   const d=await r.json();
+   if(d.ok){
+     keys.forEach(k=>{const e=$(uiTargets[k]);if(e)e.textContent=d.translations[uiEnglish[k]]||uiEnglish[k]});
+     sectionLabels.forEach((text,i)=>{const e=$('sectionTr'+i);if(e)e.textContent=d.translations[text]||text});
+   }
+ }catch(e){console.error('UI translation error',e)}
+ hideLoading();
+}
+async function load(){try{bank=await (await fetch('/api/theory/questions')).json()}catch(e){alert('Could not load questions.');return} const list=$('sectionList');categories.forEach(([c,ic])=>{const b=document.createElement('button');b.className='section';const label=c==='Road signs'?'Road and traffic signs':(c==='Incidents and emergencies'?'Incidents, accidents and emergencies':c);const sid='sectionTr'+categories.findIndex(x=>x[0]===c);b.innerHTML='<span>'+ic+'</span><b><span class="biEn">'+label+'</span><span class="biTr rtl" id="'+sid+'"></span></b><span>›</span>';b.onclick=()=>startCategory(c);list.appendChild(b)});updateStats();if(lang!=='en')await translateVisibleUI()}
 function startCategory(c){let pool=bank.filter(q=>q.category===c || (c==='Road signs'&&q.category==='Road and traffic signs'));session=shuffle(pool);if(!session.length){alert('No questions found in this section yet.');return}learningMode=true;idx=0;stopTimer();showPage('quiz');render()}
 function startMode(m){learningMode=false;session=shuffle(bank).slice(0,m==='mock'?50:10);idx=0;showPage('quiz');if(m==='mock')startTimer(57*60);else stopTimer();render()}
 function showSaved(){const ids=JSON.parse(localStorage.theorySaved||'[]');const pool=bank.filter(q=>ids.includes(q.id));if(!pool.length){alert('You do not have any saved questions yet.');return}learningMode=false;session=shuffle(pool);idx=0;showPage('quiz');stopTimer();render()}
@@ -225,7 +267,7 @@ async function render(){
 async function choose(i){const q=session[idx],bs=[...$('answers').children];bs.forEach(b=>b.disabled=true);bs[q.correct].classList.add('correct');if(i!==q.correct)bs[i].classList.add('wrong');answered++;if(i===q.correct)correct++;else{let w=JSON.parse(localStorage.theoryWrong||'[]');if(!w.includes(q.id))w.push(q.id);localStorage.theoryWrong=JSON.stringify(w)}localStorage.theoryAnswered=answered;localStorage.theoryCorrect=correct;updateStats();let tr=null;if(lang!=='en')tr=await translated(q);$('explain').innerHTML='<strong>'+(i===q.correct?'✓ Correct':'✕ Not quite')+'</strong><br><span>'+q.explanation+'</span>'+(tr?'<div class="tr rtl">'+tr.explanation+'</div>':'');$('explain').className='explain show';$('next').className='next show';$('bar').style.width=((idx+1)/session.length*100)+'%'}
 $('next').onclick=()=>{idx++;if(idx>=session.length){alert(learningMode?'Learning section complete.':'Test complete.');theoryHome()}else render()};
 const langs=[['en','English'],['ckb','کوردی سۆرانی'],['ar','العربية'],['fa','فارسی'],['tr','Türkçe'],['fr','Français'],['de','Deutsch'],['es','Español'],['ro','Română'],['pl','Polski'],['ur','اردو'],['ps','پښتو']];
-$('langBtn').onclick=async()=>{let n=(langs.findIndex(x=>x[0]===lang)+1)%langs.length;lang=langs[n][0];$('langBtn').textContent='🌐 '+langs[n][1];if(!$('quiz').classList.contains('hidden')){if(lang!=='en')showLoading('Translating…','Please wait while the current question is translated.');await render()}else if(lang!=='en'){showLoading('Language selected','Preparing '+langs[n][1]+' learning support…');setTimeout(hideLoading,650)}};
+$('langBtn').onclick=async()=>{let n=(langs.findIndex(x=>x[0]===lang)+1)%langs.length;lang=langs[n][0];$('langBtn').textContent='🌐 '+langs[n][1];await translateVisibleUI();if(!$('quiz').classList.contains('hidden'))await render()};
 load();
 </script></body></html>` }
 

@@ -1,23 +1,22 @@
-REPLACE ONLY server.js
+FULL BILINGUAL THEORY FIX
 
-This update fixes the Theory learning behaviour:
+Replace ONLY server.js in your GitHub repository.
 
-LEARN & PRACTICE
-- It is now learning mode, not a test.
-- The correct answer is already highlighted automatically.
-- The explanation is already shown.
-- The learner does not choose an answer.
+When any non-English language is selected:
+- English ALWAYS remains visible first.
+- The selected translation appears directly underneath English.
+- This now applies to the Theory Home text, dashboard options, Select a section heading,
+  section instructions, ALL 14 section names, questions, answers and explanations.
+- A Translating… screen is shown while visible content is being prepared.
 
-TEST YOURSELF / MOCK TEST
-- Correct answer is hidden.
-- The learner must choose an answer.
-- It is then marked correct/wrong.
-- Mock Test keeps the 50 questions / 57-minute timer.
+Learn & Practice:
+- correct answer automatically highlighted
+- explanation automatically visible
+- learner does not select an answer
 
-LANGUAGES
-- English always stays visible.
-- When another language is selected, a Translating… loading screen appears.
-- The app waits for the question, answers and explanation translation before showing the translated content.
+Test Yourself / Mock:
+- learner chooses the answer
+- correct answer is not revealed beforehand
+- mock remains 50 questions / 57 minutes
 
-Replace your GitHub root server.js with this server.js and commit.
-Render Auto Deploy will then deploy it.
+Commit server.js and wait for Render Auto Deploy.
