@@ -265,7 +265,7 @@ let allRoadSigns=[], currentSignCategory='', currentCategorySigns=[], currentSig
 const signCategoryIcons={'Bus and cycle signs':'🚌','Direction and tourist signs':'🧭','Information signs':'ℹ️','Level crossing signs':'🚆','Low bridge signs':'🌉','Miscellaneous signs':'🚦','Motorway signs':'🛣️','On-street parking signs':'🅿️','Pedestrian, cycle and equestrian signs':'🚶','Pedestrian zone signs':'🚶'};
 async function ensureRoadSigns(){if(allRoadSigns.length)return allRoadSigns;const r=await fetch('/api/road-signs');if(!r.ok)throw new Error('Road signs failed');allRoadSigns=await r.json();return allRoadSigns}
 
-const AKAR_TR_CACHE='akar-tr-v1';
+const AKAR_TR_CACHE='akar-tr-safe-v2';
 function trKey(language,text){return AKAR_TR_CACHE+'|'+language+'|'+text}
 function trGet(language,text){try{return localStorage.getItem(trKey(language,text))||''}catch(e){return ''}}
 function trSet(language,text,value){try{if(value&&value!==text)localStorage.setItem(trKey(language,text),value)}catch(e){}}
@@ -273,13 +273,13 @@ async function cachedTranslations(texts,language=lang){
  const unique=[...new Set((texts||[]).filter(Boolean))];
  if(language==='en')return Object.fromEntries(unique.map(t=>[t,t]));
  const out={},missing=[];
- unique.forEach(t=>{const v=trGet(language,t);if(v)out[t]=v;else missing.push(t)});
+ unique.forEach(t=>{const hit=trGet(language,t);if(hit)out[t]=hit;else missing.push(t)});
  if(missing.length){
   try{
    const r=await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language,texts:missing})});
    const d=await r.json();
    if(d.ok)missing.forEach(t=>{const v=(d.translations||{})[t];if(v){out[t]=v;trSet(language,t,v)}});
-  }catch(e){console.error('translation',e)}
+  }catch(e){console.error('translation cache',e)}
  }
  return out;
 }
@@ -400,16 +400,19 @@ async function translated(q){
 }
 let prefetchBusy=false;
 async function prefetchNextQuestions(){
- if(prefetchBusy||lang==='en'||!Array.isArray(active)||!active.length)return;
+ if(prefetchBusy||lang==='en'||!Array.isArray(session)||!session.length)return;
  prefetchBusy=true;
  try{
   const texts=[];
-  for(let n=1;n<=5;n++){const q=active[index+n];if(!q)break;texts.push(q.question,...(q.options||[]),q.explanation,q.category)}
+  for(let n=1;n<=5;n++){
+   const q=session[idx+n];if(!q)break;
+   texts.push(q.question,...(q.options||[]),q.explanation,q.category);
+  }
   if(texts.length)await cachedTranslations(texts,lang);
  }catch(e){console.error('prefetch',e)}
- prefetchBusy=false;
+ finally{prefetchBusy=false}
 }
-function render(){
+async function render(){
  const q=session[idx];if(!q)return;
  updateSaveButton();
  $('bar').style.width=(idx/session.length*100)+'%';
@@ -447,12 +450,31 @@ function render(){
  }
  hideLoading();
 
- setTimeout(prefetchNextQuestions,250);
+ setTimeout(prefetchNextQuestions,300);
 }
 async function choose(i){const q=session[idx],bs=[...$('answers').children];bs.forEach(b=>b.disabled=true);bs[q.correct].classList.add('correct');if(i!==q.correct)bs[i].classList.add('wrong');answered++;if(i===q.correct)correct++;else{let w=JSON.parse(localStorage.theoryWrong||'[]');if(!w.includes(q.id))w.push(q.id);localStorage.theoryWrong=JSON.stringify(w)}localStorage.theoryAnswered=answered;localStorage.theoryCorrect=correct;updateStats();let tr=null;if(lang!=='en')tr=await translated(q);$('explain').innerHTML='<strong>'+(i===q.correct?'✓ Correct':'✕ Not quite')+'</strong><br><span>'+q.explanation+'</span>'+(tr?'<div class="tr rtl">'+tr.explanation+'</div>':'');$('explain').className='explain show';$('next').className='next show';$('bar').style.width=((idx+1)/session.length*100)+'%'}
 $('next').onclick=()=>{idx++;if(idx>=session.length){alert(learningMode?'Learning section complete.':'Test complete.');theoryHome()}else render()};
 const langs=[['en','English'],['ckb','کوردی سۆرانی'],['ar','العربية'],['fa','فارسی'],['tr','Türkçe'],['fr','Français'],['de','Deutsch'],['es','Español'],['ro','Română'],['pl','Polski'],['ur','اردو'],['ps','پښتو']];
-
+function openLanguagePicker(){
+ const box=$('langOptions');box.innerHTML='';
+ langs.forEach(([code,name])=>{
+  const b=document.createElement('button');b.type='button';b.className='langOption'+(code===lang?' active':'');b.textContent='🌐 '+name;
+  b.onclick=()=>selectLanguage(code);
+  box.appendChild(b);
+ });
+ $('langPicker').classList.remove('hidden');
+}
+function closeLanguagePicker(){$('langPicker').classList.add('hidden')}
+async function selectLanguage(code){
+ const chosen=langs.find(x=>x[0]===code);if(!chosen)return;
+ lang=code;$('langBtn').textContent='🌐 '+chosen[1];closeLanguagePicker();
+ await translateVisibleUI();
+ if(!$('quiz').classList.contains('hidden'))await render();
+ if(!$('signs').classList.contains('hidden'))await buildSignGallery();
+}
+$('langBtn').onclick=openLanguagePicker;
+$('langClose').onclick=closeLanguagePicker;
+$('langPicker').onclick=e=>{if(e.target===$('langPicker'))closeLanguagePicker()};
 load();
 </script></body></html>` }
 
@@ -3059,34 +3081,7 @@ async function printVehicleReport(){
 }
 
 function checkAnotherCar(){
-  window.location.re
-function openLanguagePicker(){
- const picker=$('langPicker'),box=$('langOptions');
- if(!picker||!box)return;
- box.innerHTML='';
- langs.forEach(([code,name])=>{
-  const b=document.createElement('button');
-  b.type='button';b.className='langOption'+(code===lang?' active':'');
-  b.textContent='🌐 '+name;
-  b.addEventListener('click',async(e)=>{e.stopPropagation();await selectLanguage(code)});
-  box.appendChild(b);
- });
- picker.classList.remove('hidden');
-}
-function closeLanguagePicker(){const p=$('langPicker');if(p)p.classList.add('hidden')}
-async function selectLanguage(code){
- const chosen=langs.find(x=>x[0]===code);if(!chosen)return;
- lang=code;$('langBtn').textContent='🌐 '+chosen[1];closeLanguagePicker();
- await translateVisibleUI();
- if(!$('quiz').classList.contains('hidden'))await render();
- if(!$('signs').classList.contains('hidden'))await buildSignGallery();
- setTimeout(prefetchNextQuestions,250);
-}
-if($('langBtn'))$('langBtn').onclick=(e)=>{e.preventDefault();e.stopPropagation();openLanguagePicker()};
-if($('langClose'))$('langClose').onclick=(e)=>{e.preventDefault();closeLanguagePicker()};
-if($('langPicker'))$('langPicker').onclick=(e)=>{if(e.target===$('langPicker'))closeLanguagePicker()};
-
-load();
+  window.location.reload();
 }
 
 async function پشکنین(){
