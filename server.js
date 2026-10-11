@@ -265,69 +265,25 @@ let allRoadSigns=[], currentSignCategory='', currentCategorySigns=[], currentSig
 const signCategoryIcons={'Bus and cycle signs':'🚌','Direction and tourist signs':'🧭','Information signs':'ℹ️','Level crossing signs':'🚆','Low bridge signs':'🌉','Miscellaneous signs':'🚦','Motorway signs':'🛣️','On-street parking signs':'🅿️','Pedestrian, cycle and equestrian signs':'🚶','Pedestrian zone signs':'🚶'};
 async function ensureRoadSigns(){if(allRoadSigns.length)return allRoadSigns;const r=await fetch('/api/road-signs');if(!r.ok)throw new Error('Road signs failed');allRoadSigns=await r.json();return allRoadSigns}
 
-const TRANSLATION_CACHE_VERSION='akar-theory-v2';
-function translationCacheKey(language,text){return TRANSLATION_CACHE_VERSION+'|'+language+'|'+text}
-function getCachedTranslation(language,text){
- try{return localStorage.getItem(translationCacheKey(language,text))||''}catch(e){return ''}
-}
-function saveCachedTranslation(language,text,value){
- if(!value)return;
- try{localStorage.setItem(translationCacheKey(language,text),value)}catch(e){}
-}
-async function translateAndCache(texts,language=lang){
- const clean=[...new Set((texts||[]).filter(x=>typeof x==='string'&&x.trim()))];
- if(language==='en')return Object.fromEntries(clean.map(x=>[x,x]));
- const result={},missing=[];
- clean.forEach(text=>{const hit=getCachedTranslation(language,text);if(hit)result[text]=hit;else missing.push(text)});
- if(!missing.length)return result;
- try{
-  const r=await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language,texts:missing})});
-  const d=await r.json();
-  if(d.ok){
-   missing.forEach(text=>{
-    const value=(d.translations||{})[text];
-    if(value){result[text]=value;saveCachedTranslation(language,text,value)}
-   });
-  }
- }catch(e){console.error('Translation cache fill error',e)}
- missing.forEach(text=>{if(!result[text])result[text]=text});
- return result;
-}
-async function uiTranslate(texts){return translateAndCache(texts,lang)}
-
-let backgroundTranslationToken=0;
-function questionTextsForBackground(q){
- if(!q)return [];
- return [q.question,...(q.options||[]),q.explanation,q.category].filter(Boolean);
-}
-async function warmTranslationCache(language){
- if(language==='en')return;
- const myToken=++backgroundTranslationToken;
- // First prepare common Theory UI immediately.
- const sectionLabels=categories.map(([c])=>c==='Road signs'?'Road and traffic signs':(c==='Incidents and emergencies'?'Incidents, accidents and emergencies':c));
- const common=[
-  ...Object.values(uiEnglish),...sectionLabels,
-  'Back','Theory Home','My Progress','Answered','Correct','Accuracy',
-  'Road Signs','Choose a category, then choose a sign to learn what it means.',
-  'signs','All Road Sign Categories','Back to this category','Previous','Next',
-  'Start Road & Traffic Signs Questions','Diagram','Tap to learn this sign',
-  'Correct answer','Correct','Not quite','Save','Saved','Next question'
- ];
- await translateAndCache(common,language);
- if(myToken!==backgroundTranslationToken)return;
-
- // Then quietly translate the whole question bank in small batches.
- const source=(typeof bank!=='undefined'&&Array.isArray(bank))?bank:[];
- const batchSize=20;
- for(let i=0;i<source.length;i+=batchSize){
-  if(myToken!==backgroundTranslationToken||language!==lang)return;
-  const texts=[];
-  source.slice(i,i+batchSize).forEach(q=>texts.push(...questionTextsForBackground(q)));
-  await translateAndCache(texts,language);
-  // Yield to the browser so learning/test navigation stays responsive.
-  await new Promise(resolve=>setTimeout(resolve,60));
+const AKAR_TR_CACHE='akar-tr-v1';
+function trKey(language,text){return AKAR_TR_CACHE+'|'+language+'|'+text}
+function trGet(language,text){try{return localStorage.getItem(trKey(language,text))||''}catch(e){return ''}}
+function trSet(language,text,value){try{if(value&&value!==text)localStorage.setItem(trKey(language,text),value)}catch(e){}}
+async function cachedTranslations(texts,language=lang){
+ const unique=[...new Set((texts||[]).filter(Boolean))];
+ if(language==='en')return Object.fromEntries(unique.map(t=>[t,t]));
+ const out={},missing=[];
+ unique.forEach(t=>{const v=trGet(language,t);if(v)out[t]=v;else missing.push(t)});
+ if(missing.length){
+  try{
+   const r=await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language,texts:missing})});
+   const d=await r.json();
+   if(d.ok)missing.forEach(t=>{const v=(d.translations||{})[t];if(v){out[t]=v;trSet(language,t,v)}});
+  }catch(e){console.error('translation',e)}
  }
+ return out;
 }
+async function uiTranslate(texts){return cachedTranslations(texts,lang)}
 async function buildSignGallery(){
  const box=$('signCategories');if(!box)return;
  box.innerHTML='<div class="notice">Loading…</div>';
@@ -412,15 +368,17 @@ async function translateVisibleUI(){
  const texts=[...keys.map(k=>uiEnglish[k]),...sectionLabels,...extra];
  showLoading('Translating…','Preparing '+(langs.find(x=>x[0]===lang)?.[1]||'the selected language')+'.');
  try{
-  const translations=await translateAndCache(texts,lang);
-   keys.forEach(k=>{const e=$(uiTargets[k]);if(e)e.textContent=translations[uiEnglish[k]]||uiEnglish[k]});
-   sectionLabels.forEach((text,i)=>{const e=$('sectionTr'+i);if(e)e.textContent=translations[text]||text});
-   $('backBtn').textContent='← '+(translations['Back']||'Back');
-   $('theoryHomeBtn').textContent='🏠 '+(translations['Theory Home']||'Theory Home');
-   if($('progressTitle'))$('progressTitle').textContent='📊 '+(translations['My Progress']||'My Progress');
-   if($('pAnsweredLabel'))$('pAnsweredLabel').textContent=translations['Answered']||'Answered';
-   if($('pCorrectLabel'))$('pCorrectLabel').textContent=translations['Correct']||'Correct';
-   if($('pAccuracyLabel'))$('pAccuracyLabel').textContent=translations['Accuracy']||'Accuracy';
+  const d=await (await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language:lang,texts})})).json();
+  if(d.ok){
+   keys.forEach(k=>{const e=$(uiTargets[k]);if(e)e.textContent=d.translations[uiEnglish[k]]||uiEnglish[k]});
+   sectionLabels.forEach((text,i)=>{const e=$('sectionTr'+i);if(e)e.textContent=d.translations[text]||text});
+   $('backBtn').textContent='← '+(d.translations['Back']||'Back');
+   $('theoryHomeBtn').textContent='🏠 '+(d.translations['Theory Home']||'Theory Home');
+   if($('progressTitle'))$('progressTitle').textContent='📊 '+(d.translations['My Progress']||'My Progress');
+   if($('pAnsweredLabel'))$('pAnsweredLabel').textContent=d.translations['Answered']||'Answered';
+   if($('pCorrectLabel'))$('pCorrectLabel').textContent=d.translations['Correct']||'Correct';
+   if($('pAccuracyLabel'))$('pAccuracyLabel').textContent=d.translations['Accuracy']||'Accuracy';
+  }
  }catch(e){console.error('UI translation error',e)}
  hideLoading();
 }
@@ -437,8 +395,59 @@ function showWrong(){const ids=JSON.parse(localStorage.theoryWrong||'[]');const 
 async function translated(q){
  if(lang==='en')return null;
  const texts=[q.question,...q.options,q.explanation,q.category].filter(Boolean);
- const translations=await translateAndCache(texts,lang);
- return {question:translations[q.question]||q.question,options:q.options.map(x=>translations[x]||x),explanation:translations[q.explanation]||q.explanation,category:translations[q.category]||q.category}
+ const d=await cachedTranslations(texts,lang);
+ return {question:d[q.question]||q.question,options:q.options.map(x=>d[x]||x),explanation:d[q.explanation]||q.explanation,category:d[q.category]||q.category}
+}
+let prefetchBusy=false;
+async function prefetchNextQuestions(){
+ if(prefetchBusy||lang==='en'||!Array.isArray(active)||!active.length)return;
+ prefetchBusy=true;
+ try{
+  const texts=[];
+  for(let n=1;n<=5;n++){const q=active[index+n];if(!q)break;texts.push(q.question,...(q.options||[]),q.explanation,q.category)}
+  if(texts.length)await cachedTranslations(texts,lang);
+ }catch(e){console.error('prefetch',e)}
+ prefetchBusy=false;
+}
+function render(){
+ const q=session[idx];if(!q)return;
+ updateSaveButton();
+ $('bar').style.width=(idx/session.length*100)+'%';
+ $('qnum').textContent='Question '+(idx+1)+' of '+session.length;
+ $('cat').textContent=q.category;
+ $('question').textContent=q.question;
+ const visual=visualForQuestion(q);$('qvisual').innerHTML=visual;$('qvisual').classList.toggle('hidden',!visual);
+ $('questionTr').textContent='';
+ $('answers').innerHTML='';
+ $('explain').className='explain';
+ $('next').className='next';
+ let t=null;
+ if(lang!=='en'){
+   showLoading('Translating…','Preparing the question, answers and explanation in '+(langs.find(x=>x[0]===lang)?.[1]||'your language')+'.');
+   t=await translated(q);
+ }
+ q.options.forEach((a,i)=>{
+   const b=document.createElement('button');
+   b.className='answer';
+   b.innerHTML='<span class="enA">'+String.fromCharCode(65+i)+'. '+a+'</span><span class="trA rtl" id="tr'+i+'"></span>';
+   if(!learningMode)b.onclick=()=>choose(i);
+   else b.disabled=true;
+   $('answers').appendChild(b)
+ });
+ if(t&&session[idx]?.id===q.id){
+   $('questionTr').textContent=t.question;
+   t.options.forEach((x,i)=>{const e=$('tr'+i);if(e)e.textContent=x});
+ }
+ if(learningMode){
+   const bs=[...$('answers').children];
+   if(bs[q.correct])bs[q.correct].classList.add('learnCorrect');
+   $('explain').innerHTML='<strong class="learnTag">✓ Correct answer</strong><br><span>'+q.explanation+'</span>'+(t?'<div class="tr rtl">'+t.explanation+'</div>':'');
+   $('explain').className='explain show';
+   $('next').className='next show';
+ }
+ hideLoading();
+
+ setTimeout(prefetchNextQuestions,250);
 }
 async function choose(i){const q=session[idx],bs=[...$('answers').children];bs.forEach(b=>b.disabled=true);bs[q.correct].classList.add('correct');if(i!==q.correct)bs[i].classList.add('wrong');answered++;if(i===q.correct)correct++;else{let w=JSON.parse(localStorage.theoryWrong||'[]');if(!w.includes(q.id))w.push(q.id);localStorage.theoryWrong=JSON.stringify(w)}localStorage.theoryAnswered=answered;localStorage.theoryCorrect=correct;updateStats();let tr=null;if(lang!=='en')tr=await translated(q);$('explain').innerHTML='<strong>'+(i===q.correct?'✓ Correct':'✕ Not quite')+'</strong><br><span>'+q.explanation+'</span>'+(tr?'<div class="tr rtl">'+tr.explanation+'</div>':'');$('explain').className='explain show';$('next').className='next show';$('bar').style.width=((idx+1)/session.length*100)+'%'}
 $('next').onclick=()=>{idx++;if(idx>=session.length){alert(learningMode?'Learning section complete.':'Test complete.');theoryHome()}else render()};
@@ -459,8 +468,6 @@ async function selectLanguage(code){
  await translateVisibleUI();
  if(!$('quiz').classList.contains('hidden'))await render();
  if(!$('signs').classList.contains('hidden'))await buildSignGallery();
- // Continue preparing everything quietly after the visible screen is ready.
- warmTranslationCache(code);
 }
 $('langBtn').onclick=openLanguagePicker;
 $('langClose').onclick=closeLanguagePicker;
