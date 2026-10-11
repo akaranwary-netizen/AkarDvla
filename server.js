@@ -264,14 +264,69 @@ const signLessons=[];
 let allRoadSigns=[], currentSignCategory='', currentCategorySigns=[], currentSignIndex=0;
 const signCategoryIcons={'Bus and cycle signs':'🚌','Direction and tourist signs':'🧭','Information signs':'ℹ️','Level crossing signs':'🚆','Low bridge signs':'🌉','Miscellaneous signs':'🚦','Motorway signs':'🛣️','On-street parking signs':'🅿️','Pedestrian, cycle and equestrian signs':'🚶','Pedestrian zone signs':'🚶'};
 async function ensureRoadSigns(){if(allRoadSigns.length)return allRoadSigns;const r=await fetch('/api/road-signs');if(!r.ok)throw new Error('Road signs failed');allRoadSigns=await r.json();return allRoadSigns}
-async function uiTranslate(texts){
- if(lang==='en')return Object.fromEntries(texts.map(x=>[x,x]));
+
+const TRANSLATION_CACHE_VERSION='akar-theory-v2';
+function translationCacheKey(language,text){return TRANSLATION_CACHE_VERSION+'|'+language+'|'+text}
+function getCachedTranslation(language,text){
+ try{return localStorage.getItem(translationCacheKey(language,text))||''}catch(e){return ''}
+}
+function saveCachedTranslation(language,text,value){
+ if(!value)return;
+ try{localStorage.setItem(translationCacheKey(language,text),value)}catch(e){}
+}
+async function translateAndCache(texts,language=lang){
+ const clean=[...new Set((texts||[]).filter(x=>typeof x==='string'&&x.trim()))];
+ if(language==='en')return Object.fromEntries(clean.map(x=>[x,x]));
+ const result={},missing=[];
+ clean.forEach(text=>{const hit=getCachedTranslation(language,text);if(hit)result[text]=hit;else missing.push(text)});
+ if(!missing.length)return result;
  try{
-  const r=await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language:lang,texts})});
+  const r=await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language,texts:missing})});
   const d=await r.json();
-  if(d.ok)return d.translations||{};
- }catch(e){console.error('UI translation error',e)}
- return Object.fromEntries(texts.map(x=>[x,x]));
+  if(d.ok){
+   missing.forEach(text=>{
+    const value=(d.translations||{})[text];
+    if(value){result[text]=value;saveCachedTranslation(language,text,value)}
+   });
+  }
+ }catch(e){console.error('Translation cache fill error',e)}
+ missing.forEach(text=>{if(!result[text])result[text]=text});
+ return result;
+}
+async function uiTranslate(texts){return translateAndCache(texts,lang)}
+
+let backgroundTranslationToken=0;
+function questionTextsForBackground(q){
+ if(!q)return [];
+ return [q.question,...(q.options||[]),q.explanation,q.category].filter(Boolean);
+}
+async function warmTranslationCache(language){
+ if(language==='en')return;
+ const myToken=++backgroundTranslationToken;
+ // First prepare common Theory UI immediately.
+ const sectionLabels=categories.map(([c])=>c==='Road signs'?'Road and traffic signs':(c==='Incidents and emergencies'?'Incidents, accidents and emergencies':c));
+ const common=[
+  ...Object.values(uiEnglish),...sectionLabels,
+  'Back','Theory Home','My Progress','Answered','Correct','Accuracy',
+  'Road Signs','Choose a category, then choose a sign to learn what it means.',
+  'signs','All Road Sign Categories','Back to this category','Previous','Next',
+  'Start Road & Traffic Signs Questions','Diagram','Tap to learn this sign',
+  'Correct answer','Correct','Not quite','Save','Saved','Next question'
+ ];
+ await translateAndCache(common,language);
+ if(myToken!==backgroundTranslationToken)return;
+
+ // Then quietly translate the whole question bank in small batches.
+ const source=(typeof bank!=='undefined'&&Array.isArray(bank))?bank:[];
+ const batchSize=20;
+ for(let i=0;i<source.length;i+=batchSize){
+  if(myToken!==backgroundTranslationToken||language!==lang)return;
+  const texts=[];
+  source.slice(i,i+batchSize).forEach(q=>texts.push(...questionTextsForBackground(q)));
+  await translateAndCache(texts,language);
+  // Yield to the browser so learning/test navigation stays responsive.
+  await new Promise(resolve=>setTimeout(resolve,60));
+ }
 }
 async function buildSignGallery(){
  const box=$('signCategories');if(!box)return;
@@ -357,17 +412,15 @@ async function translateVisibleUI(){
  const texts=[...keys.map(k=>uiEnglish[k]),...sectionLabels,...extra];
  showLoading('Translating…','Preparing '+(langs.find(x=>x[0]===lang)?.[1]||'the selected language')+'.');
  try{
-  const d=await (await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language:lang,texts})})).json();
-  if(d.ok){
-   keys.forEach(k=>{const e=$(uiTargets[k]);if(e)e.textContent=d.translations[uiEnglish[k]]||uiEnglish[k]});
-   sectionLabels.forEach((text,i)=>{const e=$('sectionTr'+i);if(e)e.textContent=d.translations[text]||text});
-   $('backBtn').textContent='← '+(d.translations['Back']||'Back');
-   $('theoryHomeBtn').textContent='🏠 '+(d.translations['Theory Home']||'Theory Home');
-   if($('progressTitle'))$('progressTitle').textContent='📊 '+(d.translations['My Progress']||'My Progress');
-   if($('pAnsweredLabel'))$('pAnsweredLabel').textContent=d.translations['Answered']||'Answered';
-   if($('pCorrectLabel'))$('pCorrectLabel').textContent=d.translations['Correct']||'Correct';
-   if($('pAccuracyLabel'))$('pAccuracyLabel').textContent=d.translations['Accuracy']||'Accuracy';
-  }
+  const translations=await translateAndCache(texts,lang);
+   keys.forEach(k=>{const e=$(uiTargets[k]);if(e)e.textContent=translations[uiEnglish[k]]||uiEnglish[k]});
+   sectionLabels.forEach((text,i)=>{const e=$('sectionTr'+i);if(e)e.textContent=translations[text]||text});
+   $('backBtn').textContent='← '+(translations['Back']||'Back');
+   $('theoryHomeBtn').textContent='🏠 '+(translations['Theory Home']||'Theory Home');
+   if($('progressTitle'))$('progressTitle').textContent='📊 '+(translations['My Progress']||'My Progress');
+   if($('pAnsweredLabel'))$('pAnsweredLabel').textContent=translations['Answered']||'Answered';
+   if($('pCorrectLabel'))$('pCorrectLabel').textContent=translations['Correct']||'Correct';
+   if($('pAccuracyLabel'))$('pAccuracyLabel').textContent=translations['Accuracy']||'Accuracy';
  }catch(e){console.error('UI translation error',e)}
  hideLoading();
 }
@@ -381,44 +434,11 @@ function startTimer(sec){stopTimer();timeLeft=sec;$('timer').classList.remove('h
 function tickTimer(){const m=Math.floor(timeLeft/60),s=timeLeft%60;$('timer').textContent='⏱ '+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
 function stopTimer(){if(timerHandle)clearInterval(timerHandle);timerHandle=null;const t=$('timer');if(t)t.classList.add('hidden')}
 function showWrong(){const ids=JSON.parse(localStorage.theoryWrong||'[]');const pool=bank.filter(q=>ids.includes(q.id));if(!pool.length){alert('You do not have any saved wrong answers yet.');return}learningMode=false;session=shuffle(pool);idx=0;stopTimer();showPage('quiz');render()}
-async function translated(q){if(lang==='en')return null;const key=lang+'-'+q.id;if(translationCache[key])return translationCache[key];const texts=[q.question,...q.options,q.explanation,q.category];try{const r=await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language:lang,texts})});const d=await r.json();if(d.ok){const a=texts.map(x=>d.translations[x]||x);return translationCache[key]={question:a[0],options:a.slice(1,5),explanation:a[5],category:a[6]}}}catch(e){}return null}
-async function render(){
- const q=session[idx];if(!q)return;
- updateSaveButton();
- $('bar').style.width=(idx/session.length*100)+'%';
- $('qnum').textContent='Question '+(idx+1)+' of '+session.length;
- $('cat').textContent=q.category;
- $('question').textContent=q.question;
- const visual=visualForQuestion(q);$('qvisual').innerHTML=visual;$('qvisual').classList.toggle('hidden',!visual);
- $('questionTr').textContent='';
- $('answers').innerHTML='';
- $('explain').className='explain';
- $('next').className='next';
- let t=null;
- if(lang!=='en'){
-   showLoading('Translating…','Preparing the question, answers and explanation in '+(langs.find(x=>x[0]===lang)?.[1]||'your language')+'.');
-   t=await translated(q);
- }
- q.options.forEach((a,i)=>{
-   const b=document.createElement('button');
-   b.className='answer';
-   b.innerHTML='<span class="enA">'+String.fromCharCode(65+i)+'. '+a+'</span><span class="trA rtl" id="tr'+i+'"></span>';
-   if(!learningMode)b.onclick=()=>choose(i);
-   else b.disabled=true;
-   $('answers').appendChild(b)
- });
- if(t&&session[idx]?.id===q.id){
-   $('questionTr').textContent=t.question;
-   t.options.forEach((x,i)=>{const e=$('tr'+i);if(e)e.textContent=x});
- }
- if(learningMode){
-   const bs=[...$('answers').children];
-   if(bs[q.correct])bs[q.correct].classList.add('learnCorrect');
-   $('explain').innerHTML='<strong class="learnTag">✓ Correct answer</strong><br><span>'+q.explanation+'</span>'+(t?'<div class="tr rtl">'+t.explanation+'</div>':'');
-   $('explain').className='explain show';
-   $('next').className='next show';
- }
- hideLoading();
+async function translated(q){
+ if(lang==='en')return null;
+ const texts=[q.question,...q.options,q.explanation,q.category].filter(Boolean);
+ const translations=await translateAndCache(texts,lang);
+ return {question:translations[q.question]||q.question,options:q.options.map(x=>translations[x]||x),explanation:translations[q.explanation]||q.explanation,category:translations[q.category]||q.category}
 }
 async function choose(i){const q=session[idx],bs=[...$('answers').children];bs.forEach(b=>b.disabled=true);bs[q.correct].classList.add('correct');if(i!==q.correct)bs[i].classList.add('wrong');answered++;if(i===q.correct)correct++;else{let w=JSON.parse(localStorage.theoryWrong||'[]');if(!w.includes(q.id))w.push(q.id);localStorage.theoryWrong=JSON.stringify(w)}localStorage.theoryAnswered=answered;localStorage.theoryCorrect=correct;updateStats();let tr=null;if(lang!=='en')tr=await translated(q);$('explain').innerHTML='<strong>'+(i===q.correct?'✓ Correct':'✕ Not quite')+'</strong><br><span>'+q.explanation+'</span>'+(tr?'<div class="tr rtl">'+tr.explanation+'</div>':'');$('explain').className='explain show';$('next').className='next show';$('bar').style.width=((idx+1)/session.length*100)+'%'}
 $('next').onclick=()=>{idx++;if(idx>=session.length){alert(learningMode?'Learning section complete.':'Test complete.');theoryHome()}else render()};
@@ -439,6 +459,8 @@ async function selectLanguage(code){
  await translateVisibleUI();
  if(!$('quiz').classList.contains('hidden'))await render();
  if(!$('signs').classList.contains('hidden'))await buildSignGallery();
+ // Continue preparing everything quietly after the visible screen is ready.
+ warmTranslationCache(code);
 }
 $('langBtn').onclick=openLanguagePicker;
 $('langClose').onclick=closeLanguagePicker;
