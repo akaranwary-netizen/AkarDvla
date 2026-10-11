@@ -146,6 +146,14 @@ body.ui-selected-language .biEn{display:none}
 body.ui-selected-language .biTr,body.ui-selected-language .uiTr{display:block;color:#fff;margin-top:0}
 body.ui-selected-language .section .biTr{font-size:inherit;font-weight:inherit}
 
+
+.langPicker{position:fixed;inset:0;z-index:120;background:#050607d9;display:flex;align-items:flex-end;justify-content:center;padding:18px;backdrop-filter:blur(8px)}
+.langPicker.hidden{display:none!important}.langSheet{width:min(560px,100%);max-height:82vh;overflow:auto;background:#111419;border:1px solid #343a43;border-radius:22px;padding:16px;box-shadow:0 25px 90px #000a}
+.langSheet h3{margin:2px 4px 13px;font-size:21px}.langOptions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.langOption{border:1px solid #343a43;background:#171b20;color:#fff;border-radius:14px;padding:14px 12px;text-align:left;font-weight:800}
+.langOption.active{border-color:#d6b56d;background:#211b10}.langClose{width:100%;margin-top:12px;border:1px solid #3b4149;background:#15181d;color:#fff;border-radius:14px;padding:13px;font-weight:850}
+@media(max-width:460px){.langOptions{grid-template-columns:1fr}}
+
 </style></head><body>
 <header class="top"><div class="topin"><a class="iconbtn" href="/">🚗 Car Check</a><div class="brand">AKAR'S <span>THEORY</span></div><button class="lang" id="langBtn">🌐 English</button></div></header>
 <main class="wrap">
@@ -170,6 +178,14 @@ body.ui-selected-language .section .biTr{font-size:inherit;font-weight:inherit}
 </section>
 </main>
 <nav class="bottom"><button id="backBtn" onclick="goBack()">← Back</button><button id="theoryHomeBtn" onclick="theoryHome()">🏠 Theory Home</button></nav>
+
+<div id="langPicker" class="langPicker hidden" role="dialog" aria-modal="true">
+ <div class="langSheet">
+  <h3 id="langPickerTitle">Choose language</h3>
+  <div id="langOptions" class="langOptions"></div>
+  <button id="langClose" class="langClose" type="button">Close</button>
+ </div>
+</div>
 <div id="loadingOverlay" class="loadingOverlay hidden"><div class="loadingBox"><div class="spinner"></div><b id="loadingTitle">Translating…</b><small id="loadingText">Please wait while this learning content is prepared.</small></div></div>
 <script>
 const categories=[
@@ -407,7 +423,26 @@ async function render(){
 async function choose(i){const q=session[idx],bs=[...$('answers').children];bs.forEach(b=>b.disabled=true);bs[q.correct].classList.add('correct');if(i!==q.correct)bs[i].classList.add('wrong');answered++;if(i===q.correct)correct++;else{let w=JSON.parse(localStorage.theoryWrong||'[]');if(!w.includes(q.id))w.push(q.id);localStorage.theoryWrong=JSON.stringify(w)}localStorage.theoryAnswered=answered;localStorage.theoryCorrect=correct;updateStats();let tr=null;if(lang!=='en')tr=await translated(q);$('explain').innerHTML='<strong>'+(i===q.correct?'✓ Correct':'✕ Not quite')+'</strong><br><span>'+q.explanation+'</span>'+(tr?'<div class="tr rtl">'+tr.explanation+'</div>':'');$('explain').className='explain show';$('next').className='next show';$('bar').style.width=((idx+1)/session.length*100)+'%'}
 $('next').onclick=()=>{idx++;if(idx>=session.length){alert(learningMode?'Learning section complete.':'Test complete.');theoryHome()}else render()};
 const langs=[['en','English'],['ckb','کوردی سۆرانی'],['ar','العربية'],['fa','فارسی'],['tr','Türkçe'],['fr','Français'],['de','Deutsch'],['es','Español'],['ro','Română'],['pl','Polski'],['ur','اردو'],['ps','پښتو']];
-$('langBtn').onclick=async()=>{let n=(langs.findIndex(x=>x[0]===lang)+1)%langs.length;lang=langs[n][0];$('langBtn').textContent='🌐 '+langs[n][1];await translateVisibleUI();if(!$('quiz').classList.contains('hidden'))await render();if(!$('signs').classList.contains('hidden'))await buildSignGallery()};
+function openLanguagePicker(){
+ const box=$('langOptions');box.innerHTML='';
+ langs.forEach(([code,name])=>{
+  const b=document.createElement('button');b.type='button';b.className='langOption'+(code===lang?' active':'');b.textContent='🌐 '+name;
+  b.onclick=()=>selectLanguage(code);
+  box.appendChild(b);
+ });
+ $('langPicker').classList.remove('hidden');
+}
+function closeLanguagePicker(){$('langPicker').classList.add('hidden')}
+async function selectLanguage(code){
+ const chosen=langs.find(x=>x[0]===code);if(!chosen)return;
+ lang=code;$('langBtn').textContent='🌐 '+chosen[1];closeLanguagePicker();
+ await translateVisibleUI();
+ if(!$('quiz').classList.contains('hidden'))await render();
+ if(!$('signs').classList.contains('hidden'))await buildSignGallery();
+}
+$('langBtn').onclick=openLanguagePicker;
+$('langClose').onclick=closeLanguagePicker;
+$('langPicker').onclick=e=>{if(e.target===$('langPicker'))closeLanguagePicker()};
 load();
 </script></body></html>` }
 
