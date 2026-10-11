@@ -452,26 +452,7 @@ function render(){
 async function choose(i){const q=session[idx],bs=[...$('answers').children];bs.forEach(b=>b.disabled=true);bs[q.correct].classList.add('correct');if(i!==q.correct)bs[i].classList.add('wrong');answered++;if(i===q.correct)correct++;else{let w=JSON.parse(localStorage.theoryWrong||'[]');if(!w.includes(q.id))w.push(q.id);localStorage.theoryWrong=JSON.stringify(w)}localStorage.theoryAnswered=answered;localStorage.theoryCorrect=correct;updateStats();let tr=null;if(lang!=='en')tr=await translated(q);$('explain').innerHTML='<strong>'+(i===q.correct?'✓ Correct':'✕ Not quite')+'</strong><br><span>'+q.explanation+'</span>'+(tr?'<div class="tr rtl">'+tr.explanation+'</div>':'');$('explain').className='explain show';$('next').className='next show';$('bar').style.width=((idx+1)/session.length*100)+'%'}
 $('next').onclick=()=>{idx++;if(idx>=session.length){alert(learningMode?'Learning section complete.':'Test complete.');theoryHome()}else render()};
 const langs=[['en','English'],['ckb','کوردی سۆرانی'],['ar','العربية'],['fa','فارسی'],['tr','Türkçe'],['fr','Français'],['de','Deutsch'],['es','Español'],['ro','Română'],['pl','Polski'],['ur','اردو'],['ps','پښتو']];
-function openLanguagePicker(){
- const box=$('langOptions');box.innerHTML='';
- langs.forEach(([code,name])=>{
-  const b=document.createElement('button');b.type='button';b.className='langOption'+(code===lang?' active':'');b.textContent='🌐 '+name;
-  b.onclick=()=>selectLanguage(code);
-  box.appendChild(b);
- });
- $('langPicker').classList.remove('hidden');
-}
-function closeLanguagePicker(){$('langPicker').classList.add('hidden')}
-async function selectLanguage(code){
- const chosen=langs.find(x=>x[0]===code);if(!chosen)return;
- lang=code;$('langBtn').textContent='🌐 '+chosen[1];closeLanguagePicker();
- await translateVisibleUI();
- if(!$('quiz').classList.contains('hidden'))await render();
- if(!$('signs').classList.contains('hidden'))await buildSignGallery();
-}
-$('langBtn').onclick=openLanguagePicker;
-$('langClose').onclick=closeLanguagePicker;
-$('langPicker').onclick=e=>{if(e.target===$('langPicker'))closeLanguagePicker()};
+
 load();
 </script></body></html>` }
 
@@ -3078,7 +3059,34 @@ async function printVehicleReport(){
 }
 
 function checkAnotherCar(){
-  window.location.reload();
+  window.location.re
+function openLanguagePicker(){
+ const picker=$('langPicker'),box=$('langOptions');
+ if(!picker||!box)return;
+ box.innerHTML='';
+ langs.forEach(([code,name])=>{
+  const b=document.createElement('button');
+  b.type='button';b.className='langOption'+(code===lang?' active':'');
+  b.textContent='🌐 '+name;
+  b.addEventListener('click',async(e)=>{e.stopPropagation();await selectLanguage(code)});
+  box.appendChild(b);
+ });
+ picker.classList.remove('hidden');
+}
+function closeLanguagePicker(){const p=$('langPicker');if(p)p.classList.add('hidden')}
+async function selectLanguage(code){
+ const chosen=langs.find(x=>x[0]===code);if(!chosen)return;
+ lang=code;$('langBtn').textContent='🌐 '+chosen[1];closeLanguagePicker();
+ await translateVisibleUI();
+ if(!$('quiz').classList.contains('hidden'))await render();
+ if(!$('signs').classList.contains('hidden'))await buildSignGallery();
+ setTimeout(prefetchNextQuestions,250);
+}
+if($('langBtn'))$('langBtn').onclick=(e)=>{e.preventDefault();e.stopPropagation();openLanguagePicker()};
+if($('langClose'))$('langClose').onclick=(e)=>{e.preventDefault();closeLanguagePicker()};
+if($('langPicker'))$('langPicker').onclick=(e)=>{if(e.target===$('langPicker'))closeLanguagePicker()};
+
+load();
 }
 
 async function پشکنین(){
