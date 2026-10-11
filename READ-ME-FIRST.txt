@@ -1,0 +1,35 @@
+AKAR'S THEORY FULL REPLACEMENT
+
+This ZIP contains the rebuilt theory-page.js.
+
+WHAT IT DOES
+- Theory Home opens first (not straight into a question)
+- Learn & Practice
+- 14 selectable sections
+- Test Yourself (10 mixed questions)
+- Mock Test (50 mixed questions)
+- Road Signs area
+- Wrong Answers
+- My Progress
+- English ALWAYS remains visible
+- When another language is selected, translation appears underneath English
+- Sticky Back and Theory Home buttons
+- Car Check button returns to the main website
+- Uses the existing /api/theory/questions and /api/language-pack endpoints
+
+IMPORTANT
+Your currently deployed server.js has the theory page embedded directly inside server.js.
+So simply uploading this file will NOT change the live page until server.js imports it.
+
+Safest replacement:
+1. Put theory-page.js in the repository root.
+2. In server.js add near the top:
+   import { theoryPage } from "./theory-page.js";
+3. Delete ONLY the old built-in function that starts:
+   function theoryPage(){ return `<!doctype html>
+   and ends at its matching:
+   </html>` }
+4. Do not change the /theory route.
+5. Commit. Render Auto Deploy will deploy it.
+
+This keeps the existing car-check, DVSA and API code unchanged.
