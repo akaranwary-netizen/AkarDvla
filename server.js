@@ -135,6 +135,8 @@ button,a,select{font:inherit}.top{position:sticky;top:0;z-index:30;background:#0
 .spinner{width:42px;height:42px;margin:0 auto 14px;border:4px solid #3b3529;border-top-color:var(--gold2);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}.loadingBox b{display:block;font-size:18px}.loadingBox small{display:block;color:var(--muted);margin-top:7px;line-height:1.45}
 .learnCorrect{border-color:var(--ok)!important;background:#48c98b18!important}.learnTag{display:inline-block;margin-top:8px;color:var(--ok);font-weight:900}
+.qvisual{margin:0 0 16px;border:1px solid #303741;background:#dfe8ee;border-radius:17px;min-height:170px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:10px}.qvisual svg{width:100%;max-width:430px;height:170px}.qvisual.hidden{display:none!important}
+.signGallery{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;margin:14px 0}.signCard{background:#13171c;border:1px solid var(--line);border-radius:17px;padding:14px;text-align:center}.signCard svg{width:115px;height:115px}.signCard b{display:block;margin-top:8px}.signCard .biTr{font-size:13px}@media(max-width:520px){.qvisual svg{height:150px}.signGallery{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.grid{grid-template-columns:1fr}.tile{min-height:92px}.hero h1{font-size:27px}.en{font-size:19px}.wrap{padding-top:17px}}
 </style></head><body>
 <header class="top"><div class="topin"><a class="iconbtn" href="/">🚗 Car Check</a><div class="brand">AKAR'S <span>THEORY</span></div><button class="lang" id="langBtn">🌐 English</button></div></header>
@@ -152,11 +154,11 @@ button,a,select{font:inherit}.top{position:sticky;top:0;z-index:30;background:#0
  </div>
 </section>
 <section id="sections" class="hidden"><h2 class="title"><span class="biEn">Select a section</span><span class="biTr rtl" id="sectionsTitleTr"></span></h2><p class="sub"><span class="biEn">Choose what you want to learn and practise.</span><span class="biTr rtl" id="sectionsSubTr"></span></p><div id="sectionList" class="sectionlist"></div></section>
-<section id="signs" class="hidden"><h2 class="title">🚦 Road Signs</h2><p class="sub">Learn road and traffic signs, then practise the Road and traffic signs section.</p><div class="notice">Road signs learning is organised separately so learners can recognise the sign and learn its English meaning before answering questions.</div><button class="section" onclick="startCategory('Road signs')"><span>⛔</span><b>Start Road & Traffic Signs Questions</b><span>›</span></button></section>
+<section id="signs" class="hidden"><h2 class="title">🚦 Road Signs</h2><p class="sub">Learn each sign picture and its English meaning. Translation appears underneath.</p><div id="signGallery" class="signGallery"></div><button class="section" onclick="startCategory('Road signs')"><span>📝</span><b>Start Road & Traffic Signs Questions</b><span>›</span></button></section>
 <section id="progressPage" class="hidden"><h2 class="title">📊 My Progress</h2><div class="stats"><div class="stat"><b id="pAnswered">0</b><small>Answered</small></div><div class="stat"><b id="pCorrect">0</b><small>Correct</small></div><div class="stat"><b id="pAccuracy">0%</b><small>Accuracy</small></div></div></section>
 <section id="quiz" class="hidden">
  <div class="stats"><div class="stat"><b id="answered">0</b><small>Answered</small></div><div class="stat"><b id="correct">0</b><small>Correct</small></div><div class="stat"><b id="accuracy">0%</b><small>Accuracy</small></div></div>
- <div class="card"><div class="progress"><div id="bar"></div></div><div class="qbody"><div class="meta"><span class="pill" id="qnum"></span><span class="pill" id="cat"></span><span class="pill hidden" id="timer"></span><button class="pill" id="saveBtn" onclick="toggleSave()" style="background:#15181d;color:#fff">☆ Save</button></div><div class="en" id="question">Loading…</div><div class="tr rtl" id="questionTr"></div><div class="answers" id="answers"></div><div class="explain" id="explain"></div><button class="next" id="next">Next question →</button></div></div>
+ <div class="card"><div class="progress"><div id="bar"></div></div><div class="qbody"><div id="qvisual" class="qvisual hidden"></div><div class="meta"><span class="pill" id="qnum"></span><span class="pill" id="cat"></span><span class="pill hidden" id="timer"></span><button class="pill" id="saveBtn" onclick="toggleSave()" style="background:#15181d;color:#fff">☆ Save</button></div><div class="en" id="question">Loading…</div><div class="tr rtl" id="questionTr"></div><div class="answers" id="answers"></div><div class="explain" id="explain"></div><button class="next" id="next">Next question →</button></div></div>
 </section>
 </main>
 <nav class="bottom"><button id="backBtn" onclick="goBack()">← Back</button><button onclick="theoryHome()">🏠 Theory Home</button></nav>
@@ -169,7 +171,7 @@ let bank=[],session=[],idx=0,lang='en',historyStack=['home'],translationCache={}
 const $=x=>document.getElementById(x); const pages=['home','sections','signs','progressPage','quiz'];
 function showPage(id,push=true){pages.forEach(p=>$(p).classList.toggle('hidden',p!==id));if(push&&historyStack.at(-1)!==id)historyStack.push(id);window.scrollTo(0,0)}
 function theoryHome(){stopTimer();historyStack=['home'];showPage('home',false)} function goBack(){if(historyStack.length>1){historyStack.pop();showPage(historyStack.at(-1),false)}else location.href='/'}
-async function showSections(){showPage('sections');if(lang!=='en')await translateVisibleUI()} function showSigns(){showPage('signs')} function showProgress(){updateStats();showPage('progressPage')}
+async function showSections(){showPage('sections');if(lang!=='en')await translateVisibleUI()} async function showSigns(){showPage('signs');if(lang!=='en')showLoading('Translating…','Preparing road sign meanings.');await buildSignGallery();hideLoading()} function showProgress(){updateStats();showPage('progressPage')}
 function updateStats(){$('answered').textContent=answered;$('correct').textContent=correct;$('accuracy').textContent=answered?Math.round(correct/answered*100)+'%':'0%';$('pAnswered').textContent=answered;$('pCorrect').textContent=correct;$('pAccuracy').textContent=answered?Math.round(correct/answered*100)+'%':'0%'}
 function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
 function showLoading(title='Translating…',text='Please wait while this learning content is prepared.'){$('loadingTitle').textContent=title;$('loadingText').textContent=text;$('loadingOverlay').classList.remove('hidden')}
@@ -200,6 +202,42 @@ const uiTargets={
  tileWrongTitle:'tileWrongTitleTr',tileWrongSub:'tileWrongSubTr',
  tileProgressTitle:'tileProgressTitleTr',tileProgressSub:'tileProgressSubTr'
 };
+
+function svgWrap(x){return '<svg viewBox="0 0 420 190" xmlns="http://www.w3.org/2000/svg">'+x+'</svg>'}
+function signSVG(t){
+ const p='<rect width="420" height="190" fill="#dfe8ee"/><rect x="205" y="105" width="10" height="80" fill="#777"/>';
+ if(t==='stop')return svgWrap(p+'<polygon points="210,18 248,34 264,72 248,110 210,126 172,110 156,72 172,34" fill="#d82929" stroke="white" stroke-width="7"/><text x="210" y="82" text-anchor="middle" fill="white" font-size="28" font-weight="900">STOP</text>');
+ if(t==='giveway')return svgWrap(p+'<polygon points="210,126 152,27 268,27" fill="white" stroke="#d82929" stroke-width="10"/>');
+ if(t==='30')return svgWrap(p+'<circle cx="210" cy="72" r="52" fill="white" stroke="#d82929" stroke-width="10"/><text x="210" y="88" text-anchor="middle" fill="#111" font-size="48" font-weight="800">30</text>');
+ if(t==='noentry')return svgWrap(p+'<circle cx="210" cy="72" r="53" fill="#d82929"/><rect x="169" y="64" width="82" height="17" rx="3" fill="white"/>');
+ if(t==='roundabout')return svgWrap(p+'<circle cx="210" cy="72" r="55" fill="#1767b1"/><path d="M210 35c22 0 39 14 44 33l-13-5 8 20 18-13-11-1c-6-27-31-46-60-42zM176 54c-14 17-14 40-4 57l5-14 15 17 5-22-10 6c-7-15-4-32 7-44zM230 111c-20 7-41-1-53-16l15 1-10-20-19 12 12 2c13 24 42 35 68 26z" fill="white"/>');
+ if(t==='redx')return svgWrap('<rect width="420" height="190" fill="#20252b"/><rect x="80" y="20" width="260" height="120" rx="12" fill="#070809"/><path d="M175 45l70 70M245 45l-70 70" stroke="#ef3038" stroke-width="18"/>');
+ return svgWrap(p+'<polygon points="210,17 150,125 270,125" fill="white" stroke="#d82929" stroke-width="9"/><text x="210" y="99" text-anchor="middle" fill="#111" font-size="58" font-weight="900">!</text>');
+}
+function roadScene(kind){
+ const sky='<rect width="420" height="190" fill="#bfe0f2"/><rect y="108" width="420" height="82" fill="#555d64"/><path d="M210 108v82" stroke="white" stroke-width="4" stroke-dasharray="18 13"/>';
+ const car=(x,y,c)=>'<g transform="translate('+x+' '+y+')"><rect y="14" width="75" height="28" rx="8" fill="'+c+'"/><path d="M14 14L27 0h29l13 14" fill="'+c+'"/><circle cx="17" cy="43" r="8" fill="#15191d"/><circle cx="60" cy="43" r="8" fill="#15191d"/></g>';
+ if(kind==='gap')return svgWrap(sky+car(55,116,'#2879c9')+car(275,116,'#d92b2b')+'<path d="M145 99h110" stroke="#f2b84b" stroke-width="5" stroke-dasharray="10 7"/><text x="200" y="88" text-anchor="middle" fill="#111" font-size="16" font-weight="800">SAFE GAP</text>');
+ if(kind==='junction')return svgWrap('<rect width="420" height="190" fill="#bfe0f2"/><rect y="108" width="420" height="82" fill="#555d64"/><rect x="280" width="88" height="190" fill="#555d64"/>'+car(235,86,'#d92b2b'));
+ if(kind==='cyclist')return svgWrap(sky+car(55,116,'#2879c9')+'<g transform="translate(300 112)" stroke="#111" stroke-width="5" fill="none"><circle cy="42" r="18"/><circle cx="55" cy="42" r="18"/><path d="M0 42l22-31 33 31H18l16-25"/><circle cx="28" r="8" fill="#111"/></g>');
+ if(kind==='pedestrian')return svgWrap(sky+car(55,116,'#2879c9')+'<g transform="translate(310 82)" stroke="#111" stroke-width="7" stroke-linecap="round"><circle r="10" fill="#efbd8e" stroke="none"/><path d="M0 13v38M0 27l-20 20M0 29l20 15M0 51l-17 29M0 51l18 29"/></g>');
+ if(kind==='motorway')return svgWrap('<rect width="420" height="190" fill="#bfe0f2"/><rect y="70" width="420" height="120" fill="#555d64"/><path d="M140 70v120M280 70v120" stroke="white" stroke-width="4" stroke-dasharray="18 12"/>'+car(45,115,'#2879c9')+car(175,108,'#d92b2b')+car(305,120,'#e5b829'));
+ return svgWrap(sky+car(170,116,'#d92b2b'));
+}
+function visualForQuestion(q){
+ const t=(q.question+' '+q.category).toLowerCase();
+ if(t.includes('stop sign'))return signSVG('stop'); if(t.includes('give way'))return signSVG('giveway'); if(t.includes('no entry'))return signSVG('noentry'); if(t.includes('red x'))return signSVG('redx'); if(t.includes('roundabout'))return signSVG('roundabout'); if(t.includes('speed limit')||t.includes('30 mph'))return signSVG('30');
+ if(q.category==='Road signs'||q.category==='Road and traffic signs')return signSVG('warning');
+ if(t.includes('following')||t.includes('two-second')||t.includes('gap'))return roadScene('gap');
+ if(t.includes('junction')||t.includes('crossroads'))return roadScene('junction');
+ if(t.includes('cyclist')||t.includes('horse')||t.includes('vulnerable'))return roadScene('cyclist');
+ if(t.includes('pedestrian')||t.includes('crossing')||t.includes('school'))return roadScene('pedestrian');
+ if(t.includes('motorway')||t.includes('hard shoulder')||t.includes('lane'))return roadScene('motorway');
+ if(['Hazard awareness','Rules of the road','Vehicle handling','Safety margins','Vulnerable road users','Motorway rules','Vehicle loading'].includes(q.category))return roadScene('road');
+ return '';
+}
+const signLessons=[['STOP','stop'],['Give Way','giveway'],['30 mph speed limit','30'],['No entry','noentry'],['Warning sign','warning'],['Roundabout','roundabout'],['Red X - lane closed','redx']];
+async function buildSignGallery(){const g=$('signGallery');if(!g)return;g.innerHTML='';let tr={};if(lang!=='en'){const texts=signLessons.map(x=>x[0]);try{const r=await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language:lang,texts})});const d=await r.json();if(d.ok)tr=d.translations||{}}catch(e){}}signLessons.forEach(([name,type])=>{const d=document.createElement('div');d.className='signCard';d.innerHTML=signSVG(type)+'<b>'+name+'</b>'+(lang!=='en'?'<span class="biTr rtl">'+(tr[name]||name)+'</span>':'');g.appendChild(d)})}
 async function translateVisibleUI(){
  const staticEls=[...Object.values(uiTargets),...categories.map((_,i)=>'sectionTr'+i)].map(id=>$(id)).filter(Boolean);
  if(lang==='en'){staticEls.forEach(e=>e.textContent='');return}
@@ -234,6 +272,7 @@ async function render(){
  $('qnum').textContent='Question '+(idx+1)+' of '+session.length;
  $('cat').textContent=q.category;
  $('question').textContent=q.question;
+ const visual=visualForQuestion(q);$('qvisual').innerHTML=visual;$('qvisual').classList.toggle('hidden',!visual);
  $('questionTr').textContent='';
  $('answers').innerHTML='';
  $('explain').className='explain';
@@ -267,7 +306,7 @@ async function render(){
 async function choose(i){const q=session[idx],bs=[...$('answers').children];bs.forEach(b=>b.disabled=true);bs[q.correct].classList.add('correct');if(i!==q.correct)bs[i].classList.add('wrong');answered++;if(i===q.correct)correct++;else{let w=JSON.parse(localStorage.theoryWrong||'[]');if(!w.includes(q.id))w.push(q.id);localStorage.theoryWrong=JSON.stringify(w)}localStorage.theoryAnswered=answered;localStorage.theoryCorrect=correct;updateStats();let tr=null;if(lang!=='en')tr=await translated(q);$('explain').innerHTML='<strong>'+(i===q.correct?'✓ Correct':'✕ Not quite')+'</strong><br><span>'+q.explanation+'</span>'+(tr?'<div class="tr rtl">'+tr.explanation+'</div>':'');$('explain').className='explain show';$('next').className='next show';$('bar').style.width=((idx+1)/session.length*100)+'%'}
 $('next').onclick=()=>{idx++;if(idx>=session.length){alert(learningMode?'Learning section complete.':'Test complete.');theoryHome()}else render()};
 const langs=[['en','English'],['ckb','کوردی سۆرانی'],['ar','العربية'],['fa','فارسی'],['tr','Türkçe'],['fr','Français'],['de','Deutsch'],['es','Español'],['ro','Română'],['pl','Polski'],['ur','اردو'],['ps','پښتو']];
-$('langBtn').onclick=async()=>{let n=(langs.findIndex(x=>x[0]===lang)+1)%langs.length;lang=langs[n][0];$('langBtn').textContent='🌐 '+langs[n][1];await translateVisibleUI();if(!$('quiz').classList.contains('hidden'))await render()};
+$('langBtn').onclick=async()=>{let n=(langs.findIndex(x=>x[0]===lang)+1)%langs.length;lang=langs[n][0];$('langBtn').textContent='🌐 '+langs[n][1];await translateVisibleUI();if(!$('quiz').classList.contains('hidden'))await render();if(!$('signs').classList.contains('hidden'))await buildSignGallery()};
 load();
 </script></body></html>` }
 
