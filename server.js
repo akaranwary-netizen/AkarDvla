@@ -141,11 +141,16 @@ button,a,select{font:inherit}.top{position:sticky;top:0;z-index:30;background:#0
 .signGallery{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;margin:14px 0}.signCard{background:#13171c;border:1px solid var(--line);border-radius:17px;padding:14px;text-align:center}.signCard svg{width:115px;height:115px}.signCard img{width:100%;height:145px;object-fit:contain;background:#fff;border-radius:12px;padding:7px}.signCard b{display:block;margin-top:8px}.signCard .biTr{font-size:13px}.signCard{cursor:pointer}.signCard:active{transform:scale(.98)}
 .signCategoryGrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:14px 0}.signCategory{border:1px solid var(--line);background:#13171c;color:#fff;border-radius:17px;padding:18px 13px;text-align:left;min-height:105px}.signCategory strong{display:block;font-size:16px;line-height:1.35}.signCategory small{display:block;color:var(--gold2);margin-top:8px}.signDetail{text-align:center}.signDetail img{width:min(360px,90%);max-height:330px;object-fit:contain;background:#fff;border-radius:18px;padding:12px;margin:8px auto 18px}.signMeaning{text-align:left;background:#13171c;border:1px solid var(--line);border-radius:16px;padding:16px;line-height:1.55}.signMeaning h3{margin:0 0 8px}.signNav{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.signNav button{border:1px solid #383f48;background:#15181d;color:#fff;border-radius:13px;padding:13px;font-weight:850}.signBack{width:100%;margin:12px 0;border:1px solid #383f48;background:#15181d;color:#fff;border-radius:13px;padding:12px;font-weight:800}@media(max-width:520px){.qvisual svg{height:150px}.signGallery{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.grid{grid-template-columns:1fr}.tile{min-height:92px}.hero h1{font-size:27px}.en{font-size:19px}.wrap{padding-top:17px}}
+
+body.ui-selected-language .biEn{display:none}
+body.ui-selected-language .biTr,body.ui-selected-language .uiTr{display:block;color:#fff;margin-top:0}
+body.ui-selected-language .section .biTr{font-size:inherit;font-weight:inherit}
+
 </style></head><body>
 <header class="top"><div class="topin"><a class="iconbtn" href="/">🚗 Car Check</a><div class="brand">AKAR'S <span>THEORY</span></div><button class="lang" id="langBtn">🌐 English</button></div></header>
 <main class="wrap">
 <section id="home">
- <div class="hero"><div><span class="biEn">🇬🇧 UK Driving Theory Learning</span><span class="biTr rtl" id="heroTopTr"></span></div><h1><span class="biEn">Learn. Practise. <span>Pass.</span></span><span class="biTr rtl" id="heroTitleTr"></span></h1><p><span class="biEn">English always stays visible. Choose another language for learning help underneath the real English wording.</span><span class="biTr rtl" id="heroSubTr"></span></p></div>
+ <div class="hero"><div><span class="biEn">🇬🇧 UK Driving Theory Learning</span><span class="biTr rtl" id="heroTopTr"></span></div><h1><span class="biEn">Learn. Practise. <span>Pass.</span></span><span class="biTr rtl" id="heroTitleTr"></span></h1><p><span class="biEn">Choose your language for menus and learning pages. Theory questions keep the English wording with your translation.</span><span class="biTr rtl" id="heroSubTr"></span></p></div>
  <div class="grid">
   <button class="tile gold" onclick="showSections()"><div class="emoji">📚</div><strong><span class="biEn">Learn & Practice</span><span class="uiTr rtl" id="tileLearnTitleTr"></span></strong><small><span class="biEn">Choose one of the 14 DVSA-style learning sections</span><span class="uiTr rtl" id="tileLearnSubTr"></span></small></button>
   <button class="tile" onclick="startMode('quick')"><div class="emoji">⚡</div><strong><span class="biEn">Test Yourself</span><span class="uiTr rtl" id="tileTestTitleTr"></span></strong><small><span class="biEn">10 mixed practice questions</span><span class="uiTr rtl" id="tileTestSubTr"></span></small></button>
@@ -157,14 +162,14 @@ button,a,select{font:inherit}.top{position:sticky;top:0;z-index:30;background:#0
  </div>
 </section>
 <section id="sections" class="hidden"><h2 class="title"><span class="biEn">Select a section</span><span class="biTr rtl" id="sectionsTitleTr"></span></h2><p class="sub"><span class="biEn">Choose what you want to learn and practise.</span><span class="biTr rtl" id="sectionsSubTr"></span></p><div id="sectionList" class="sectionlist"></div></section>
-<section id="signs" class="hidden"><h2 class="title">🚦 Road Signs</h2><p class="sub"><span class="biEn">Choose a category, then choose a sign to learn what it means.</span><span class="biTr rtl" id="signsIntroTr"></span></p><div class="notice">Official UK traffic sign images. © Crown copyright. Reproduced from Department for Transport traffic sign image resources.</div><div id="signCategoryView"><div id="signCategories" class="signCategoryGrid"></div></div><div id="signListView" class="hidden"><button class="signBack" onclick="showSignCategories()">← All Road Sign Categories</button><h2 id="signListTitle" class="title"></h2><div id="signGallery" class="signGallery"></div></div><div id="signDetailView" class="hidden"><button class="signBack" onclick="backToSignList()">← Back to this category</button><div class="signDetail"><img id="signDetailImg" alt="UK traffic sign"><div class="signMeaning"><h3 id="signDetailTitle"></h3><div id="signDetailMeaning"></div><div class="biTr rtl" id="signDetailTr"></div><small id="signDetailDiagram" style="display:block;color:var(--muted);margin-top:10px"></small></div><div class="signNav"><button id="signPrev" onclick="moveSign(-1)">← Previous</button><button id="signNext" onclick="moveSign(1)">Next →</button></div></div></div><button class="section" onclick="startCategory('Road signs')"><span>📝</span><b>Start Road & Traffic Signs Questions</b><span>›</span></button></section>
-<section id="progressPage" class="hidden"><h2 class="title">📊 My Progress</h2><div class="stats"><div class="stat"><b id="pAnswered">0</b><small>Answered</small></div><div class="stat"><b id="pCorrect">0</b><small>Correct</small></div><div class="stat"><b id="pAccuracy">0%</b><small>Accuracy</small></div></div></section>
+<section id="signs" class="hidden"><h2 class="title" id="signsTitle">🚦 Road Signs</h2><p class="sub" id="signsIntro"><span class="biEn">Choose a category, then choose a sign to learn what it means.</span><span class="biTr rtl" id="signsIntroTr"></span></p><div id="signCategoryView"><div id="signCategories" class="signCategoryGrid"></div></div><div id="signListView" class="hidden"><button class="signBack" id="allSignCategoriesBtn" onclick="showSignCategories()">← All Road Sign Categories</button><h2 id="signListTitle" class="title"></h2><div id="signGallery" class="signGallery"></div></div><div id="signDetailView" class="hidden"><button class="signBack" id="backSignCategoryBtn" onclick="backToSignList()">← Back to this category</button><div class="signDetail"><img id="signDetailImg" alt="UK traffic sign"><div class="signMeaning"><h3 id="signDetailTitle"></h3><div id="signDetailMeaning"></div><div class="biTr rtl" id="signDetailTr"></div><small id="signDetailDiagram" style="display:block;color:var(--muted);margin-top:10px"></small></div><div class="signNav"><button id="signPrev" onclick="moveSign(-1)">← Previous</button><button id="signNext" onclick="moveSign(1)">Next →</button></div></div></div><button class="section" id="startRoadQuestionsBtn" onclick="startCategory('Road signs')"><span>📝</span><b id="startRoadQuestionsText">Start Road & Traffic Signs Questions</b><span>›</span></button></section>
+<section id="progressPage" class="hidden"><h2 class="title" id="progressTitle">📊 My Progress</h2><div class="stats"><div class="stat"><b id="pAnswered">0</b><small id="pAnsweredLabel">Answered</small></div><div class="stat"><b id="pCorrect">0</b><small id="pCorrectLabel">Correct</small></div><div class="stat"><b id="pAccuracy">0%</b><small id="pAccuracyLabel">Accuracy</small></div></div></section>
 <section id="quiz" class="hidden">
  <div class="stats"><div class="stat"><b id="answered">0</b><small>Answered</small></div><div class="stat"><b id="correct">0</b><small>Correct</small></div><div class="stat"><b id="accuracy">0%</b><small>Accuracy</small></div></div>
  <div class="card"><div class="progress"><div id="bar"></div></div><div class="qbody"><div id="qvisual" class="qvisual hidden"></div><div class="meta"><span class="pill" id="qnum"></span><span class="pill" id="cat"></span><span class="pill hidden" id="timer"></span><button class="pill" id="saveBtn" onclick="toggleSave()" style="background:#15181d;color:#fff">☆ Save</button></div><div class="en" id="question">Loading…</div><div class="tr rtl" id="questionTr"></div><div class="answers" id="answers"></div><div class="explain" id="explain"></div><button class="next" id="next">Next question →</button></div></div>
 </section>
 </main>
-<nav class="bottom"><button id="backBtn" onclick="goBack()">← Back</button><button onclick="theoryHome()">🏠 Theory Home</button></nav>
+<nav class="bottom"><button id="backBtn" onclick="goBack()">← Back</button><button id="theoryHomeBtn" onclick="theoryHome()">🏠 Theory Home</button></nav>
 <div id="loadingOverlay" class="loadingOverlay hidden"><div class="loadingBox"><div class="spinner"></div><b id="loadingTitle">Translating…</b><small id="loadingText">Please wait while this learning content is prepared.</small></div></div>
 <script>
 const categories=[
@@ -183,7 +188,7 @@ function hideLoading(){$('loadingOverlay').classList.add('hidden')}
 const uiEnglish={
  heroTop:'🇬🇧 UK Driving Theory Learning',
  heroTitle:'Learn. Practise. Pass.',
- heroSub:'English always stays visible. Choose another language for learning help underneath the real English wording.',
+ heroSub:'Choose your language for menus and learning pages. Theory questions keep the English wording with your translation.',
  sectionsTitle:'Select a section',
  sectionsSub:'Choose what you want to learn and practise.',
  tileLearnTitle:'Learn & Practice',tileLearnSub:'Choose one of the 14 DVSA-style learning sections',
@@ -243,26 +248,110 @@ const signLessons=[];
 let allRoadSigns=[], currentSignCategory='', currentCategorySigns=[], currentSignIndex=0;
 const signCategoryIcons={'Bus and cycle signs':'🚌','Direction and tourist signs':'🧭','Information signs':'ℹ️','Level crossing signs':'🚆','Low bridge signs':'🌉','Miscellaneous signs':'🚦','Motorway signs':'🛣️','On-street parking signs':'🅿️','Pedestrian, cycle and equestrian signs':'🚶','Pedestrian zone signs':'🚶'};
 async function ensureRoadSigns(){if(allRoadSigns.length)return allRoadSigns;const r=await fetch('/api/road-signs');if(!r.ok)throw new Error('Road signs failed');allRoadSigns=await r.json();return allRoadSigns}
-async function buildSignGallery(){const box=$('signCategories');if(!box)return;box.innerHTML='<div class="notice">Loading official UK traffic signs…</div>';try{await ensureRoadSigns();showSignCategories();}catch(e){box.innerHTML='<div class="notice">Could not load road signs.</div>'}}
-function showSignCategories(){ $('signCategoryView').classList.remove('hidden');$('signListView').classList.add('hidden');$('signDetailView').classList.add('hidden');const box=$('signCategories');const groups={};allRoadSigns.forEach(x=>(groups[x.category]??=[]).push(x));box.innerHTML='';Object.keys(groups).sort().forEach(name=>{const b=document.createElement('button');b.className='signCategory';b.innerHTML='<strong>'+(signCategoryIcons[name]||'🚦')+' '+name+'</strong><small>'+groups[name].length+' signs ›</small>';b.onclick=()=>openSignCategory(name);box.appendChild(b)});translateSignStatic()}
-async function translateSignStatic(){const intro='Choose a category, then choose a sign to learn what it means.';const el=$('signsIntroTr');if(!el)return;if(lang==='en'){el.textContent='';return}try{const d=await (await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language:lang,texts:[intro]})})).json();if(d.ok)el.textContent=d.translations[intro]||intro}catch(e){}}
-function openSignCategory(name){currentSignCategory=name;currentCategorySigns=allRoadSigns.filter(x=>x.category===name);$('signCategoryView').classList.add('hidden');$('signDetailView').classList.add('hidden');$('signListView').classList.remove('hidden');$('signListTitle').textContent=(signCategoryIcons[name]||'🚦')+' '+name;const g=$('signGallery');g.innerHTML='';currentCategorySigns.forEach((x,i)=>{const d=document.createElement('button');d.className='signCard';d.style.color='#fff';d.innerHTML='<img loading="lazy" src="'+x.src+'" alt="UK traffic sign '+x.diagram+'"><b>Diagram '+x.diagram+'</b><span class="biTr">Tap to learn this sign</span>';d.onclick=()=>openSignDetail(i);g.appendChild(d)});window.scrollTo({top:0,behavior:'smooth'})}
+async function uiTranslate(texts){
+ if(lang==='en')return Object.fromEntries(texts.map(x=>[x,x]));
+ try{
+  const r=await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language:lang,texts})});
+  const d=await r.json();
+  if(d.ok)return d.translations||{};
+ }catch(e){console.error('UI translation error',e)}
+ return Object.fromEntries(texts.map(x=>[x,x]));
+}
+async function buildSignGallery(){
+ const box=$('signCategories');if(!box)return;
+ box.innerHTML='<div class="notice">Loading…</div>';
+ try{await ensureRoadSigns();await showSignCategories()}catch(e){box.innerHTML='<div class="notice">Could not load road signs.</div>'}
+}
+async function showSignCategories(){
+ $('signCategoryView').classList.remove('hidden');$('signListView').classList.add('hidden');$('signDetailView').classList.add('hidden');
+ const box=$('signCategories'),groups={};allRoadSigns.forEach(x=>(groups[x.category]??=[]).push(x));box.innerHTML='';
+ const names=Object.keys(groups).sort();
+ const base=['Road Signs','Choose a category, then choose a sign to learn what it means.','signs','All Road Sign Categories','Back to this category','Previous','Next','Start Road & Traffic Signs Questions',...names];
+ const tr=await uiTranslate(base);
+ $('signsTitle').textContent='🚦 '+(tr['Road Signs']||'Road Signs');
+ const intro=tr['Choose a category, then choose a sign to learn what it means.']||'Choose a category, then choose a sign to learn what it means.';
+ $('signsIntro').innerHTML='<span>'+intro+'</span>';
+ $('allSignCategoriesBtn').textContent='← '+(tr['All Road Sign Categories']||'All Road Sign Categories');
+ $('backSignCategoryBtn').textContent='← '+(tr['Back to this category']||'Back to this category');
+ $('signPrev').textContent='← '+(tr['Previous']||'Previous');
+ $('signNext').textContent=(tr['Next']||'Next')+' →';
+ $('startRoadQuestionsText').textContent=tr['Start Road & Traffic Signs Questions']||'Start Road & Traffic Signs Questions';
+ for(const name of names){
+  const b=document.createElement('button');b.className='signCategory';
+  const display=tr[name]||name;
+  b.innerHTML='<strong>'+(signCategoryIcons[name]||'🚦')+' '+display+'</strong><small>'+groups[name].length+' '+(tr['signs']||'signs')+' ›</small>';
+  b.onclick=()=>openSignCategory(name);box.appendChild(b)
+ }
+}
+async function translateSignStatic(){await showSignCategories()}
+async function openSignCategory(name){
+ currentSignCategory=name;currentCategorySigns=allRoadSigns.filter(x=>x.category===name);
+ $('signCategoryView').classList.add('hidden');$('signDetailView').classList.add('hidden');$('signListView').classList.remove('hidden');
+ const texts=[name,'Diagram','Tap to learn this sign','All Road Sign Categories'];
+ const tr=await uiTranslate(texts);
+ $('signListTitle').textContent=(signCategoryIcons[name]||'🚦')+' '+(tr[name]||name);
+ $('allSignCategoriesBtn').textContent='← '+(tr['All Road Sign Categories']||'All Road Sign Categories');
+ const g=$('signGallery');g.innerHTML='';
+ currentCategorySigns.forEach((x,i)=>{
+  const d=document.createElement('button');d.className='signCard';d.style.color='#fff';
+  d.innerHTML='<img loading="lazy" src="'+x.src+'" alt="UK traffic sign '+x.diagram+'"><b>'+(tr['Diagram']||'Diagram')+' '+x.diagram+'</b><span class="biTr">'+(tr['Tap to learn this sign']||'Tap to learn this sign')+'</span>';
+  d.onclick=()=>openSignDetail(i);g.appendChild(d)
+ });
+ window.scrollTo({top:0,behavior:'smooth'})
+}
 function backToSignList(){openSignCategory(currentSignCategory)}
-async function openSignDetail(i){currentSignIndex=i;const x=currentCategorySigns[i];if(!x)return;$('signCategoryView').classList.add('hidden');$('signListView').classList.add('hidden');$('signDetailView').classList.remove('hidden');$('signDetailImg').src=x.src;$('signDetailTitle').textContent='Loading sign meaning…';$('signDetailMeaning').textContent='';$('signDetailTr').textContent='';$('signDetailDiagram').textContent='Diagram '+x.diagram+' • '+x.category;$('signPrev').disabled=i===0;$('signNext').disabled=i===currentCategorySigns.length-1;window.scrollTo({top:0,behavior:'smooth'});try{const r=await fetch('/api/road-sign-info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({diagram:x.diagram,category:x.category,src:x.src})});const d=await r.json();const title=d.ok&&d.title?d.title:'UK traffic sign';const meaning=d.ok&&d.meaning?d.meaning:'Official UK traffic sign in the '+x.category+' category.';$('signDetailTitle').textContent=title;$('signDetailMeaning').textContent=meaning;if(lang!=='en'){const tr=await (await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language:lang,texts:[title,meaning]})})).json();if(tr.ok)$('signDetailTr').innerHTML='<strong>'+(tr.translations[title]||title)+'</strong><br>'+(tr.translations[meaning]||meaning)}}catch(e){$('signDetailTitle').textContent='UK traffic sign';$('signDetailMeaning').textContent='Official UK traffic sign in the '+x.category+' category.'}}
+async function openSignDetail(i){
+ currentSignIndex=i;const x=currentCategorySigns[i];if(!x)return;
+ $('signCategoryView').classList.add('hidden');$('signListView').classList.add('hidden');$('signDetailView').classList.remove('hidden');
+ $('signDetailImg').src=x.src;$('signDetailTitle').textContent='…';$('signDetailMeaning').textContent='';$('signDetailTr').textContent='';
+ $('signPrev').disabled=i===0;$('signNext').disabled=i===currentCategorySigns.length-1;window.scrollTo({top:0,behavior:'smooth'});
+ try{
+  const r=await fetch('/api/road-sign-info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({diagram:x.diagram,category:x.category,src:x.src})});
+  const d=await r.json();
+  const title=d.ok&&d.title?d.title:'UK traffic sign';
+  const meaning=d.ok&&d.meaning?d.meaning:'UK traffic sign in the '+x.category+' category.';
+  const uiTexts=['Back to this category','Previous','Next','Diagram',x.category,title,meaning];
+  const tr=await uiTranslate(uiTexts);
+  $('backSignCategoryBtn').textContent='← '+(tr['Back to this category']||'Back to this category');
+  $('signPrev').textContent='← '+(tr['Previous']||'Previous');
+  $('signNext').textContent=(tr['Next']||'Next')+' →';
+  $('signDetailTitle').textContent=tr[title]||title;
+  $('signDetailMeaning').textContent=tr[meaning]||meaning;
+  $('signDetailTr').textContent='';
+  $('signDetailDiagram').textContent=(tr['Diagram']||'Diagram')+' '+x.diagram+' • '+(tr[x.category]||x.category);
+ }catch(e){
+  $('signDetailTitle').textContent='UK traffic sign';$('signDetailMeaning').textContent='';
+ }
+}
 function moveSign(step){const n=currentSignIndex+step;if(n>=0&&n<currentCategorySigns.length)openSignDetail(n)}
 async function translateVisibleUI(){
- const staticEls=[...Object.values(uiTargets),...categories.map((_,i)=>'sectionTr'+i)].map(id=>$(id)).filter(Boolean);
- if(lang==='en'){staticEls.forEach(e=>e.textContent='');return}
  const sectionLabels=categories.map(([c])=>c==='Road signs'?'Road and traffic signs':(c==='Incidents and emergencies'?'Incidents, accidents and emergencies':c));
- const keys=Object.keys(uiEnglish),texts=[...keys.map(k=>uiEnglish[k]),...sectionLabels];
- showLoading('Translating…','Translating all visible learning text into '+(langs.find(x=>x[0]===lang)?.[1]||'the selected language')+'.');
+ const keys=Object.keys(uiEnglish);
+ const extra=['Back','Theory Home','My Progress','Answered','Correct','Accuracy'];
+ document.body.classList.toggle('ui-selected-language',lang!=='en');
+ if(lang==='en'){
+  [...Object.values(uiTargets),...categories.map((_,i)=>'sectionTr'+i)].map(id=>$(id)).filter(Boolean).forEach(e=>e.textContent='');
+  $('backBtn').textContent='← Back';$('theoryHomeBtn').textContent='🏠 Theory Home';
+  if($('progressTitle'))$('progressTitle').textContent='📊 My Progress';
+  if($('pAnsweredLabel'))$('pAnsweredLabel').textContent='Answered';
+  if($('pCorrectLabel'))$('pCorrectLabel').textContent='Correct';
+  if($('pAccuracyLabel'))$('pAccuracyLabel').textContent='Accuracy';
+  return;
+ }
+ const texts=[...keys.map(k=>uiEnglish[k]),...sectionLabels,...extra];
+ showLoading('Translating…','Preparing '+(langs.find(x=>x[0]===lang)?.[1]||'the selected language')+'.');
  try{
-   const r=await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language:lang,texts})});
-   const d=await r.json();
-   if(d.ok){
-     keys.forEach(k=>{const e=$(uiTargets[k]);if(e)e.textContent=d.translations[uiEnglish[k]]||uiEnglish[k]});
-     sectionLabels.forEach((text,i)=>{const e=$('sectionTr'+i);if(e)e.textContent=d.translations[text]||text});
-   }
+  const d=await (await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language:lang,texts})})).json();
+  if(d.ok){
+   keys.forEach(k=>{const e=$(uiTargets[k]);if(e)e.textContent=d.translations[uiEnglish[k]]||uiEnglish[k]});
+   sectionLabels.forEach((text,i)=>{const e=$('sectionTr'+i);if(e)e.textContent=d.translations[text]||text});
+   $('backBtn').textContent='← '+(d.translations['Back']||'Back');
+   $('theoryHomeBtn').textContent='🏠 '+(d.translations['Theory Home']||'Theory Home');
+   if($('progressTitle'))$('progressTitle').textContent='📊 '+(d.translations['My Progress']||'My Progress');
+   if($('pAnsweredLabel'))$('pAnsweredLabel').textContent=d.translations['Answered']||'Answered';
+   if($('pCorrectLabel'))$('pCorrectLabel').textContent=d.translations['Correct']||'Correct';
+   if($('pAccuracyLabel'))$('pAccuracyLabel').textContent=d.translations['Accuracy']||'Accuracy';
+  }
  }catch(e){console.error('UI translation error',e)}
  hideLoading();
 }
