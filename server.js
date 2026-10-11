@@ -130,6 +130,11 @@ button,a,select{font:inherit}.top{position:sticky;top:0;z-index:30;background:#0
 .bottom{position:fixed;bottom:0;left:0;right:0;z-index:40;background:#090a0df2;border-top:1px solid #292f37;padding:9px max(12px,env(safe-area-inset-left)) calc(9px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:9px}.bottom button,.bottom a{width:min(220px,46%);text-align:center;border:1px solid #383f48;background:#15181d;color:#fff;border-radius:13px;padding:12px;text-decoration:none;font-weight:800}
 .hidden{display:none!important}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 16px}.stat{text-align:center;background:#111419;border:1px solid var(--line);border-radius:13px;padding:11px 4px}.stat b{display:block;color:var(--gold2);font-size:19px}.stat small{font-size:11px;color:var(--muted)}
 .notice{border:1px solid #5d4d2d;background:#19150d;border-radius:13px;padding:12px;color:#e7d6ae;line-height:1.5;margin-bottom:14px}
+.loadingOverlay{position:fixed;inset:0;z-index:100;background:#070809e8;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(7px)}
+.loadingBox{width:min(320px,86vw);padding:24px;border:1px solid #4a4030;background:#111419;border-radius:20px;text-align:center;box-shadow:0 24px 80px #0008}
+.spinner{width:42px;height:42px;margin:0 auto 14px;border:4px solid #3b3529;border-top-color:var(--gold2);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}.loadingBox b{display:block;font-size:18px}.loadingBox small{display:block;color:var(--muted);margin-top:7px;line-height:1.45}
+.learnCorrect{border-color:var(--ok)!important;background:#48c98b18!important}.learnTag{display:inline-block;margin-top:8px;color:var(--ok);font-weight:900}
 @media(max-width:560px){.grid{grid-template-columns:1fr}.tile{min-height:92px}.hero h1{font-size:27px}.en{font-size:19px}.wrap{padding-top:17px}}
 </style></head><body>
 <header class="top"><div class="topin"><a class="iconbtn" href="/">🚗 Car Check</a><div class="brand">AKAR'S <span>THEORY</span></div><button class="lang" id="langBtn">🌐 English</button></div></header>
@@ -155,33 +160,72 @@ button,a,select{font:inherit}.top{position:sticky;top:0;z-index:30;background:#0
 </section>
 </main>
 <nav class="bottom"><button id="backBtn" onclick="goBack()">← Back</button><button onclick="theoryHome()">🏠 Theory Home</button></nav>
+<div id="loadingOverlay" class="loadingOverlay hidden"><div class="loadingBox"><div class="spinner"></div><b id="loadingTitle">Translating…</b><small id="loadingText">Please wait while this learning content is prepared.</small></div></div>
 <script>
 const categories=[
 ['Attitude','🤝'],['Alertness','👀'],['Safety and your vehicle','🔧'],['Safety margins','↔️'],['Hazard awareness','⚠️'],['Vulnerable road users','🚲'],['Other types of vehicle','🚛'],['Vehicle handling','🚗'],['Motorway rules','🛣️'],['Rules of the road','🚦'],['Road signs','⛔'],['Essential documents','📄'],['Incidents and emergencies','🚑'],['Vehicle loading','📦']
 ];
-let bank=[],session=[],idx=0,lang='en',historyStack=['home'],translationCache={},answered=Number(localStorage.theoryAnswered||0),correct=Number(localStorage.theoryCorrect||0),timerHandle=null,timeLeft=0;
+let bank=[],session=[],idx=0,lang='en',historyStack=['home'],translationCache={},answered=Number(localStorage.theoryAnswered||0),correct=Number(localStorage.theoryCorrect||0),timerHandle=null,timeLeft=0,learningMode=false;
 const $=x=>document.getElementById(x); const pages=['home','sections','signs','progressPage','quiz'];
 function showPage(id,push=true){pages.forEach(p=>$(p).classList.toggle('hidden',p!==id));if(push&&historyStack.at(-1)!==id)historyStack.push(id);window.scrollTo(0,0)}
 function theoryHome(){stopTimer();historyStack=['home'];showPage('home',false)} function goBack(){if(historyStack.length>1){historyStack.pop();showPage(historyStack.at(-1),false)}else location.href='/'}
 function showSections(){showPage('sections')} function showSigns(){showPage('signs')} function showProgress(){updateStats();showPage('progressPage')}
 function updateStats(){$('answered').textContent=answered;$('correct').textContent=correct;$('accuracy').textContent=answered?Math.round(correct/answered*100)+'%':'0%';$('pAnswered').textContent=answered;$('pCorrect').textContent=correct;$('pAccuracy').textContent=answered?Math.round(correct/answered*100)+'%':'0%'}
 function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+function showLoading(title='Translating…',text='Please wait while this learning content is prepared.'){$('loadingTitle').textContent=title;$('loadingText').textContent=text;$('loadingOverlay').classList.remove('hidden')}
+function hideLoading(){$('loadingOverlay').classList.add('hidden')}
 async function load(){try{bank=await (await fetch('/api/theory/questions')).json()}catch(e){alert('Could not load questions.');return} const list=$('sectionList');categories.forEach(([c,ic])=>{const b=document.createElement('button');b.className='section';const label=c==='Road signs'?'Road and traffic signs':(c==='Incidents and emergencies'?'Incidents, accidents and emergencies':c);b.innerHTML='<span>'+ic+'</span><b>'+label+'</b><span>›</span>';b.onclick=()=>startCategory(c);list.appendChild(b)});updateStats()}
-function startCategory(c){let pool=bank.filter(q=>q.category===c || (c==='Road signs'&&q.category==='Road and traffic signs'));session=shuffle(pool);if(!session.length){alert('No questions found in this section yet.');return}idx=0;stopTimer();showPage('quiz');render()}
-function startMode(m){session=shuffle(bank).slice(0,m==='mock'?50:10);idx=0;showPage('quiz');if(m==='mock')startTimer(57*60);else stopTimer();render()}
-function showSaved(){const ids=JSON.parse(localStorage.theorySaved||'[]');const pool=bank.filter(q=>ids.includes(q.id));if(!pool.length){alert('You do not have any saved questions yet.');return}session=shuffle(pool);idx=0;showPage('quiz');stopTimer();render()}
+function startCategory(c){let pool=bank.filter(q=>q.category===c || (c==='Road signs'&&q.category==='Road and traffic signs'));session=shuffle(pool);if(!session.length){alert('No questions found in this section yet.');return}learningMode=true;idx=0;stopTimer();showPage('quiz');render()}
+function startMode(m){learningMode=false;session=shuffle(bank).slice(0,m==='mock'?50:10);idx=0;showPage('quiz');if(m==='mock')startTimer(57*60);else stopTimer();render()}
+function showSaved(){const ids=JSON.parse(localStorage.theorySaved||'[]');const pool=bank.filter(q=>ids.includes(q.id));if(!pool.length){alert('You do not have any saved questions yet.');return}learningMode=false;session=shuffle(pool);idx=0;showPage('quiz');stopTimer();render()}
 function toggleSave(){const q=session[idx];if(!q)return;let ids=JSON.parse(localStorage.theorySaved||'[]');if(ids.includes(q.id))ids=ids.filter(x=>x!==q.id);else ids.push(q.id);localStorage.theorySaved=JSON.stringify(ids);updateSaveButton()}
 function updateSaveButton(){const q=session[idx];if(!q)return;const ids=JSON.parse(localStorage.theorySaved||'[]');$('saveBtn').textContent=ids.includes(q.id)?'★ Saved':'☆ Save'}
 function startTimer(sec){stopTimer();timeLeft=sec;$('timer').classList.remove('hidden');tickTimer();timerHandle=setInterval(()=>{timeLeft--;tickTimer();if(timeLeft<=0){stopTimer();alert('57 minutes finished. Your mock test has ended.');theoryHome()}},1000)}
 function tickTimer(){const m=Math.floor(timeLeft/60),s=timeLeft%60;$('timer').textContent='⏱ '+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
 function stopTimer(){if(timerHandle)clearInterval(timerHandle);timerHandle=null;const t=$('timer');if(t)t.classList.add('hidden')}
-function showWrong(){const ids=JSON.parse(localStorage.theoryWrong||'[]');const pool=bank.filter(q=>ids.includes(q.id));if(!pool.length){alert('You do not have any saved wrong answers yet.');return}session=shuffle(pool);idx=0;stopTimer();showPage('quiz');render()}
+function showWrong(){const ids=JSON.parse(localStorage.theoryWrong||'[]');const pool=bank.filter(q=>ids.includes(q.id));if(!pool.length){alert('You do not have any saved wrong answers yet.');return}learningMode=false;session=shuffle(pool);idx=0;stopTimer();showPage('quiz');render()}
 async function translated(q){if(lang==='en')return null;const key=lang+'-'+q.id;if(translationCache[key])return translationCache[key];const texts=[q.question,...q.options,q.explanation,q.category];try{const r=await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language:lang,texts})});const d=await r.json();if(d.ok){const a=texts.map(x=>d.translations[x]||x);return translationCache[key]={question:a[0],options:a.slice(1,5),explanation:a[5],category:a[6]}}}catch(e){}return null}
-async function render(){const q=session[idx];if(!q)return;updateSaveButton();$('bar').style.width=(idx/session.length*100)+'%';$('qnum').textContent='Question '+(idx+1)+' of '+session.length;$('cat').textContent=q.category;$('question').textContent=q.question;$('questionTr').textContent='';$('answers').innerHTML='';$('explain').className='explain';$('next').className='next';q.options.forEach((a,i)=>{const b=document.createElement('button');b.className='answer';b.innerHTML='<span class="enA">'+String.fromCharCode(65+i)+'. '+a+'</span><span class="trA rtl" id="tr'+i+'"></span>';b.onclick=()=>choose(i);$('answers').appendChild(b)});if(lang!=='en'){const t=await translated(q);if(t&&session[idx]?.id===q.id){$('questionTr').textContent=t.question;t.options.forEach((x,i)=>{const e=$('tr'+i);if(e)e.textContent=x})}}}
+async function render(){
+ const q=session[idx];if(!q)return;
+ updateSaveButton();
+ $('bar').style.width=(idx/session.length*100)+'%';
+ $('qnum').textContent='Question '+(idx+1)+' of '+session.length;
+ $('cat').textContent=q.category;
+ $('question').textContent=q.question;
+ $('questionTr').textContent='';
+ $('answers').innerHTML='';
+ $('explain').className='explain';
+ $('next').className='next';
+ let t=null;
+ if(lang!=='en'){
+   showLoading('Translating…','Preparing the question, answers and explanation in '+(langs.find(x=>x[0]===lang)?.[1]||'your language')+'.');
+   t=await translated(q);
+ }
+ q.options.forEach((a,i)=>{
+   const b=document.createElement('button');
+   b.className='answer';
+   b.innerHTML='<span class="enA">'+String.fromCharCode(65+i)+'. '+a+'</span><span class="trA rtl" id="tr'+i+'"></span>';
+   if(!learningMode)b.onclick=()=>choose(i);
+   else b.disabled=true;
+   $('answers').appendChild(b)
+ });
+ if(t&&session[idx]?.id===q.id){
+   $('questionTr').textContent=t.question;
+   t.options.forEach((x,i)=>{const e=$('tr'+i);if(e)e.textContent=x});
+ }
+ if(learningMode){
+   const bs=[...$('answers').children];
+   if(bs[q.correct])bs[q.correct].classList.add('learnCorrect');
+   $('explain').innerHTML='<strong class="learnTag">✓ Correct answer</strong><br><span>'+q.explanation+'</span>'+(t?'<div class="tr rtl">'+t.explanation+'</div>':'');
+   $('explain').className='explain show';
+   $('next').className='next show';
+ }
+ hideLoading();
+}
 async function choose(i){const q=session[idx],bs=[...$('answers').children];bs.forEach(b=>b.disabled=true);bs[q.correct].classList.add('correct');if(i!==q.correct)bs[i].classList.add('wrong');answered++;if(i===q.correct)correct++;else{let w=JSON.parse(localStorage.theoryWrong||'[]');if(!w.includes(q.id))w.push(q.id);localStorage.theoryWrong=JSON.stringify(w)}localStorage.theoryAnswered=answered;localStorage.theoryCorrect=correct;updateStats();let tr=null;if(lang!=='en')tr=await translated(q);$('explain').innerHTML='<strong>'+(i===q.correct?'✓ Correct':'✕ Not quite')+'</strong><br><span>'+q.explanation+'</span>'+(tr?'<div class="tr rtl">'+tr.explanation+'</div>':'');$('explain').className='explain show';$('next').className='next show';$('bar').style.width=((idx+1)/session.length*100)+'%'}
-$('next').onclick=()=>{idx++;if(idx>=session.length){alert('Session complete.');theoryHome()}else render()};
+$('next').onclick=()=>{idx++;if(idx>=session.length){alert(learningMode?'Learning section complete.':'Test complete.');theoryHome()}else render()};
 const langs=[['en','English'],['ckb','کوردی سۆرانی'],['ar','العربية'],['fa','فارسی'],['tr','Türkçe'],['fr','Français'],['de','Deutsch'],['es','Español'],['ro','Română'],['pl','Polski'],['ur','اردو'],['ps','پښتو']];
-$('langBtn').onclick=()=>{let n=(langs.findIndex(x=>x[0]===lang)+1)%langs.length;lang=langs[n][0];$('langBtn').textContent='🌐 '+langs[n][1];if(!$('quiz').classList.contains('hidden'))render()};
+$('langBtn').onclick=async()=>{let n=(langs.findIndex(x=>x[0]===lang)+1)%langs.length;lang=langs[n][0];$('langBtn').textContent='🌐 '+langs[n][1];if(!$('quiz').classList.contains('hidden')){if(lang!=='en')showLoading('Translating…','Please wait while the current question is translated.');await render()}else if(lang!=='en'){showLoading('Language selected','Preparing '+langs[n][1]+' learning support…');setTimeout(hideLoading,650)}};
 load();
 </script></body></html>` }
 

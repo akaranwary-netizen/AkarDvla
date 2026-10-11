@@ -1,25 +1,23 @@
-REPLACE ONE FILE ONLY
+REPLACE ONLY server.js
 
-1. Open your GitHub AkarDvla repository.
-2. Open server.js.
-3. Replace the existing server.js with the server.js in this ZIP.
-4. Commit the change.
-5. Render Auto Deploy should deploy it.
+This update fixes the Theory learning behaviour:
 
-This server.js was built from the exact current live GitHub server.js version.
-The car-check/DVSA code is preserved. Only the built-in Theory page was replaced.
+LEARN & PRACTICE
+- It is now learning mode, not a test.
+- The correct answer is already highlighted automatically.
+- The explanation is already shown.
+- The learner does not choose an answer.
 
-NEW THEORY:
-- Theory Home dashboard first
-- Learn & Practice
-- 14 sections
-- Test Yourself (10)
-- Mock Test (50) with 57-minute timer
-- Road Signs
-- Saved Questions
-- Wrong Answers
-- My Progress
-- English always visible
-- Selected translation underneath English
-- Back + Theory Home navigation
-- Car Check return button
+TEST YOURSELF / MOCK TEST
+- Correct answer is hidden.
+- The learner must choose an answer.
+- It is then marked correct/wrong.
+- Mock Test keeps the 50 questions / 57-minute timer.
+
+LANGUAGES
+- English always stays visible.
+- When another language is selected, a Translating… loading screen appears.
+- The app waits for the question, answers and explanation translation before showing the translated content.
+
+Replace your GitHub root server.js with this server.js and commit.
+Render Auto Deploy will then deploy it.
