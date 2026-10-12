@@ -1413,9 +1413,9 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
       <button id="دوگمە" class="primary-btn" onclick="پشکنین()">پشکنینی ئۆتۆمبێل</button>
     </div>
     <div style="max-width:670px;margin-top:14px;direction:ltr">
-      <a href="/theory" style="display:block;width:100%;padding:17px 18px;border-radius:14px;text-align:center;text-decoration:none;font-weight:900;font-size:16px;background:linear-gradient(135deg,#f4d99a,#d7b36a);color:#16120b;box-shadow:0 12px 30px rgba(215,179,106,.20)">🎓 Learn UK Driving Theory — 700 Questions</a>
+      <a href="/theory" style="display:block;width:100%;padding:17px 18px;border-radius:14px;text-align:center;text-decoration:none;font-weight:900;font-size:16px;background:linear-gradient(135deg,#f4d99a,#d7b36a);color:#16120b;box-shadow:0 12px 30px rgba(215,179,106,.20)" id="theoryHomeLink">🎓 Learn UK Driving Theory — 700 Questions</a>
     </div>
-    <div class="hero-note">زانیاری ڕاستەوخۆ لە سەرچاوەی داتا وەردەگیرێت.</div>
+    
   </div>
 </section>
 
@@ -1586,7 +1586,7 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
             <span id="extra_front_tyre">—</span><span id="extra_rear_tyre">—</span><span id="extra_timing_note"></span>
           </div>
           <div class="action-row">
-            <button type="button" class="secondary-btn" onclick="openInsuranceEstimate()">🛡️ Insurance Estimate</button>
+            <button type="button" class="secondary-btn" onclick="openInsuranceEstimate()" id="insuranceEstimateEntry">🛡️ Insurance Estimate</button>
             <button type="button" class="secondary-btn" onclick="toggleExtraBox('commonProblemsBox')">🔧 کێشە باوەکان</button>
             <button type="button" class="secondary-btn" onclick="toggleExtraBox('serviceScheduleBox')">🧰 خشتەی خزمەتگوزاری</button>
             <button type="button" class="secondary-btn" onclick="openRepairModal()">💷 نرخی چاککردنەوە</button>
@@ -2400,6 +2400,7 @@ document.addEventListener("DOMContentLoaded",async ()=>{
   }
 
   await applyLanguage();
+  await translateEnglishOriginUI();
 
   if(switching){
     startLanguageProgress(74,96,languageLoadingText().apply);
@@ -2887,41 +2888,30 @@ function نیشاندانی_CAZ_بۆ_دیزڵ(d){
 
 
 
-const INSURANCE_EN_TEXTS = [
- "Insurance Estimate","Age","Choose your age","Licence type","Choose licence type",
- "How long have you held your licence?","Choose years held","No-claims bonus","Choose no-claims bonus",
- "Driving convictions / penalty points?","Choose Yes or No","Relevant unspent criminal convictions?",
- "Choose an answer","Annual mileage","Choose annual mileage","Use","Choose vehicle use",
- "Postcode area only (optional, e.g. GL2)","We do not ask for your name, full address, driving-licence number, email or phone number.",
- "Calculate Insurance Estimate","Estimated monthly","Estimated yearly",
- "This is an estimated price, not a real insurance price.","Choose","No","Yes","Prefer not to say",
- "Full UK","UK provisional","EU / EEA","International / other","Less than 1 year","1 year","2 years",
- "3-4 years","5-9 years","10+ years","None","3-4 years","5+ years","Up to 5,000",
- "5,001-8,000","8,001-12,000","12,001-20,000","20,000+","Social only","Social and commuting","Business use",
- "Please answer the required questions.","Calculating estimate…","Estimate unavailable"
-];
-let insuranceEnglishSnapshot=null;
-function captureInsuranceEnglish(){
- const root=دۆزینەوە("insuranceModal"); if(!root||insuranceEnglishSnapshot)return;
- insuranceEnglishSnapshot=[];
- root.querySelectorAll("h2,label,.note,.compare-run-btn,.insurance-price small,option").forEach(function(el){
-   insuranceEnglishSnapshot.push([el,el.textContent]);
- });
-}
-async function translateInsuranceUI(){
- captureInsuranceEnglish();
- if(!insuranceEnglishSnapshot)return;
- if(currentLang==="en"){
-   insuranceEnglishSnapshot.forEach(function(x){x[0].textContent=x[1]});
-   return;
- }
- try{
-   const r=await fetch("/api/language-pack",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({language:currentLang,texts:[...new Set(insuranceEnglishSnapshot.map(x=>x[1]).filter(Boolean))]})});
-   const j=await r.json(), map=j?.translations||{};
-   insuranceEnglishSnapshot.forEach(function(x){x[0].textContent=map[x[1]]||x[1]});
- }catch(e){ console.warn("Insurance translation:",e); }
-}
 
+let englishOriginSnapshot=null;
+function captureEnglishOriginUI(){
+ if(englishOriginSnapshot)return;
+ const nodes=[];
+ const insuranceButton=document.getElementById("insuranceEstimateEntry");
+ const theoryButton=document.getElementById("theoryHomeLink");
+ const root=document.getElementById("insuranceModal");
+ if(insuranceButton)nodes.push(insuranceButton);
+ if(theoryButton)nodes.push(theoryButton);
+ if(root)root.querySelectorAll("h2,label,.note,.compare-run-btn,.insurance-price small,option").forEach(el=>nodes.push(el));
+ englishOriginSnapshot=nodes.map(el=>[el,el.textContent]);
+}
+async function translateEnglishOriginUI(){
+ captureEnglishOriginUI();
+ if(!englishOriginSnapshot)return;
+ if(currentLang==="en"){englishOriginSnapshot.forEach(x=>x[0].textContent=x[1]);return}
+ try{
+  const texts=[...new Set(englishOriginSnapshot.map(x=>x[1]).filter(Boolean))];
+  const r=await fetch("/api/language-pack",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({language:currentLang,texts})});
+  const j=await r.json(),map=j?.translations||{};
+  englishOriginSnapshot.forEach(x=>{x[0].textContent=map[x[1]]||x[1]});
+ }catch(e){console.warn("English-origin UI translation:",e)}
+}
 function openInsuranceEstimate(){
  if(!latestCheckedVehicle)return;
  const m=دۆزینەوە("insuranceModal"); if(!m)return;
@@ -2930,7 +2920,7 @@ function openInsuranceEstimate(){
  دۆزینەوە("insuranceResult").style.display="none";
  دۆزینەوە("insuranceStatus").style.display="none";
  m.classList.add("show");
- translateInsuranceUI();
+ translateEnglishOriginUI();
  setTimeout(refreshSelectedLanguage,30);
 }
 function closeInsuranceEstimate(e){
@@ -2955,7 +2945,7 @@ async function runInsuranceEstimate(){
 }
 
 async function refreshSelectedLanguage(){
-  if(دۆزینەوە("insuranceModal")?.classList.contains("show")) await translateInsuranceUI();
+  await translateEnglishOriginUI();
   if(currentLang === "ckb") return;
   if(!languagePackReady) await loadLanguagePack();
   translateElementTree(document.body);
