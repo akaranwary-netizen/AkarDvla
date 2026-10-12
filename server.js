@@ -1661,17 +1661,17 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
     </div>
     <div id="insuranceVehicleName" class="muted"></div>
     <div class="insurance-form">
-      <div class="insurance-field"><label>Age</label><select id="insAge"><option value="">Choose</option><option>17-20</option><option>21-24</option><option>25-29</option><option>30-39</option><option>40-49</option><option>50-59</option><option>60+</option></select></div>
-      <div class="insurance-field"><label>Licence type</label><select id="insLicence"><option value="">Choose</option><option>Full UK</option><option>UK provisional</option><option>EU / EEA</option><option>International / other</option></select></div>
-      <div class="insurance-field"><label>How long have you held your licence?</label><select id="insYears"><option value="">Choose</option><option>Less than 1 year</option><option>1 year</option><option>2 years</option><option>3-4 years</option><option>5-9 years</option><option>10+ years</option></select></div>
-      <div class="insurance-field"><label>No-claims bonus</label><select id="insNcb"><option value="">Choose</option><option>None</option><option>1 year</option><option>2 years</option><option>3-4 years</option><option>5+ years</option></select></div>
-      <div class="insurance-field"><label>Driving convictions / penalty points?</label><select id="insPoints"><option value="">Choose</option><option>No</option><option>Yes</option></select></div>
-      <div class="insurance-field"><label>Relevant unspent criminal convictions?</label><select id="insConvictions"><option value="">Choose</option><option>No</option><option>Yes</option><option>Prefer not to say</option></select></div>
-      <div class="insurance-field"><label>Annual mileage</label><select id="insMileage"><option value="">Choose</option><option>Up to 5,000</option><option>5,001-8,000</option><option>8,001-12,000</option><option>12,001-20,000</option><option>20,000+</option></select></div>
-      <div class="insurance-field"><label>Use</label><select id="insUse"><option value="">Choose</option><option>Social only</option><option>Social and commuting</option><option>Business use</option></select></div>
+      <div class="insurance-field"><label>Age</label><select id="insAge"><option value="">Choose your age</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option><option value="60">60</option><option value="61">61</option><option value="62">62</option><option value="63">63</option><option value="64">64</option><option value="65">65</option><option value="66">66</option><option value="67">67</option><option value="68">68</option><option value="69">69</option><option value="70">70</option><option value="71">71</option><option value="72">72</option><option value="73">73</option><option value="74">74</option><option value="75">75</option><option value="76">76</option><option value="77">77</option><option value="78">78</option><option value="79">79</option><option value="80">80</option><option value="81+">81+</option></select></div>
+      <div class="insurance-field"><label>Licence type</label><select id="insLicence"><option value="">Choose licence type</option><option>Full UK</option><option>UK provisional</option><option>EU / EEA</option><option>International / other</option></select></div>
+      <div class="insurance-field"><label>How long have you held your licence?</label><select id="insYears"><option value="">Choose years held</option><option>Less than 1 year</option><option>1 year</option><option>2 years</option><option>3-4 years</option><option>5-9 years</option><option>10+ years</option></select></div>
+      <div class="insurance-field"><label>No-claims bonus</label><select id="insNcb"><option value="">Choose no-claims bonus</option><option>None</option><option>1 year</option><option>2 years</option><option>3-4 years</option><option>5+ years</option></select></div>
+      <div class="insurance-field"><label>Driving convictions / penalty points?</label><select id="insPoints"><option value="">Choose Yes or No</option><option>No</option><option>Yes</option></select></div>
+      <div class="insurance-field"><label>Relevant unspent criminal convictions?</label><select id="insConvictions"><option value="">Choose an answer</option><option>No</option><option>Yes</option><option>Prefer not to say</option></select></div>
+      <div class="insurance-field"><label>Annual mileage</label><select id="insMileage"><option value="">Choose annual mileage</option><option>Up to 5,000</option><option>5,001-8,000</option><option>8,001-12,000</option><option>12,001-20,000</option><option>20,000+</option></select></div>
+      <div class="insurance-field"><label>Use</label><select id="insUse"><option value="">Choose vehicle use</option><option>Social only</option><option>Social and commuting</option><option>Business use</option></select></div>
       <div class="insurance-field full"><label>Postcode area only (optional, e.g. GL2)</label><input id="insPostcode" maxlength="4" placeholder="GL2"></div>
     </div>
-    <div class="note">We do not ask for your name, full address, driving-licence number, email or phone number.</div>
+    <div class="note insurance-privacy">We do not ask for your name, full address, driving-licence number, email or phone number.</div>
     <button id="insuranceRunBtn" class="compare-run-btn" type="button" onclick="runInsuranceEstimate()">Calculate Insurance Estimate</button>
     <div id="insuranceStatus" class="compare-status"></div>
     <div id="insuranceResult" class="insurance-result">
@@ -2886,6 +2886,42 @@ function نیشاندانی_CAZ_بۆ_دیزڵ(d){
 
 
 
+
+const INSURANCE_EN_TEXTS = [
+ "Insurance Estimate","Age","Choose your age","Licence type","Choose licence type",
+ "How long have you held your licence?","Choose years held","No-claims bonus","Choose no-claims bonus",
+ "Driving convictions / penalty points?","Choose Yes or No","Relevant unspent criminal convictions?",
+ "Choose an answer","Annual mileage","Choose annual mileage","Use","Choose vehicle use",
+ "Postcode area only (optional, e.g. GL2)","We do not ask for your name, full address, driving-licence number, email or phone number.",
+ "Calculate Insurance Estimate","Estimated monthly","Estimated yearly",
+ "This is an estimated price, not a real insurance price.","Choose","No","Yes","Prefer not to say",
+ "Full UK","UK provisional","EU / EEA","International / other","Less than 1 year","1 year","2 years",
+ "3-4 years","5-9 years","10+ years","None","3-4 years","5+ years","Up to 5,000",
+ "5,001-8,000","8,001-12,000","12,001-20,000","20,000+","Social only","Social and commuting","Business use",
+ "Please answer the required questions.","Calculating estimate…","Estimate unavailable"
+];
+let insuranceEnglishSnapshot=null;
+function captureInsuranceEnglish(){
+ const root=دۆزینەوە("insuranceModal"); if(!root||insuranceEnglishSnapshot)return;
+ insuranceEnglishSnapshot=[];
+ root.querySelectorAll("h2,label,.note,.compare-run-btn,.insurance-price small,option").forEach(function(el){
+   insuranceEnglishSnapshot.push([el,el.textContent]);
+ });
+}
+async function translateInsuranceUI(){
+ captureInsuranceEnglish();
+ if(!insuranceEnglishSnapshot)return;
+ if(currentLang==="en"){
+   insuranceEnglishSnapshot.forEach(function(x){x[0].textContent=x[1]});
+   return;
+ }
+ try{
+   const r=await fetch("/api/language-pack",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({language:currentLang,texts:[...new Set(insuranceEnglishSnapshot.map(x=>x[1]).filter(Boolean))]})});
+   const j=await r.json(), map=j?.translations||{};
+   insuranceEnglishSnapshot.forEach(function(x){x[0].textContent=map[x[1]]||x[1]});
+ }catch(e){ console.warn("Insurance translation:",e); }
+}
+
 function openInsuranceEstimate(){
  if(!latestCheckedVehicle)return;
  const m=دۆزینەوە("insuranceModal"); if(!m)return;
@@ -2894,6 +2930,7 @@ function openInsuranceEstimate(){
  دۆزینەوە("insuranceResult").style.display="none";
  دۆزینەوە("insuranceStatus").style.display="none";
  m.classList.add("show");
+ translateInsuranceUI();
  setTimeout(refreshSelectedLanguage,30);
 }
 function closeInsuranceEstimate(e){
@@ -2918,6 +2955,7 @@ async function runInsuranceEstimate(){
 }
 
 async function refreshSelectedLanguage(){
+  if(دۆزینەوە("insuranceModal")?.classList.contains("show")) await translateInsuranceUI();
   if(currentLang === "ckb") return;
   if(!languagePackReady) await loadLanguagePack();
   translateElementTree(document.body);
