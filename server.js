@@ -1586,6 +1586,7 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
             <span id="extra_front_tyre">—</span><span id="extra_rear_tyre">—</span><span id="extra_timing_note"></span>
           </div>
           <div class="action-row">
+            <button type="button" class="secondary-btn" onclick="openInsuranceEstimate()">🛡️ Insurance Estimate</button>
             <button type="button" class="secondary-btn" onclick="toggleExtraBox('commonProblemsBox')">🔧 کێشە باوەکان</button>
             <button type="button" class="secondary-btn" onclick="toggleExtraBox('serviceScheduleBox')">🧰 خشتەی خزمەتگوزاری</button>
             <button type="button" class="secondary-btn" onclick="openRepairModal()">💷 نرخی چاککردنەوە</button>
@@ -1647,6 +1648,39 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
         <div id="compareSummary" class="compare-summary"></div>
         <div id="comparePoints" class="compare-points"></div>
       </div>
+    </div>
+  </div>
+</div>
+
+
+<div id="insuranceModal" class="modal-overlay" onclick="closeInsuranceEstimate(event)">
+  <div class="insurance-modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h2>🛡️ Insurance Estimate</h2>
+      <button type="button" class="modal-close" onclick="closeInsuranceEstimate()">×</button>
+    </div>
+    <div id="insuranceVehicleName" class="muted"></div>
+    <div class="insurance-form">
+      <div class="insurance-field"><label>Age</label><select id="insAge"><option value="">Choose</option><option>17-20</option><option>21-24</option><option>25-29</option><option>30-39</option><option>40-49</option><option>50-59</option><option>60+</option></select></div>
+      <div class="insurance-field"><label>Licence type</label><select id="insLicence"><option value="">Choose</option><option>Full UK</option><option>UK provisional</option><option>EU / EEA</option><option>International / other</option></select></div>
+      <div class="insurance-field"><label>How long have you held your licence?</label><select id="insYears"><option value="">Choose</option><option>Less than 1 year</option><option>1 year</option><option>2 years</option><option>3-4 years</option><option>5-9 years</option><option>10+ years</option></select></div>
+      <div class="insurance-field"><label>No-claims bonus</label><select id="insNcb"><option value="">Choose</option><option>None</option><option>1 year</option><option>2 years</option><option>3-4 years</option><option>5+ years</option></select></div>
+      <div class="insurance-field"><label>Driving convictions / penalty points?</label><select id="insPoints"><option value="">Choose</option><option>No</option><option>Yes</option></select></div>
+      <div class="insurance-field"><label>Relevant unspent criminal convictions?</label><select id="insConvictions"><option value="">Choose</option><option>No</option><option>Yes</option><option>Prefer not to say</option></select></div>
+      <div class="insurance-field"><label>Annual mileage</label><select id="insMileage"><option value="">Choose</option><option>Up to 5,000</option><option>5,001-8,000</option><option>8,001-12,000</option><option>12,001-20,000</option><option>20,000+</option></select></div>
+      <div class="insurance-field"><label>Use</label><select id="insUse"><option value="">Choose</option><option>Social only</option><option>Social and commuting</option><option>Business use</option></select></div>
+      <div class="insurance-field full"><label>Postcode area only (optional, e.g. GL2)</label><input id="insPostcode" maxlength="4" placeholder="GL2"></div>
+    </div>
+    <div class="note">We do not ask for your name, full address, driving-licence number, email or phone number.</div>
+    <button id="insuranceRunBtn" class="compare-run-btn" type="button" onclick="runInsuranceEstimate()">Calculate Insurance Estimate</button>
+    <div id="insuranceStatus" class="compare-status"></div>
+    <div id="insuranceResult" class="insurance-result">
+      <div class="insurance-price-grid">
+        <div class="insurance-price"><small>Estimated monthly</small><b id="insMonthly">—</b></div>
+        <div class="insurance-price"><small>Estimated yearly</small><b id="insYearly">—</b></div>
+      </div>
+      <div id="insReason" class="small"></div>
+      <div class="note"><strong>This is an estimated price, not a real insurance price.</strong></div>
     </div>
   </div>
 </div>
@@ -2851,6 +2885,38 @@ function نیشاندانی_CAZ_بۆ_دیزڵ(d){
 
 
 
+
+function openInsuranceEstimate(){
+ if(!latestCheckedVehicle)return;
+ const m=دۆزینەوە("insuranceModal"); if(!m)return;
+ const d=latestCheckedVehicle;
+ دۆزینەوە("insuranceVehicleName").textContent=[d.registration||d.registrationNumber,d.make,d.model,d.yearOfManufacture].filter(Boolean).join(" · ");
+ دۆزینەوە("insuranceResult").style.display="none";
+ دۆزینەوە("insuranceStatus").style.display="none";
+ m.classList.add("show");
+ setTimeout(refreshSelectedLanguage,30);
+}
+function closeInsuranceEstimate(e){
+ if(e && e.target!==دۆزینەوە("insuranceModal"))return;
+ دۆزینەوە("insuranceModal")?.classList.remove("show");
+}
+async function runInsuranceEstimate(){
+ const fields={age:دۆزینەوە("insAge").value,licenceType:دۆزینەوە("insLicence").value,licenceYears:دۆزینەوە("insYears").value,noClaimsBonus:دۆزینەوە("insNcb").value,drivingConvictions:دۆزینەوە("insPoints").value,unspentConvictions:دۆزینەوە("insConvictions").value,annualMileage:دۆزینەوە("insMileage").value,use:دۆزینەوە("insUse").value,postcodeArea:دۆزینەوە("insPostcode").value.trim().toUpperCase()};
+ if(!fields.age||!fields.licenceType||!fields.licenceYears||!fields.noClaimsBonus||!fields.drivingConvictions||!fields.unspentConvictions||!fields.annualMileage||!fields.use){alert("Please answer the required questions.");return}
+ const btn=دۆزینەوە("insuranceRunBtn"),status=دۆزینەوە("insuranceStatus"),result=دۆزینەوە("insuranceResult");
+ btn.disabled=true;status.style.display="block";status.textContent="Calculating estimate…";result.style.display="none";
+ try{
+  const d=latestCheckedVehicle||{};
+  const r=await fetch("/api/insurance-estimate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({driver:fields,vehicle:{registration:d.registration||d.registrationNumber||null,make:d.make||null,model:d.model||null,yearOfManufacture:d.yearOfManufacture||null,fuelType:d.fuelType||null,engineCapacityCc:d.engineCapacityCc||null,insuranceGroup:latestExtraInsights?.insuranceGroup||null},language:currentLang})});
+  const x=await r.json(); if(!r.ok||!x.ok)throw new Error(x.error||"Estimate unavailable");
+  دۆزینەوە("insMonthly").textContent="£"+Math.round(x.monthlyMin).toLocaleString("en-GB")+"–£"+Math.round(x.monthlyMax).toLocaleString("en-GB");
+  دۆزینەوە("insYearly").textContent="£"+Math.round(x.yearlyMin).toLocaleString("en-GB")+"–£"+Math.round(x.yearlyMax).toLocaleString("en-GB");
+  دۆزینەوە("insReason").textContent=x.reason||"";
+  status.style.display="none";result.style.display="block";setTimeout(refreshSelectedLanguage,30);
+ }catch(e){status.textContent=e?.message||"Estimate unavailable"}
+ finally{btn.disabled=false}
+}
+
 async function refreshSelectedLanguage(){
   if(currentLang === "ckb") return;
   if(!languagePackReady) await loadLanguagePack();
@@ -3598,6 +3664,38 @@ ${JSON.stringify(batch)}
     console.error("Language pack error:",error);
     return res.status(500).json({ok:false,error:"Translation failed"});
   }
+});
+
+
+app.post("/api/insurance-estimate", async (req, res) => {
+  if(!GEMINI_API_KEY)return res.status(500).json({ok:false,error:"Insurance estimate is temporarily unavailable."});
+  const body=req.body||{}, driver=body.driver||{}, vehicle=body.vehicle||{};
+  const required=["age","licenceType","licenceYears","noClaimsBonus","drivingConvictions","unspentConvictions","annualMileage","use"];
+  if(required.some(k=>!String(driver[k]||"").trim()))return res.status(400).json({ok:false,error:"Please answer all required questions."});
+  const prompt=`Estimate a broad illustrative UK comprehensive car-insurance price range for the vehicle and anonymous driver profile below.
+This is NOT a quote. Do not claim access to insurer pricing. Use cautious broad ranges reflecting general UK insurance risk factors.
+Do not infer protected characteristics. Use only supplied fields. Postcode is outward area only.
+Return ONLY JSON:
+{"yearlyMin":0,"yearlyMax":0,"reason":"one short plain-language explanation"}
+Keep yearlyMin/yearlyMax plausible, positive, yearlyMax greater than yearlyMin, and use GBP.
+Vehicle: ${JSON.stringify(vehicle)}
+Anonymous driver profile: ${JSON.stringify(driver)}`;
+  const models=["gemini-3.5-flash-lite","gemini-3.5-flash"];
+  let lastError="Estimate unavailable";
+  for(const model of models){
+    try{
+      const response=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":GEMINI_API_KEY},body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt}]}],generationConfig:{responseMimeType:"application/json",maxOutputTokens:300}})});
+      const raw=await response.text();let data=null;try{data=JSON.parse(raw)}catch{}
+      if(!response.ok){lastError=data?.error?.message||raw||lastError;continue}
+      const text=data?.candidates?.[0]?.content?.parts?.map(p=>p.text||"").join("")||"";
+      let x=null;try{x=JSON.parse(text)}catch{continue}
+      let min=Math.round(Number(x.yearlyMin)),max=Math.round(Number(x.yearlyMax));
+      if(!Number.isFinite(min)||!Number.isFinite(max)||min<=0||max<=min)continue;
+      min=Math.max(250,Math.min(min,15000));max=Math.max(min+100,Math.min(max,25000));
+      return res.json({ok:true,yearlyMin:min,yearlyMax:max,monthlyMin:Math.round(min/12),monthlyMax:Math.round(max/12),reason:String(x.reason||"Estimate based on the vehicle and anonymous driver details provided.").slice(0,400)});
+    }catch(e){lastError=e?.message||lastError}
+  }
+  return res.status(502).json({ok:false,error:lastError});
 });
 
 app.post("/api/fuel-estimate", async (req, res) => {
