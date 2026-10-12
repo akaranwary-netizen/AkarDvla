@@ -1,5 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
 
 // Built-in Theory Test module — kept inside server.js so one replacement is enough.
 const seeds = [
@@ -136,13 +138,27 @@ button,a,select{font:inherit}.top{position:sticky;top:0;z-index:30;background:#0
 @keyframes spin{to{transform:rotate(360deg)}}.loadingBox b{display:block;font-size:18px}.loadingBox small{display:block;color:var(--muted);margin-top:7px;line-height:1.45}
 .learnCorrect{border-color:var(--ok)!important;background:#48c98b18!important}.learnTag{display:inline-block;margin-top:8px;color:var(--ok);font-weight:900}
 .qvisual{margin:0 0 16px;border:1px solid #303741;background:#dfe8ee;border-radius:17px;min-height:170px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:10px}.qvisual svg{width:100%;max-width:430px;height:170px}.qvisual.hidden{display:none!important}
-.signGallery{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;margin:14px 0}.signCard{background:#13171c;border:1px solid var(--line);border-radius:17px;padding:14px;text-align:center}.signCard svg{width:115px;height:115px}.signCard b{display:block;margin-top:8px}.signCard .biTr{font-size:13px}@media(max-width:520px){.qvisual svg{height:150px}.signGallery{grid-template-columns:1fr 1fr}}
+.signGallery{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;margin:14px 0}.signCard{background:#13171c;border:1px solid var(--line);border-radius:17px;padding:14px;text-align:center}.signCard svg{width:115px;height:115px}.signCard img{width:100%;height:145px;object-fit:contain;background:#fff;border-radius:12px;padding:7px}.signCard b{display:block;margin-top:8px}.signCard .biTr{font-size:13px}.signCard{cursor:pointer}.signCard:active{transform:scale(.98)}
+.signCategoryGrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:14px 0}.signCategory{border:1px solid var(--line);background:#13171c;color:#fff;border-radius:17px;padding:18px 13px;text-align:left;min-height:105px}.signCategory strong{display:block;font-size:16px;line-height:1.35}.signCategory small{display:block;color:var(--gold2);margin-top:8px}.signDetail{text-align:center}.signDetail img{width:min(360px,90%);max-height:330px;object-fit:contain;background:#fff;border-radius:18px;padding:12px;margin:8px auto 18px}.signMeaning{text-align:left;background:#13171c;border:1px solid var(--line);border-radius:16px;padding:16px;line-height:1.55}.signMeaning h3{margin:0 0 8px}.signNav{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.signNav button{border:1px solid #383f48;background:#15181d;color:#fff;border-radius:13px;padding:13px;font-weight:850}.signBack{width:100%;margin:12px 0;border:1px solid #383f48;background:#15181d;color:#fff;border-radius:13px;padding:12px;font-weight:800}@media(max-width:520px){.qvisual svg{height:150px}.signGallery{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.grid{grid-template-columns:1fr}.tile{min-height:92px}.hero h1{font-size:27px}.en{font-size:19px}.wrap{padding-top:17px}}
+
+body.ui-selected-language .biEn{display:none}
+body.ui-selected-language .biTr,body.ui-selected-language .uiTr{display:block;color:#fff;margin-top:0}
+body.ui-selected-language .section .biTr{font-size:inherit;font-weight:inherit}
+
+
+.langPicker{position:fixed;inset:0;z-index:120;background:#050607d9;display:flex;align-items:flex-end;justify-content:center;padding:18px;backdrop-filter:blur(8px)}
+.langPicker.hidden{display:none!important}.langSheet{width:min(560px,100%);max-height:82vh;overflow:auto;background:#111419;border:1px solid #343a43;border-radius:22px;padding:16px;box-shadow:0 25px 90px #000a}
+.langSheet h3{margin:2px 4px 13px;font-size:21px}.langOptions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.langOption{border:1px solid #343a43;background:#171b20;color:#fff;border-radius:14px;padding:14px 12px;text-align:left;font-weight:800}
+.langOption.active{border-color:#d6b56d;background:#211b10}.langClose{width:100%;margin-top:12px;border:1px solid #3b4149;background:#15181d;color:#fff;border-radius:14px;padding:13px;font-weight:850}
+@media(max-width:460px){.langOptions{grid-template-columns:1fr}}
+
 </style></head><body>
 <header class="top"><div class="topin"><a class="iconbtn" href="/">🚗 Car Check</a><div class="brand">AKAR'S <span>THEORY</span></div><button class="lang" id="langBtn">🌐 English</button></div></header>
 <main class="wrap">
 <section id="home">
- <div class="hero"><div><span class="biEn">🇬🇧 UK Driving Theory Learning</span><span class="biTr rtl" id="heroTopTr"></span></div><h1><span class="biEn">Learn. Practise. <span>Pass.</span></span><span class="biTr rtl" id="heroTitleTr"></span></h1><p><span class="biEn">English always stays visible. Choose another language for learning help underneath the real English wording.</span><span class="biTr rtl" id="heroSubTr"></span></p></div>
+ <div class="hero"><div><span class="biEn">🇬🇧 UK Driving Theory Learning</span><span class="biTr rtl" id="heroTopTr"></span></div><h1><span class="biEn">Learn. Practise. <span>Pass.</span></span><span class="biTr rtl" id="heroTitleTr"></span></h1><p><span class="biEn">Choose your language for menus and learning pages. Theory questions keep the English wording with your translation.</span><span class="biTr rtl" id="heroSubTr"></span></p></div>
  <div class="grid">
   <button class="tile gold" onclick="showSections()"><div class="emoji">📚</div><strong><span class="biEn">Learn & Practice</span><span class="uiTr rtl" id="tileLearnTitleTr"></span></strong><small><span class="biEn">Choose one of the 14 DVSA-style learning sections</span><span class="uiTr rtl" id="tileLearnSubTr"></span></small></button>
   <button class="tile" onclick="startMode('quick')"><div class="emoji">⚡</div><strong><span class="biEn">Test Yourself</span><span class="uiTr rtl" id="tileTestTitleTr"></span></strong><small><span class="biEn">10 mixed practice questions</span><span class="uiTr rtl" id="tileTestSubTr"></span></small></button>
@@ -154,14 +170,22 @@ button,a,select{font:inherit}.top{position:sticky;top:0;z-index:30;background:#0
  </div>
 </section>
 <section id="sections" class="hidden"><h2 class="title"><span class="biEn">Select a section</span><span class="biTr rtl" id="sectionsTitleTr"></span></h2><p class="sub"><span class="biEn">Choose what you want to learn and practise.</span><span class="biTr rtl" id="sectionsSubTr"></span></p><div id="sectionList" class="sectionlist"></div></section>
-<section id="signs" class="hidden"><h2 class="title">🚦 Road Signs</h2><p class="sub">Learn each sign picture and its English meaning. Translation appears underneath.</p><div id="signGallery" class="signGallery"></div><button class="section" onclick="startCategory('Road signs')"><span>📝</span><b>Start Road & Traffic Signs Questions</b><span>›</span></button></section>
-<section id="progressPage" class="hidden"><h2 class="title">📊 My Progress</h2><div class="stats"><div class="stat"><b id="pAnswered">0</b><small>Answered</small></div><div class="stat"><b id="pCorrect">0</b><small>Correct</small></div><div class="stat"><b id="pAccuracy">0%</b><small>Accuracy</small></div></div></section>
+<section id="signs" class="hidden"><h2 class="title" id="signsTitle">🚦 Road Signs</h2><p class="sub" id="signsIntro"><span class="biEn">Choose a category, then choose a sign to learn what it means.</span><span class="biTr rtl" id="signsIntroTr"></span></p><div id="signCategoryView"><div id="signCategories" class="signCategoryGrid"></div></div><div id="signListView" class="hidden"><button class="signBack" id="allSignCategoriesBtn" onclick="showSignCategories()">← All Road Sign Categories</button><h2 id="signListTitle" class="title"></h2><div id="signGallery" class="signGallery"></div></div><div id="signDetailView" class="hidden"><button class="signBack" id="backSignCategoryBtn" onclick="backToSignList()">← Back to this category</button><div class="signDetail"><img id="signDetailImg" alt="UK traffic sign"><div class="signMeaning"><h3 id="signDetailTitle"></h3><div id="signDetailMeaning"></div><div class="biTr rtl" id="signDetailTr"></div><small id="signDetailDiagram" style="display:block;color:var(--muted);margin-top:10px"></small></div><div class="signNav"><button id="signPrev" onclick="moveSign(-1)">← Previous</button><button id="signNext" onclick="moveSign(1)">Next →</button></div></div></div><button class="section" id="startRoadQuestionsBtn" onclick="startCategory('Road signs')"><span>📝</span><b id="startRoadQuestionsText">Start Road & Traffic Signs Questions</b><span>›</span></button></section>
+<section id="progressPage" class="hidden"><h2 class="title" id="progressTitle">📊 My Progress</h2><div class="stats"><div class="stat"><b id="pAnswered">0</b><small id="pAnsweredLabel">Answered</small></div><div class="stat"><b id="pCorrect">0</b><small id="pCorrectLabel">Correct</small></div><div class="stat"><b id="pAccuracy">0%</b><small id="pAccuracyLabel">Accuracy</small></div></div></section>
 <section id="quiz" class="hidden">
  <div class="stats"><div class="stat"><b id="answered">0</b><small>Answered</small></div><div class="stat"><b id="correct">0</b><small>Correct</small></div><div class="stat"><b id="accuracy">0%</b><small>Accuracy</small></div></div>
  <div class="card"><div class="progress"><div id="bar"></div></div><div class="qbody"><div id="qvisual" class="qvisual hidden"></div><div class="meta"><span class="pill" id="qnum"></span><span class="pill" id="cat"></span><span class="pill hidden" id="timer"></span><button class="pill" id="saveBtn" onclick="toggleSave()" style="background:#15181d;color:#fff">☆ Save</button></div><div class="en" id="question">Loading…</div><div class="tr rtl" id="questionTr"></div><div class="answers" id="answers"></div><div class="explain" id="explain"></div><button class="next" id="next">Next question →</button></div></div>
 </section>
 </main>
-<nav class="bottom"><button id="backBtn" onclick="goBack()">← Back</button><button onclick="theoryHome()">🏠 Theory Home</button></nav>
+<nav class="bottom"><button id="backBtn" onclick="goBack()">← Back</button><button id="theoryHomeBtn" onclick="theoryHome()">🏠 Theory Home</button></nav>
+
+<div id="langPicker" class="langPicker hidden" role="dialog" aria-modal="true">
+ <div class="langSheet">
+  <h3 id="langPickerTitle">Choose language</h3>
+  <div id="langOptions" class="langOptions"></div>
+  <button id="langClose" class="langClose" type="button">Close</button>
+ </div>
+</div>
 <div id="loadingOverlay" class="loadingOverlay hidden"><div class="loadingBox"><div class="spinner"></div><b id="loadingTitle">Translating…</b><small id="loadingText">Please wait while this learning content is prepared.</small></div></div>
 <script>
 const categories=[
@@ -180,7 +204,7 @@ function hideLoading(){$('loadingOverlay').classList.add('hidden')}
 const uiEnglish={
  heroTop:'🇬🇧 UK Driving Theory Learning',
  heroTitle:'Learn. Practise. Pass.',
- heroSub:'English always stays visible. Choose another language for learning help underneath the real English wording.',
+ heroSub:'Choose your language for menus and learning pages. Theory questions keep the English wording with your translation.',
  sectionsTitle:'Select a section',
  sectionsSub:'Choose what you want to learn and practise.',
  tileLearnTitle:'Learn & Practice',tileLearnSub:'Choose one of the 14 DVSA-style learning sections',
@@ -236,21 +260,125 @@ function visualForQuestion(q){
  if(['Hazard awareness','Rules of the road','Vehicle handling','Safety margins','Vulnerable road users','Motorway rules','Vehicle loading'].includes(q.category))return roadScene('road');
  return '';
 }
-const signLessons=[['STOP','stop'],['Give Way','giveway'],['30 mph speed limit','30'],['No entry','noentry'],['Warning sign','warning'],['Roundabout','roundabout'],['Red X - lane closed','redx']];
-async function buildSignGallery(){const g=$('signGallery');if(!g)return;g.innerHTML='';let tr={};if(lang!=='en'){const texts=signLessons.map(x=>x[0]);try{const r=await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language:lang,texts})});const d=await r.json();if(d.ok)tr=d.translations||{}}catch(e){}}signLessons.forEach(([name,type])=>{const d=document.createElement('div');d.className='signCard';d.innerHTML=signSVG(type)+'<b>'+name+'</b>'+(lang!=='en'?'<span class="biTr rtl">'+(tr[name]||name)+'</span>':'');g.appendChild(d)})}
-async function translateVisibleUI(){
- const staticEls=[...Object.values(uiTargets),...categories.map((_,i)=>'sectionTr'+i)].map(id=>$(id)).filter(Boolean);
- if(lang==='en'){staticEls.forEach(e=>e.textContent='');return}
- const sectionLabels=categories.map(([c])=>c==='Road signs'?'Road and traffic signs':(c==='Incidents and emergencies'?'Incidents, accidents and emergencies':c));
- const keys=Object.keys(uiEnglish),texts=[...keys.map(k=>uiEnglish[k]),...sectionLabels];
- showLoading('Translating…','Translating all visible learning text into '+(langs.find(x=>x[0]===lang)?.[1]||'the selected language')+'.');
- try{
-   const r=await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language:lang,texts})});
+const signLessons=[];
+let allRoadSigns=[], currentSignCategory='', currentCategorySigns=[], currentSignIndex=0;
+const signCategoryIcons={'Bus and cycle signs':'🚌','Direction and tourist signs':'🧭','Information signs':'ℹ️','Level crossing signs':'🚆','Low bridge signs':'🌉','Miscellaneous signs':'🚦','Motorway signs':'🛣️','On-street parking signs':'🅿️','Pedestrian, cycle and equestrian signs':'🚶','Pedestrian zone signs':'🚶'};
+async function ensureRoadSigns(){if(allRoadSigns.length)return allRoadSigns;const r=await fetch('/api/road-signs');if(!r.ok)throw new Error('Road signs failed');allRoadSigns=await r.json();return allRoadSigns}
+
+const AKAR_TR_CACHE='akar-tr-safe-v2';
+function trKey(language,text){return AKAR_TR_CACHE+'|'+language+'|'+text}
+function trGet(language,text){try{return localStorage.getItem(trKey(language,text))||''}catch(e){return ''}}
+function trSet(language,text,value){try{if(value&&value!==text)localStorage.setItem(trKey(language,text),value)}catch(e){}}
+async function cachedTranslations(texts,language=lang){
+ const unique=[...new Set((texts||[]).filter(Boolean))];
+ if(language==='en')return Object.fromEntries(unique.map(t=>[t,t]));
+ const out={},missing=[];
+ unique.forEach(t=>{const hit=trGet(language,t);if(hit)out[t]=hit;else missing.push(t)});
+ if(missing.length){
+  try{
+   const r=await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language,texts:missing})});
    const d=await r.json();
-   if(d.ok){
-     keys.forEach(k=>{const e=$(uiTargets[k]);if(e)e.textContent=d.translations[uiEnglish[k]]||uiEnglish[k]});
-     sectionLabels.forEach((text,i)=>{const e=$('sectionTr'+i);if(e)e.textContent=d.translations[text]||text});
-   }
+   if(d.ok)missing.forEach(t=>{const v=(d.translations||{})[t];if(v){out[t]=v;trSet(language,t,v)}});
+  }catch(e){console.error('translation cache',e)}
+ }
+ return out;
+}
+async function uiTranslate(texts){return cachedTranslations(texts,lang)}
+async function buildSignGallery(){
+ const box=$('signCategories');if(!box)return;
+ box.innerHTML='<div class="notice">Loading…</div>';
+ try{await ensureRoadSigns();await showSignCategories()}catch(e){box.innerHTML='<div class="notice">Could not load road signs.</div>'}
+}
+async function showSignCategories(){
+ $('signCategoryView').classList.remove('hidden');$('signListView').classList.add('hidden');$('signDetailView').classList.add('hidden');
+ const box=$('signCategories'),groups={};allRoadSigns.forEach(x=>(groups[x.category]??=[]).push(x));box.innerHTML='';
+ const names=Object.keys(groups).sort();
+ const base=['Road Signs','Choose a category, then choose a sign to learn what it means.','signs','All Road Sign Categories','Back to this category','Previous','Next','Start Road & Traffic Signs Questions',...names];
+ const tr=await uiTranslate(base);
+ $('signsTitle').textContent='🚦 '+(tr['Road Signs']||'Road Signs');
+ const intro=tr['Choose a category, then choose a sign to learn what it means.']||'Choose a category, then choose a sign to learn what it means.';
+ $('signsIntro').innerHTML='<span>'+intro+'</span>';
+ $('allSignCategoriesBtn').textContent='← '+(tr['All Road Sign Categories']||'All Road Sign Categories');
+ $('backSignCategoryBtn').textContent='← '+(tr['Back to this category']||'Back to this category');
+ $('signPrev').textContent='← '+(tr['Previous']||'Previous');
+ $('signNext').textContent=(tr['Next']||'Next')+' →';
+ $('startRoadQuestionsText').textContent=tr['Start Road & Traffic Signs Questions']||'Start Road & Traffic Signs Questions';
+ for(const name of names){
+  const b=document.createElement('button');b.className='signCategory';
+  const display=tr[name]||name;
+  b.innerHTML='<strong>'+(signCategoryIcons[name]||'🚦')+' '+display+'</strong><small>'+groups[name].length+' '+(tr['signs']||'signs')+' ›</small>';
+  b.onclick=()=>openSignCategory(name);box.appendChild(b)
+ }
+}
+async function translateSignStatic(){await showSignCategories()}
+async function openSignCategory(name){
+ currentSignCategory=name;currentCategorySigns=allRoadSigns.filter(x=>x.category===name);
+ $('signCategoryView').classList.add('hidden');$('signDetailView').classList.add('hidden');$('signListView').classList.remove('hidden');
+ const texts=[name,'Diagram','Tap to learn this sign','All Road Sign Categories'];
+ const tr=await uiTranslate(texts);
+ $('signListTitle').textContent=(signCategoryIcons[name]||'🚦')+' '+(tr[name]||name);
+ $('allSignCategoriesBtn').textContent='← '+(tr['All Road Sign Categories']||'All Road Sign Categories');
+ const g=$('signGallery');g.innerHTML='';
+ currentCategorySigns.forEach((x,i)=>{
+  const d=document.createElement('button');d.className='signCard';d.style.color='#fff';
+  d.innerHTML='<img loading="lazy" src="'+x.src+'" alt="UK traffic sign '+x.diagram+'"><b>'+(tr['Diagram']||'Diagram')+' '+x.diagram+'</b><span class="biTr">'+(tr['Tap to learn this sign']||'Tap to learn this sign')+'</span>';
+  d.onclick=()=>openSignDetail(i);g.appendChild(d)
+ });
+ window.scrollTo({top:0,behavior:'smooth'})
+}
+function backToSignList(){openSignCategory(currentSignCategory)}
+async function openSignDetail(i){
+ currentSignIndex=i;const x=currentCategorySigns[i];if(!x)return;
+ $('signCategoryView').classList.add('hidden');$('signListView').classList.add('hidden');$('signDetailView').classList.remove('hidden');
+ $('signDetailImg').src=x.src;$('signDetailTitle').textContent='…';$('signDetailMeaning').textContent='';$('signDetailTr').textContent='';
+ $('signPrev').disabled=i===0;$('signNext').disabled=i===currentCategorySigns.length-1;window.scrollTo({top:0,behavior:'smooth'});
+ try{
+  const r=await fetch('/api/road-sign-info',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({diagram:x.diagram,category:x.category,src:x.src})});
+  const d=await r.json();
+  const title=d.ok&&d.title?d.title:'UK traffic sign';
+  const meaning=d.ok&&d.meaning?d.meaning:'UK traffic sign in the '+x.category+' category.';
+  const uiTexts=['Back to this category','Previous','Next','Diagram',x.category,title,meaning];
+  const tr=await uiTranslate(uiTexts);
+  $('backSignCategoryBtn').textContent='← '+(tr['Back to this category']||'Back to this category');
+  $('signPrev').textContent='← '+(tr['Previous']||'Previous');
+  $('signNext').textContent=(tr['Next']||'Next')+' →';
+  $('signDetailTitle').textContent=tr[title]||title;
+  $('signDetailMeaning').textContent=tr[meaning]||meaning;
+  $('signDetailTr').textContent='';
+  $('signDetailDiagram').textContent=(tr['Diagram']||'Diagram')+' '+x.diagram+' • '+(tr[x.category]||x.category);
+ }catch(e){
+  $('signDetailTitle').textContent='UK traffic sign';$('signDetailMeaning').textContent='';
+ }
+}
+function moveSign(step){const n=currentSignIndex+step;if(n>=0&&n<currentCategorySigns.length)openSignDetail(n)}
+async function translateVisibleUI(){
+ const sectionLabels=categories.map(([c])=>c==='Road signs'?'Road and traffic signs':(c==='Incidents and emergencies'?'Incidents, accidents and emergencies':c));
+ const keys=Object.keys(uiEnglish);
+ const extra=['Back','Theory Home','My Progress','Answered','Correct','Accuracy'];
+ document.body.classList.toggle('ui-selected-language',lang!=='en');
+ if(lang==='en'){
+  [...Object.values(uiTargets),...categories.map((_,i)=>'sectionTr'+i)].map(id=>$(id)).filter(Boolean).forEach(e=>e.textContent='');
+  $('backBtn').textContent='← Back';$('theoryHomeBtn').textContent='🏠 Theory Home';
+  if($('progressTitle'))$('progressTitle').textContent='📊 My Progress';
+  if($('pAnsweredLabel'))$('pAnsweredLabel').textContent='Answered';
+  if($('pCorrectLabel'))$('pCorrectLabel').textContent='Correct';
+  if($('pAccuracyLabel'))$('pAccuracyLabel').textContent='Accuracy';
+  return;
+ }
+ const texts=[...keys.map(k=>uiEnglish[k]),...sectionLabels,...extra];
+ showLoading('Translating…','Preparing '+(langs.find(x=>x[0]===lang)?.[1]||'the selected language')+'.');
+ try{
+  const d=await (await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language:lang,texts})})).json();
+  if(d.ok){
+   keys.forEach(k=>{const e=$(uiTargets[k]);if(e)e.textContent=d.translations[uiEnglish[k]]||uiEnglish[k]});
+   sectionLabels.forEach((text,i)=>{const e=$('sectionTr'+i);if(e)e.textContent=d.translations[text]||text});
+   $('backBtn').textContent='← '+(d.translations['Back']||'Back');
+   $('theoryHomeBtn').textContent='🏠 '+(d.translations['Theory Home']||'Theory Home');
+   if($('progressTitle'))$('progressTitle').textContent='📊 '+(d.translations['My Progress']||'My Progress');
+   if($('pAnsweredLabel'))$('pAnsweredLabel').textContent=d.translations['Answered']||'Answered';
+   if($('pCorrectLabel'))$('pCorrectLabel').textContent=d.translations['Correct']||'Correct';
+   if($('pAccuracyLabel'))$('pAccuracyLabel').textContent=d.translations['Accuracy']||'Accuracy';
+  }
  }catch(e){console.error('UI translation error',e)}
  hideLoading();
 }
@@ -264,7 +392,26 @@ function startTimer(sec){stopTimer();timeLeft=sec;$('timer').classList.remove('h
 function tickTimer(){const m=Math.floor(timeLeft/60),s=timeLeft%60;$('timer').textContent='⏱ '+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
 function stopTimer(){if(timerHandle)clearInterval(timerHandle);timerHandle=null;const t=$('timer');if(t)t.classList.add('hidden')}
 function showWrong(){const ids=JSON.parse(localStorage.theoryWrong||'[]');const pool=bank.filter(q=>ids.includes(q.id));if(!pool.length){alert('You do not have any saved wrong answers yet.');return}learningMode=false;session=shuffle(pool);idx=0;stopTimer();showPage('quiz');render()}
-async function translated(q){if(lang==='en')return null;const key=lang+'-'+q.id;if(translationCache[key])return translationCache[key];const texts=[q.question,...q.options,q.explanation,q.category];try{const r=await fetch('/api/language-pack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({language:lang,texts})});const d=await r.json();if(d.ok){const a=texts.map(x=>d.translations[x]||x);return translationCache[key]={question:a[0],options:a.slice(1,5),explanation:a[5],category:a[6]}}}catch(e){}return null}
+async function translated(q){
+ if(lang==='en')return null;
+ const texts=[q.question,...q.options,q.explanation,q.category].filter(Boolean);
+ const d=await cachedTranslations(texts,lang);
+ return {question:d[q.question]||q.question,options:q.options.map(x=>d[x]||x),explanation:d[q.explanation]||q.explanation,category:d[q.category]||q.category}
+}
+let prefetchBusy=false;
+async function prefetchNextQuestions(){
+ if(prefetchBusy||lang==='en'||!Array.isArray(session)||!session.length)return;
+ prefetchBusy=true;
+ try{
+  const texts=[];
+  for(let n=1;n<=5;n++){
+   const q=session[idx+n];if(!q)break;
+   texts.push(q.question,...(q.options||[]),q.explanation,q.category);
+  }
+  if(texts.length)await cachedTranslations(texts,lang);
+ }catch(e){console.error('prefetch',e)}
+ finally{prefetchBusy=false}
+}
 async function render(){
  const q=session[idx];if(!q)return;
  updateSaveButton();
@@ -302,11 +449,32 @@ async function render(){
    $('next').className='next show';
  }
  hideLoading();
+
+ setTimeout(prefetchNextQuestions,300);
 }
 async function choose(i){const q=session[idx],bs=[...$('answers').children];bs.forEach(b=>b.disabled=true);bs[q.correct].classList.add('correct');if(i!==q.correct)bs[i].classList.add('wrong');answered++;if(i===q.correct)correct++;else{let w=JSON.parse(localStorage.theoryWrong||'[]');if(!w.includes(q.id))w.push(q.id);localStorage.theoryWrong=JSON.stringify(w)}localStorage.theoryAnswered=answered;localStorage.theoryCorrect=correct;updateStats();let tr=null;if(lang!=='en')tr=await translated(q);$('explain').innerHTML='<strong>'+(i===q.correct?'✓ Correct':'✕ Not quite')+'</strong><br><span>'+q.explanation+'</span>'+(tr?'<div class="tr rtl">'+tr.explanation+'</div>':'');$('explain').className='explain show';$('next').className='next show';$('bar').style.width=((idx+1)/session.length*100)+'%'}
 $('next').onclick=()=>{idx++;if(idx>=session.length){alert(learningMode?'Learning section complete.':'Test complete.');theoryHome()}else render()};
 const langs=[['en','English'],['ckb','کوردی سۆرانی'],['ar','العربية'],['fa','فارسی'],['tr','Türkçe'],['fr','Français'],['de','Deutsch'],['es','Español'],['ro','Română'],['pl','Polski'],['ur','اردو'],['ps','پښتو']];
-$('langBtn').onclick=async()=>{let n=(langs.findIndex(x=>x[0]===lang)+1)%langs.length;lang=langs[n][0];$('langBtn').textContent='🌐 '+langs[n][1];await translateVisibleUI();if(!$('quiz').classList.contains('hidden'))await render();if(!$('signs').classList.contains('hidden'))await buildSignGallery()};
+function openLanguagePicker(){
+ const box=$('langOptions');box.innerHTML='';
+ langs.forEach(([code,name])=>{
+  const b=document.createElement('button');b.type='button';b.className='langOption'+(code===lang?' active':'');b.textContent='🌐 '+name;
+  b.onclick=()=>selectLanguage(code);
+  box.appendChild(b);
+ });
+ $('langPicker').classList.remove('hidden');
+}
+function closeLanguagePicker(){$('langPicker').classList.add('hidden')}
+async function selectLanguage(code){
+ const chosen=langs.find(x=>x[0]===code);if(!chosen)return;
+ lang=code;$('langBtn').textContent='🌐 '+chosen[1];closeLanguagePicker();
+ await translateVisibleUI();
+ if(!$('quiz').classList.contains('hidden'))await render();
+ if(!$('signs').classList.contains('hidden'))await buildSignGallery();
+}
+$('langBtn').onclick=openLanguagePicker;
+$('langClose').onclick=closeLanguagePicker;
+$('langPicker').onclick=e=>{if(e.target===$('langPicker'))closeLanguagePicker()};
 load();
 </script></body></html>` }
 
@@ -318,7 +486,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const ZYFY_API_KEY = process.env.ZYFY_API_KEY;
 const ZYFY_BACKUP_API_KEY = process.env.ZYFY_BACKUP_API_KEY;
-const ONEAUTO_API_KEY = process.env.ONEAUTO_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // DVSA MOT History API credentials (keep these only in Render Environment)
@@ -551,6 +718,53 @@ app.get("/theory", (req, res) => {
 
 app.get("/api/theory/questions", (req, res) => {
   res.json(theoryQuestions);
+});
+
+app.get("/api/road-signs", (req, res) => {
+  const root = path.join(process.cwd(), "public", "road-signs");
+  const labels = {
+    "bus-and-cycle-signs":"Bus and cycle signs",
+    "direction-and-tourist-signs":"Direction and tourist signs",
+    "information-signs":"Information signs",
+    "level-crossing-signs":"Level crossing signs",
+    "low-bridge-signs":"Low bridge signs",
+    "miscellaneous":"Miscellaneous signs",
+    "motorway-signs":"Motorway signs",
+    "on-street-parking":"On-street parking signs",
+    "pedestrian-cycle-equestrian":"Pedestrian, cycle and equestrian signs",
+    "pedestrian-zone-signs":"Pedestrian zone signs"
+  };
+  try {
+    const result=[];
+    for (const folder of fs.readdirSync(root)) {
+      const dir=path.join(root,folder); if(!fs.statSync(dir).isDirectory()) continue;
+      for (const file of fs.readdirSync(dir).filter(f=>/\.jpe?g$/i.test(f)).sort()) {
+        result.push({category:labels[folder]||folder,diagram:file.replace(/\.jpe?g$/i,''),src:'/road-signs/'+folder+'/'+encodeURIComponent(file)});
+      }
+    }
+    res.json(result);
+  } catch(e) { res.status(500).json({error:'Could not load road signs'}); }
+});
+
+
+const ROAD_SIGN_INFO_CACHE = new Map();
+app.post("/api/road-sign-info", async (req,res)=>{
+  try{
+    const diagram=String(req.body?.diagram||'').trim(), category=String(req.body?.category||'').trim(), src=String(req.body?.src||'').trim();
+    if(!diagram || !src.startsWith('/road-signs/')) return res.status(400).json({ok:false,error:'Invalid sign'});
+    const key=category+'::'+diagram;if(ROAD_SIGN_INFO_CACHE.has(key))return res.json({ok:true,...ROAD_SIGN_INFO_CACHE.get(key)});
+    if(!GEMINI_API_KEY) return res.json({ok:true,title:'UK traffic sign',meaning:'Official UK traffic sign, diagram '+diagram+', in the '+category+' category.'});
+    const rel=decodeURIComponent(src.replace(/^\/road-signs\//,''));
+    const filePath=path.join(process.cwd(),'public','road-signs',rel);
+    const root=path.resolve(process.cwd(),'public','road-signs');const resolved=path.resolve(filePath);
+    if(!resolved.startsWith(root+path.sep) || !fs.existsSync(resolved)) return res.status(404).json({ok:false,error:'Image not found'});
+    const image=fs.readFileSync(resolved).toString('base64');
+    const prompt=`Identify this official UK Department for Transport traffic sign. It is diagram ${diagram}, category ${category}. Return JSON only with two fields: "title" = short standard English name/meaning, "meaning" = a clear 1-2 sentence learner explanation of exactly what the sign tells a UK driver. Do not guess beyond what is visible and the supplied diagram number.`;
+    for(const model of ['gemini-3.5-flash','gemini-3.5-flash-lite']){
+      try{const response=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':GEMINI_API_KEY},body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt},{inlineData:{mimeType:'image/jpeg',data:image}}]}],generationConfig:{responseMimeType:'application/json',maxOutputTokens:500}})});if(!response.ok)continue;const data=await response.json();const text=data?.candidates?.[0]?.content?.parts?.[0]?.text||'{}';const info=JSON.parse(text);if(info.title&&info.meaning){ROAD_SIGN_INFO_CACHE.set(key,{title:String(info.title),meaning:String(info.meaning)});return res.json({ok:true,title:String(info.title),meaning:String(info.meaning)})}}catch(e){}
+    }
+    res.json({ok:true,title:'UK traffic sign',meaning:'Official UK traffic sign, diagram '+diagram+', in the '+category+' category.'});
+  }catch(e){console.error('Road sign info:',e);res.status(500).json({ok:false,error:'Could not explain road sign'});}
 });
 
 app.get("/", (req, res) => {
@@ -1199,9 +1413,9 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
       <button id="دوگمە" class="primary-btn" onclick="پشکنین()">پشکنینی ئۆتۆمبێل</button>
     </div>
     <div style="max-width:670px;margin-top:14px;direction:ltr">
-      <a href="/theory" style="display:block;width:100%;padding:17px 18px;border-radius:14px;text-align:center;text-decoration:none;font-weight:900;font-size:16px;background:linear-gradient(135deg,#f4d99a,#d7b36a);color:#16120b;box-shadow:0 12px 30px rgba(215,179,106,.20)">🎓 Learn UK Driving Theory — 700 Questions</a>
+      <a href="/theory" style="display:block;width:100%;padding:17px 18px;border-radius:14px;text-align:center;text-decoration:none;font-weight:900;font-size:16px;background:linear-gradient(135deg,#f4d99a,#d7b36a);color:#16120b;box-shadow:0 12px 30px rgba(215,179,106,.20)" id="theoryHomeLink">🎓 Learn UK Driving Theory — 700 Questions</a>
     </div>
-    <div class="hero-note">زانیاری ڕاستەوخۆ لە سەرچاوەی داتا وەردەگیرێت.</div>
+    
   </div>
 </section>
 
@@ -1248,9 +1462,6 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
         <h3><span class="icon">🚘</span> زانیاری سەرەکی</h3>
         <div class="row"><span class="label">مارکە</span><span id="مارکە" class="value">—</span></div>
         <div class="row"><span class="label">مۆدێل</span><span id="مۆدێل" class="value">—</span></div>
-        <div class="row"><span class="label">ژمارەی خاوەنەکانی پێشوو</span><span id="خاوەن_پێشوو" class="value">—</span></div>
-        <div class="row"><span class="label">ژمارەی گۆڕینی تابلۆ</span><span id="گۆڕینی_تابلۆ" class="value">—</span></div>
-        <div class="row"><span class="label">تابلۆی پێشوو</span><span id="تابلۆی_پێشوو" class="value">—</span></div>
         <div class="row"><span class="label">ڕەنگ</span><span id="ڕەنگ" class="value">—</span></div>
         <div class="row"><span class="label">سووتەمەنی</span><span id="سووتەمەنی" class="value">—</span></div>
         <div class="row"><span class="label">قەبارەی ئەنجن</span><span id="ئەنجن" class="value">—</span></div>
@@ -1375,6 +1586,7 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
             <span id="extra_front_tyre">—</span><span id="extra_rear_tyre">—</span><span id="extra_timing_note"></span>
           </div>
           <div class="action-row">
+            <button type="button" class="secondary-btn" onclick="openInsuranceEstimate()" id="insuranceEstimateEntry">🛡️ Insurance Estimate</button>
             <button type="button" class="secondary-btn" onclick="toggleExtraBox('commonProblemsBox')">🔧 کێشە باوەکان</button>
             <button type="button" class="secondary-btn" onclick="toggleExtraBox('serviceScheduleBox')">🧰 خشتەی خزمەتگوزاری</button>
             <button type="button" class="secondary-btn" onclick="openRepairModal()">💷 نرخی چاککردنەوە</button>
@@ -1387,8 +1599,7 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
         </div>
       </div>
 
-
-      <div class="card full">
+<div class="card full">
         <h3><span class="icon">🛠️</span> کێشە دووبارەبووەکانی MOT</h3>
         <div id="کێشە_دووبارە"></div>
       </div>
@@ -1437,6 +1648,39 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
         <div id="compareSummary" class="compare-summary"></div>
         <div id="comparePoints" class="compare-points"></div>
       </div>
+    </div>
+  </div>
+</div>
+
+
+<div id="insuranceModal" class="modal-overlay" onclick="closeInsuranceEstimate(event)">
+  <div class="insurance-modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h2>🛡️ Insurance Estimate</h2>
+      <button type="button" class="modal-close" onclick="closeInsuranceEstimate()">×</button>
+    </div>
+    <div id="insuranceVehicleName" class="muted"></div>
+    <div class="insurance-form">
+      <div class="insurance-field"><label>Age</label><select id="insAge"><option value="">Choose your age</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option><option value="60">60</option><option value="61">61</option><option value="62">62</option><option value="63">63</option><option value="64">64</option><option value="65">65</option><option value="66">66</option><option value="67">67</option><option value="68">68</option><option value="69">69</option><option value="70">70</option><option value="71">71</option><option value="72">72</option><option value="73">73</option><option value="74">74</option><option value="75">75</option><option value="76">76</option><option value="77">77</option><option value="78">78</option><option value="79">79</option><option value="80">80</option><option value="81+">81+</option></select></div>
+      <div class="insurance-field"><label>Licence type</label><select id="insLicence"><option value="">Choose licence type</option><option>Full UK</option><option>UK provisional</option><option>EU / EEA</option><option>International / other</option></select></div>
+      <div class="insurance-field"><label>How long have you held your licence?</label><select id="insYears"><option value="">Choose years held</option><option>Less than 1 year</option><option>1 year</option><option>2 years</option><option>3-4 years</option><option>5-9 years</option><option>10+ years</option></select></div>
+      <div class="insurance-field"><label>No-claims bonus</label><select id="insNcb"><option value="">Choose no-claims bonus</option><option>None</option><option>1 year</option><option>2 years</option><option>3-4 years</option><option>5+ years</option></select></div>
+      <div class="insurance-field"><label>Driving convictions / penalty points?</label><select id="insPoints"><option value="">Choose Yes or No</option><option>No</option><option>Yes</option></select></div>
+      <div class="insurance-field"><label>Relevant unspent criminal convictions?</label><select id="insConvictions"><option value="">Choose an answer</option><option>No</option><option>Yes</option><option>Prefer not to say</option></select></div>
+      <div class="insurance-field"><label>Annual mileage</label><select id="insMileage"><option value="">Choose annual mileage</option><option>Up to 5,000</option><option>5,001-8,000</option><option>8,001-12,000</option><option>12,001-20,000</option><option>20,000+</option></select></div>
+      <div class="insurance-field"><label>Use</label><select id="insUse"><option value="">Choose vehicle use</option><option>Social only</option><option>Social and commuting</option><option>Business use</option></select></div>
+      <div class="insurance-field full"><label>Postcode area only (optional, e.g. GL2)</label><input id="insPostcode" maxlength="4" placeholder="GL2"></div>
+    </div>
+    <div class="note insurance-privacy">We do not ask for your name, full address, driving-licence number, email or phone number.</div>
+    <button id="insuranceRunBtn" class="compare-run-btn" type="button" onclick="runInsuranceEstimate()">Calculate Insurance Estimate</button>
+    <div id="insuranceStatus" class="compare-status"></div>
+    <div id="insuranceResult" class="insurance-result">
+      <div class="insurance-price-grid">
+        <div class="insurance-price"><small>Estimated monthly</small><b id="insMonthly">—</b></div>
+        <div class="insurance-price"><small>Estimated yearly</small><b id="insYearly">—</b></div>
+      </div>
+      <div id="insReason" class="small"></div>
+      <div class="note"><strong>This is an estimated price, not a real insurance price.</strong></div>
     </div>
   </div>
 </div>
@@ -2156,6 +2400,7 @@ document.addEventListener("DOMContentLoaded",async ()=>{
   }
 
   await applyLanguage();
+  await translateEnglishOriginUI();
 
   if(switching){
     startLanguageProgress(74,96,languageLoadingText().apply);
@@ -2641,7 +2886,66 @@ function نیشاندانی_CAZ_بۆ_دیزڵ(d){
 
 
 
+
+
+
+let englishOriginSnapshot=null;
+function captureEnglishOriginUI(){
+ if(englishOriginSnapshot)return;
+ const nodes=[];
+ const insuranceButton=document.getElementById("insuranceEstimateEntry");
+ const theoryButton=document.getElementById("theoryHomeLink");
+ const root=document.getElementById("insuranceModal");
+ if(insuranceButton)nodes.push(insuranceButton);
+ if(theoryButton)nodes.push(theoryButton);
+ if(root)root.querySelectorAll("h2,label,.note,.compare-run-btn,.insurance-price small,option").forEach(el=>nodes.push(el));
+ englishOriginSnapshot=nodes.map(el=>[el,el.textContent]);
+}
+async function translateEnglishOriginUI(){
+ captureEnglishOriginUI();
+ if(!englishOriginSnapshot)return;
+ if(currentLang==="en"){englishOriginSnapshot.forEach(x=>x[0].textContent=x[1]);return}
+ try{
+  const texts=[...new Set(englishOriginSnapshot.map(x=>x[1]).filter(Boolean))];
+  const r=await fetch("/api/language-pack",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({language:currentLang,texts})});
+  const j=await r.json(),map=j?.translations||{};
+  englishOriginSnapshot.forEach(x=>{x[0].textContent=map[x[1]]||x[1]});
+ }catch(e){console.warn("English-origin UI translation:",e)}
+}
+function openInsuranceEstimate(){
+ if(!latestCheckedVehicle)return;
+ const m=دۆزینەوە("insuranceModal"); if(!m)return;
+ const d=latestCheckedVehicle;
+ دۆزینەوە("insuranceVehicleName").textContent=[d.registration||d.registrationNumber,d.make,d.model,d.yearOfManufacture].filter(Boolean).join(" · ");
+ دۆزینەوە("insuranceResult").style.display="none";
+ دۆزینەوە("insuranceStatus").style.display="none";
+ m.classList.add("show");
+ translateEnglishOriginUI();
+ setTimeout(refreshSelectedLanguage,30);
+}
+function closeInsuranceEstimate(e){
+ if(e && e.target!==دۆزینەوە("insuranceModal"))return;
+ دۆزینەوە("insuranceModal")?.classList.remove("show");
+}
+async function runInsuranceEstimate(){
+ const fields={age:دۆزینەوە("insAge").value,licenceType:دۆزینەوە("insLicence").value,licenceYears:دۆزینەوە("insYears").value,noClaimsBonus:دۆزینەوە("insNcb").value,drivingConvictions:دۆزینەوە("insPoints").value,unspentConvictions:دۆزینەوە("insConvictions").value,annualMileage:دۆزینەوە("insMileage").value,use:دۆزینەوە("insUse").value,postcodeArea:دۆزینەوە("insPostcode").value.trim().toUpperCase()};
+ if(!fields.age||!fields.licenceType||!fields.licenceYears||!fields.noClaimsBonus||!fields.drivingConvictions||!fields.unspentConvictions||!fields.annualMileage||!fields.use){alert("Please answer the required questions.");return}
+ const btn=دۆزینەوە("insuranceRunBtn"),status=دۆزینەوە("insuranceStatus"),result=دۆزینەوە("insuranceResult");
+ btn.disabled=true;status.style.display="block";status.textContent="Calculating estimate…";result.style.display="none";
+ try{
+  const d=latestCheckedVehicle||{};
+  const r=await fetch("/api/insurance-estimate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({driver:fields,vehicle:{registration:d.registration||d.registrationNumber||null,make:d.make||null,model:d.model||null,yearOfManufacture:d.yearOfManufacture||null,fuelType:d.fuelType||null,engineCapacityCc:d.engineCapacityCc||null,insuranceGroup:latestExtraInsights?.insuranceGroup||null},language:currentLang})});
+  const x=await r.json(); if(!r.ok||!x.ok)throw new Error(x.error||"Estimate unavailable");
+  دۆزینەوە("insMonthly").textContent="£"+Math.round(x.monthlyMin).toLocaleString("en-GB")+"–£"+Math.round(x.monthlyMax).toLocaleString("en-GB");
+  دۆزینەوە("insYearly").textContent="£"+Math.round(x.yearlyMin).toLocaleString("en-GB")+"–£"+Math.round(x.yearlyMax).toLocaleString("en-GB");
+  دۆزینەوە("insReason").textContent=x.reason||"";
+  status.style.display="none";result.style.display="block";setTimeout(refreshSelectedLanguage,30);
+ }catch(e){status.textContent=e?.message||"Estimate unavailable"}
+ finally{btn.disabled=false}
+}
+
 async function refreshSelectedLanguage(){
+  await translateEnglishOriginUI();
   if(currentLang === "ckb") return;
   if(!languagePackReady) await loadLanguagePack();
   translateElementTree(document.body);
@@ -2905,12 +3209,6 @@ async function پشکنین(){
     const s = d.signals || {};
     const summary = d.summary || {};
 
-    const oneAuto = d.oneAutoHistory || {};
-    const previousRegs = Array.isArray(oneAuto.previousRegistrations) ? oneAuto.previousRegistrations : [];
-    دۆزینەوە("خاوەن_پێشوو").textContent = oneAuto.numberPreviousKeepers ?? (currentLang === "ckb" ? "بەردەست نییە" : translateString("Not available"));
-    دۆزینەوە("گۆڕینی_تابلۆ").textContent = oneAuto.numberOfPlateChanges ?? (currentLang === "ckb" ? "بەردەست نییە" : translateString("Not available"));
-    دۆزینەوە("تابلۆی_پێشوو").textContent = previousRegs.length ? previousRegs.join(", ") : (oneAuto.numberOfPlateChanges === 0 ? (currentLang === "ckb" ? "هیچ" : translateString("None")) : (currentLang === "ckb" ? "بەردەست نییە" : translateString("Not available")));
-
     const reg = d.registration || d.registrationNumber || d.vrm || vrm;
     دۆزینەوە("تابلۆ").textContent = reg;
     دۆزینەوە("سەردێڕ").textContent = [d.make,d.model].filter(Boolean).join(" ") || (currentLang === "ckb" ? "ڕاپۆرتی ئۆتۆمبێل" : translateString("ڕاپۆرتی ئۆتۆمبێل"));
@@ -3114,44 +3412,6 @@ async function پشکنین(){
 </html>`);
 });
 
-async function fetchOneAutoHistory(registration) {
-  if (!ONEAUTO_API_KEY) return { available:false, error:"ONEAUTO_API_KEY is not configured." };
-
-  const url = `https://api.oneautoapi.com/ukvehicledata/vehicledetailsfromvrm?vehicle_registration_mark=${encodeURIComponent(registration)}`;
-  const response = await fetch(url, {
-    headers: {
-      "x-api-key": ONEAUTO_API_KEY,
-      "Accept": "application/json"
-    }
-  });
-  const raw = await response.text();
-  let payload = null;
-  try { payload = JSON.parse(raw); } catch { payload = { error: raw }; }
-
-  if (!response.ok || payload?.success === false) {
-    throw new Error(payload?.error || payload?.message || `One Auto error ${response.status}`);
-  }
-
-  const result = payload?.result || {};
-  const keeperList = Array.isArray(result.keeper_change_list) ? result.keeper_change_list : [];
-  const plateList = Array.isArray(result.plate_change_list) ? result.plate_change_list : [];
-  const keeperNumbers = keeperList
-    .map(x => Number(x?.number_previous_keepers))
-    .filter(Number.isFinite);
-  const numberPreviousKeepers = keeperNumbers.length ? Math.max(...keeperNumbers) : null;
-  const current = String(result?.vehicle_identification?.vehicle_registration_mark || registration || "").replace(/\s+/g, "").toUpperCase();
-  const previousRegistrations = [...new Set(plateList
-    .map(x => String(x?.previous_vehicle_registration_mark || "").replace(/\s+/g, "").toUpperCase())
-    .filter(v => v && v !== current))];
-
-  return {
-    available:true,
-    numberPreviousKeepers,
-    numberOfPlateChanges: plateList.length,
-    previousRegistrations
-  };
-}
-
 app.post("/api/check", async (req, res) => {
   const vrm = پاککردنەوەی_ژمارە(req.body?.registration);
 
@@ -3267,17 +3527,8 @@ app.post("/api/check", async (req, res) => {
       dvsaMotError = motError.message;
     }
 
-    let oneAutoHistory = { available:false };
-    try {
-      oneAutoHistory = await fetchOneAutoHistory(vrm);
-    } catch (oneAutoError) {
-      console.error("One Auto lookup failed for", vrm, oneAutoError.message);
-      oneAutoHistory = { available:false, error:oneAutoError.message };
-    }
-
     const combinedData = {
       ...(result.data && typeof result.data === "object" ? result.data : {}),
-      oneAutoHistory,
       motHistory,
       motTests: motHistory,
       dvsaMot: dvsaMot || null,
@@ -3441,6 +3692,38 @@ ${JSON.stringify(batch)}
     console.error("Language pack error:",error);
     return res.status(500).json({ok:false,error:"Translation failed"});
   }
+});
+
+
+app.post("/api/insurance-estimate", async (req, res) => {
+  if(!GEMINI_API_KEY)return res.status(500).json({ok:false,error:"Insurance estimate is temporarily unavailable."});
+  const body=req.body||{}, driver=body.driver||{}, vehicle=body.vehicle||{};
+  const required=["age","licenceType","licenceYears","noClaimsBonus","drivingConvictions","unspentConvictions","annualMileage","use"];
+  if(required.some(k=>!String(driver[k]||"").trim()))return res.status(400).json({ok:false,error:"Please answer all required questions."});
+  const prompt=`Estimate a broad illustrative UK comprehensive car-insurance price range for the vehicle and anonymous driver profile below.
+This is NOT a quote. Do not claim access to insurer pricing. Use cautious broad ranges reflecting general UK insurance risk factors.
+Do not infer protected characteristics. Use only supplied fields. Postcode is outward area only.
+Return ONLY JSON:
+{"yearlyMin":0,"yearlyMax":0,"reason":"one short plain-language explanation"}
+Keep yearlyMin/yearlyMax plausible, positive, yearlyMax greater than yearlyMin, and use GBP.
+Vehicle: ${JSON.stringify(vehicle)}
+Anonymous driver profile: ${JSON.stringify(driver)}`;
+  const models=["gemini-3.5-flash-lite","gemini-3.5-flash"];
+  let lastError="Estimate unavailable";
+  for(const model of models){
+    try{
+      const response=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":GEMINI_API_KEY},body:JSON.stringify({contents:[{role:"user",parts:[{text:prompt}]}],generationConfig:{responseMimeType:"application/json",maxOutputTokens:300}})});
+      const raw=await response.text();let data=null;try{data=JSON.parse(raw)}catch{}
+      if(!response.ok){lastError=data?.error?.message||raw||lastError;continue}
+      const text=data?.candidates?.[0]?.content?.parts?.map(p=>p.text||"").join("")||"";
+      let x=null;try{x=JSON.parse(text)}catch{continue}
+      let min=Math.round(Number(x.yearlyMin)),max=Math.round(Number(x.yearlyMax));
+      if(!Number.isFinite(min)||!Number.isFinite(max)||min<=0||max<=min)continue;
+      min=Math.max(250,Math.min(min,15000));max=Math.max(min+100,Math.min(max,25000));
+      return res.json({ok:true,yearlyMin:min,yearlyMax:max,monthlyMin:Math.round(min/12),monthlyMax:Math.round(max/12),reason:String(x.reason||"Estimate based on the vehicle and anonymous driver details provided.").slice(0,400)});
+    }catch(e){lastError=e?.message||lastError}
+  }
+  return res.status(502).json({ok:false,error:lastError});
 });
 
 app.post("/api/fuel-estimate", async (req, res) => {
