@@ -1248,6 +1248,9 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
         <h3><span class="icon">🚘</span> زانیاری سەرەکی</h3>
         <div class="row"><span class="label">مارکە</span><span id="مارکە" class="value">—</span></div>
         <div class="row"><span class="label">مۆدێل</span><span id="مۆدێل" class="value">—</span></div>
+        <div class="row"><span class="label">ژمارەی خاوەنەکانی پێشوو</span><span id="خاوەن_پێشوو" class="value">—</span></div>
+        <div class="row"><span class="label">ژمارەی گۆڕینی تابلۆ</span><span id="گۆڕینی_تابلۆ" class="value">—</span></div>
+        <div class="row"><span class="label">تابلۆی پێشوو</span><span id="تابلۆی_پێشوو" class="value">—</span></div>
         <div class="row"><span class="label">ڕەنگ</span><span id="ڕەنگ" class="value">—</span></div>
         <div class="row"><span class="label">سووتەمەنی</span><span id="سووتەمەنی" class="value">—</span></div>
         <div class="row"><span class="label">قەبارەی ئەنجن</span><span id="ئەنجن" class="value">—</span></div>
@@ -1384,12 +1387,6 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
         </div>
       </div>
 
-<div class="card full">
-        <h3><span class="icon">📚</span> مێژووی خاوەن و تابلۆ</h3>
-        <div class="row"><span class="label">ژمارەی خاوەنەکانی پێشوو</span><span id="خاوەن_پێشوو" class="value">—</span></div>
-        <div class="row"><span class="label">ژمارەی گۆڕینی تابلۆ</span><span id="گۆڕینی_تابلۆ" class="value">—</span></div>
-        <div class="row"><span class="label">تابلۆی پێشوو</span><span id="تابلۆی_پێشوو" class="value">—</span></div>
-      </div>
 
       <div class="card full">
         <h3><span class="icon">🛠️</span> کێشە دووبارەبووەکانی MOT</h3>
