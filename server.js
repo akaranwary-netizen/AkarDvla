@@ -487,6 +487,7 @@ const PORT = process.env.PORT || 3000;
 const ZYFY_API_KEY = process.env.ZYFY_API_KEY;
 const ZYFY_BACKUP_API_KEY = process.env.ZYFY_BACKUP_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const CARIMAGES_API_KEY = process.env.CARIMAGES_API_KEY;
 
 // DVSA MOT History API credentials (keep these only in Render Environment)
 const DVSA_API_KEY = process.env.DVSA_API_KEY;
@@ -917,6 +918,11 @@ body{
 
 .report-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:28px 0 4px}
 .report-actions .check-another-btn{width:min(360px,100%)}
+.vehicle-image-wrap{display:none;margin:0 0 22px;padding:16px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,#111419,#0b0d10);text-align:center;overflow:hidden}
+.vehicle-image-wrap.show{display:block}
+.vehicle-image{display:block;width:100%;max-width:720px;max-height:420px;object-fit:contain;margin:0 auto;border-radius:14px;background:#fff}
+.vehicle-image-note{margin-top:8px;color:var(--muted);font-size:12px}
+
 .print-report-btn{
   width:min(360px,100%);border:0;border-radius:15px;padding:16px 22px;
   background:linear-gradient(135deg,var(--gold2),var(--gold));color:#17120a;
@@ -1434,6 +1440,11 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
       <strong>AKAR'S CAR CHECK</strong>
       <div id="printReportMeta"></div>
     </div>
+    <div id="vehicleImageWrap" class="vehicle-image-wrap">
+      <img id="vehicleImage" class="vehicle-image" alt="Vehicle image" loading="eager">
+      <div class="vehicle-image-note">Illustrative model image</div>
+    </div>
+
     <div class="summary">
       <div class="summary-main">
         <div id="تابلۆ" class="plate">—</div>
@@ -3178,6 +3189,26 @@ function checkAnotherCar(){
   window.location.reload();
 }
 
+async function loadVehicleImage(d){
+  const wrap=document.getElementById("vehicleImageWrap");
+  const img=document.getElementById("vehicleImage");
+  if(!wrap||!img)return;
+  wrap.classList.remove("show");
+  img.removeAttribute("src");
+  const make=String(d?.make||"").trim();
+  const model=String(d?.model||"").trim();
+  const year=String(d?.yearOfManufacture||"").trim();
+  if(!make)return;
+  const qs=new URLSearchParams({make});
+  if(model)qs.set("model",model);
+  if(year)qs.set("year",year);
+  qs.set("view","front34");
+  img.onload=()=>wrap.classList.add("show");
+  img.onerror=()=>{wrap.classList.remove("show");img.removeAttribute("src");};
+  img.alt=[make,model,year].filter(Boolean).join(" ")+" vehicle image";
+  img.src="/api/car-image?"+qs.toString();
+}
+
 async function پشکنین(){
   const vrm = دۆزینەوە("ژمارە").value.toUpperCase().replace(/[^A-Z0-9]/g,"");
 
@@ -3206,6 +3237,7 @@ async function پشکنین(){
     }
 
     const d = result.data || {};
+    loadVehicleImage(d);
     const s = d.signals || {};
     const summary = d.summary || {};
 
@@ -3410,6 +3442,40 @@ async function پشکنین(){
 
 </body>
 </html>`);
+});
+
+// CarImages integration: keep the API key on the server and proxy the signed image.
+app.get("/api/car-image", async (req, res) => {
+  if (!CARIMAGES_API_KEY) return res.status(503).send("CarImages API is not configured");
+  const clean = value => String(value || "").trim().slice(0, 80);
+  const make = clean(req.query.make);
+  const model = clean(req.query.model);
+  const year = clean(req.query.year).replace(/[^0-9]/g, "").slice(0, 4);
+  const allowedViews = new Set(["front34","front34-r","front","side","side-r","rear34","rear34-r","rear"]);
+  const view = allowedViews.has(clean(req.query.view)) ? clean(req.query.view) : "front34";
+  if (!make) return res.status(400).send("Vehicle make is required");
+  try {
+    const params = new URLSearchParams({api_key:CARIMAGES_API_KEY,type:"car",make,view,width:"800",format:"webp"});
+    if (model) params.set("model", model);
+    if (year) params.set("year", year);
+    const signedResponse = await fetch("https://carimagesapi.com/api/v1/signed-url?" + params.toString(), {
+      headers:{"Accept":"application/json"}
+    });
+    if (!signedResponse.ok) return res.status(signedResponse.status).send("Vehicle image unavailable");
+    const signedData = await signedResponse.json();
+    if (!signedData?.url) return res.status(404).send("Vehicle image unavailable");
+    const imageResponse = await fetch(signedData.url, {redirect:"follow"});
+    if (!imageResponse.ok) return res.status(imageResponse.status).send("Vehicle image unavailable");
+    const contentType = imageResponse.headers.get("content-type") || "image/webp";
+    if (!contentType.startsWith("image/")) return res.status(502).send("Invalid image response");
+    const buffer = Buffer.from(await imageResponse.arrayBuffer());
+    res.set("Content-Type", contentType);
+    res.set("Cache-Control", "public, max-age=86400, stale-while-revalidate=604800");
+    res.send(buffer);
+  } catch (error) {
+    console.error("CarImages error:", error?.message || error);
+    res.status(502).send("Vehicle image unavailable");
+  }
 });
 
 app.post("/api/check", async (req, res) => {
