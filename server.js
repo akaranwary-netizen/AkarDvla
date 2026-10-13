@@ -113,7 +113,7 @@ const theoryQuestions = Array.from({length:700}, (_,i) => {
 
 function theoryPage(){ return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#070809"><title>Akar's Theory Learning</title>
+<meta name="theme-color" content="#070809"><title>ZAI RegPoint Theory Learning</title>
 <style>
 :root{--bg:#070809;--card:#111419;--card2:#171b21;--gold:#d7b36a;--gold2:#f1d394;--text:#f7f7f8;--muted:#aeb5bf;--line:#2a3038;--ok:#48c98b;--bad:#ef6666}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#18140c,#08090b 34%,#070809);color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
@@ -155,7 +155,7 @@ body.ui-selected-language .section .biTr{font-size:inherit;font-weight:inherit}
 @media(max-width:460px){.langOptions{grid-template-columns:1fr}}
 
 </style></head><body>
-<header class="top"><div class="topin"><a class="iconbtn" href="/">🚗 Car Check</a><div class="brand">AKAR'S <span>THEORY</span></div><button class="lang" id="langBtn">🌐 English</button></div></header>
+<header class="top"><div class="topin"><a class="iconbtn" href="/">🚗 Car Check</a><div class="brand">ZAI <span>REGPOINT THEORY</span></div><button class="lang" id="langBtn">🌐 English</button></div></header>
 <main class="wrap">
 <section id="home">
  <div class="hero"><div><span class="biEn">🇬🇧 UK Driving Theory Learning</span><span class="biTr rtl" id="heroTopTr"></span></div><h1><span class="biEn">Learn. Practise. <span>Pass.</span></span><span class="biTr rtl" id="heroTitleTr"></span></h1><p><span class="biEn">Choose your language for menus and learning pages. Theory questions keep the English wording with your translation.</span><span class="biTr rtl" id="heroSubTr"></span></p></div>
@@ -487,6 +487,7 @@ const PORT = process.env.PORT || 3000;
 const ZYFY_API_KEY = process.env.ZYFY_API_KEY;
 const ZYFY_BACKUP_API_KEY = process.env.ZYFY_BACKUP_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const CARIMAGES_API_KEY = process.env.CARIMAGES_API_KEY;
 
 // DVSA MOT History API credentials (keep these only in Render Environment)
 const DVSA_API_KEY = process.env.DVSA_API_KEY;
@@ -697,7 +698,7 @@ app.get("/robots.txt", (req, res) => {
   res.type("text/plain").send(`User-agent: *
 Allow: /
 
-Sitemap: https://dvlabyakar.onrender.com/sitemap.xml
+Sitemap: https://www.ukvehiclechecker.org/sitemap.xml
 `);
 });
 
@@ -705,7 +706,7 @@ app.get("/sitemap.xml", (req, res) => {
   res.type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://dvlabyakar.onrender.com/</loc>
+    <loc>https://www.ukvehiclechecker.org/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -777,20 +778,20 @@ app.get("/", (req, res) => {
 <meta name="theme-color" content="#070809">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ZAI REGPOINT">
+<meta name="apple-mobile-web-app-title" content="ZAI RegPoint">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
-<meta name="description" content="Check any UK vehicle registration for MOT, tax, mileage, fuel cost, Clean Air Zone information and market price guidance with ZAI REGPOINT." />
+<meta name="description" content="Check any UK vehicle registration for MOT, tax, mileage, fuel cost, Clean Air Zone information and market price guidance with ZAI RegPoint." />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="ZAI REGPOINT – Free UK MOT, Tax, Mileage & CAZ Check" />
-  <meta property="og:description" content="Check any UK vehicle registration for MOT, tax, mileage, fuel cost, Clean Air Zone information and market price guidance with ZAI REGPOINT." />
-  <meta property="og:url" content="https://dvlabyakar.onrender.com/" />
-  <meta property="og:site_name" content="ZAI REGPOINT" />
+  <meta property="og:title" content="ZAI RegPoint – Free UK MOT, Tax, Mileage & CAZ Check" />
+  <meta property="og:description" content="Check any UK vehicle registration for MOT, tax, mileage, fuel cost, Clean Air Zone information and market price guidance with ZAI RegPoint." />
+  <meta property="og:url" content="https://www.ukvehiclechecker.org/" />
+  <meta property="og:site_name" content="ZAI RegPoint" />
   <meta name="twitter:card" content="summary" />
   <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
-<link rel="canonical" href="https://dvlabyakar.onrender.com/">
-<title>ZAI REGPOINT – Free UK MOT, Tax, Mileage & CAZ Check</title>
+<link rel="canonical" href="https://www.ukvehiclechecker.org/">
+<title>ZAI RegPoint – Free UK MOT, Tax, Mileage & CAZ Check</title>
 
 <style>
 :root{
@@ -917,6 +918,11 @@ body{
 
 .report-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:28px 0 4px}
 .report-actions .check-another-btn{width:min(360px,100%)}
+.vehicle-image-wrap{display:none;margin:0 0 22px;padding:16px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,#111419,#0b0d10);text-align:center;overflow:hidden}
+.vehicle-image-wrap.show{display:block}
+.vehicle-image{display:block;width:100%;max-width:720px;max-height:420px;object-fit:contain;margin:0 auto;border-radius:14px;background:#fff}
+.vehicle-image-note{margin-top:8px;color:var(--muted);font-size:12px}
+
 .print-report-btn{
   width:min(360px,100%);border:0;border-radius:15px;padding:16px 22px;
   background:linear-gradient(135deg,var(--gold2),var(--gold));color:#17120a;
@@ -1320,63 +1326,8 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
 .pwa-install-close{margin-left:auto;background:transparent;border:0;color:#fff;font-size:20px;cursor:pointer}
 @media(display-mode:standalone){.pwa-install-hint{display:none!important}}
 
-
-/* ZAI REGPOINT — luxury visual refresh only. Functional markup and logic are unchanged. */
-:root{--bg:#02060b;--panel:#07101a;--panel2:#0b1521;--gold:#e7b844;--gold2:#ffe08a;--text:#fff;--muted:#b9c1cd;--line:rgba(255,211,105,.18)}
-body{background:radial-gradient(circle at 78% 8%,rgba(212,154,37,.13),transparent 27%),linear-gradient(180deg,#02050a 0%,#06101a 46%,#02060b 100%);background-attachment:fixed}
-.topbar{background:rgba(2,6,11,.88);border-bottom:1px solid rgba(255,211,105,.16);box-shadow:0 8px 35px rgba(0,0,0,.35)}
-.topbar-inner{max-width:1280px;padding:16px 24px;gap:14px}
-.brand{font-size:25px;letter-spacing:1.2px;white-space:nowrap;text-shadow:0 0 24px rgba(255,197,70,.18)}
-.brand:before{content:'⌁';display:inline-block;color:var(--gold2);margin-right:8px;font-size:29px;transform:scaleX(1.5)}
-.brand span{background:linear-gradient(180deg,#fff1b0,#dca62d);-webkit-background-clip:text;background-clip:text;color:transparent}
-.tag{border-color:rgba(255,211,105,.28);background:rgba(255,211,105,.07);color:#f6d77e}
-.language-switch{border-color:rgba(255,211,105,.32)!important;background:rgba(7,15,24,.9)!important;color:#ffe08a!important;box-shadow:inset 0 0 18px rgba(255,194,57,.04)}
-.hero{min-height:650px;border-bottom:1px solid rgba(255,211,105,.16);background:radial-gradient(ellipse at 78% 46%,rgba(38,57,73,.72),transparent 28%),radial-gradient(ellipse at 76% 82%,rgba(229,167,44,.18),transparent 24%),linear-gradient(110deg,#02050a 0%,#040a11 48%,#101a24 100%)}
-.hero:before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 155px,rgba(255,198,72,.035) 156px,transparent 158px);pointer-events:none}
-.hero::after{background:linear-gradient(90deg,rgba(2,5,10,.99) 0%,rgba(2,6,11,.92) 40%,rgba(2,6,11,.15) 75%,rgba(2,6,11,.35) 100%)}
-.hero-art{right:-1%;bottom:24px;width:min(800px,62vw);filter:drop-shadow(0 36px 45px #000) drop-shadow(0 0 18px rgba(255,190,55,.11))}
-.hero-inner{max-width:1280px;padding:86px 24px 105px}
-.eyebrow{padding:10px 17px;border-color:rgba(255,207,87,.55);background:rgba(8,13,19,.72);color:#ffe28d;box-shadow:0 0 22px rgba(224,168,40,.08)}
-.hero h1{font-size:clamp(48px,7vw,82px);max-width:700px;letter-spacing:-2px;text-shadow:0 8px 30px #000}
-.hero h1 span{background:linear-gradient(180deg,#fff1b4,#e4a92d);-webkit-background-clip:text;background-clip:text;color:transparent}
-.hero p{font-size:18px;color:#d2d7de;max-width:660px}
-.search-wrap{max-width:760px;padding:10px;border-radius:22px;border:1px solid #d9a93c;background:rgba(4,9,15,.88);box-shadow:0 0 0 1px rgba(255,218,115,.12),0 0 32px rgba(222,164,42,.14),0 28px 70px rgba(0,0,0,.48)}
-.plate-input{background:linear-gradient(180deg,#fff,#f2f4f7);font-size:27px;padding:20px;color:#10151c;box-shadow:inset 0 0 0 1px #d6dbe1}
-.primary-btn,.compare-run-btn{background:linear-gradient(135deg,#ffe58e 0%,#e9b33a 55%,#c98b19 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 8px 28px rgba(226,164,35,.28);font-size:16px}
-.primary-btn:hover,.compare-run-btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
-.quick-actions{max-width:1280px!important;gap:14px!important;padding:20px 24px!important}
-.quick-action{border:1px solid rgba(255,207,87,.25)!important;background:linear-gradient(145deg,rgba(11,22,34,.96),rgba(3,9,15,.98))!important;border-radius:18px!important;box-shadow:inset 0 1px rgba(255,255,255,.025),0 12px 28px rgba(0,0,0,.2)!important;transition:.2s ease}
-.quick-action:hover{border-color:#d9a93c!important;box-shadow:0 0 24px rgba(226,168,42,.12)!important;transform:translateY(-2px)}
-.quick-action.gold{background:linear-gradient(145deg,rgba(65,46,13,.72),rgba(12,15,18,.98))!important;color:#ffe18a!important}
-.content{max-width:1280px!important;padding-left:24px!important;padding-right:24px!important}
-.card,.result-card,.report-card,.section-card,.compare-modal,.insurance-modal{background:linear-gradient(145deg,rgba(11,22,34,.97),rgba(3,9,15,.98))!important;border:1px solid rgba(255,211,105,.19)!important;box-shadow:0 18px 45px rgba(0,0,0,.24)!important}
-.report{border-radius:22px}
-footer{border-top:1px solid rgba(255,211,105,.16)!important;background:#02060b!important;color:#9099a6!important}
-@media(max-width:760px){
- .topbar{position:sticky}.topbar-inner{padding:13px 16px;min-height:72px}.brand{font-size:18px;letter-spacing:.8px}.brand:before{content:'⌁';font-size:22px;margin-right:6px}.tag{display:none}
- .language-switch{padding:8px 11px!important;border-radius:12px!important;font-size:13px!important}
- .hero{min-height:900px;display:block;background:radial-gradient(ellipse at 76% 20%,rgba(47,72,92,.82),transparent 27%),radial-gradient(ellipse at 72% 38%,rgba(229,167,44,.18),transparent 22%),linear-gradient(180deg,#02050a 0%,#06101a 48%,#02060b 100%)}
- .hero:before{opacity:.7}
- .hero-art{display:block;width:690px;max-width:none;right:-270px;top:92px;bottom:auto;opacity:1;z-index:1;filter:drop-shadow(0 30px 35px #000) drop-shadow(0 0 18px rgba(255,190,55,.18))}
- .hero::after{z-index:1;background:linear-gradient(180deg,rgba(2,5,10,.05) 0%,rgba(2,5,10,.08) 27%,rgba(2,5,10,.88) 47%,#02060b 68%,#02060b 100%)}
- .hero-inner{padding:330px 16px 46px;position:relative;z-index:2}
- .eyebrow{font-size:12px;padding:9px 14px}
- .hero h1{font-size:clamp(47px,13.5vw,64px);line-height:.98;max-width:440px;margin-top:18px;letter-spacing:-1.8px}
- .hero p{font-size:16px;line-height:1.65;max-width:430px;margin-bottom:22px}
- .search-wrap{display:grid;grid-template-columns:1fr;padding:10px;gap:10px;border-radius:20px;box-shadow:0 0 0 1px rgba(255,218,115,.12),0 0 30px rgba(222,164,42,.18),0 25px 55px rgba(0,0,0,.5)}
- .plate-input{padding:19px 14px;font-size:28px;min-height:72px}.primary-btn{min-height:64px;font-size:17px}
- #theoryHomeLink{margin-top:4px!important;padding:20px 16px!important;border:1px solid rgba(255,220,126,.72)!important;background:radial-gradient(circle at 82% 50%,rgba(255,220,120,.26),transparent 24%),linear-gradient(135deg,#241b0c,#d6aa4d 130%)!important;color:#fff!important;text-shadow:0 2px 10px #000;box-shadow:0 0 25px rgba(226,168,42,.14)!important}
- .quick-actions{grid-template-columns:1fr 1fr!important;margin:0 auto!important;padding:16px 14px 22px!important;gap:10px!important;background:#02060b}
- .quick-action{min-height:104px!important;padding:14px 10px!important;flex-direction:column;text-align:center;font-size:13px;border-color:rgba(255,207,87,.28)!important}
- .compare-action{grid-column:auto!important}
- .content{padding-left:14px!important;padding-right:14px!important}
-}
-@media(max-width:390px){
- .brand{font-size:16px}.language-switch{font-size:12px!important}.hero-art{width:630px;right:-265px;top:100px}.hero-inner{padding-top:315px}.hero{min-height:885px}.hero h1{font-size:46px}.quick-action{min-height:96px!important}
-}
-
 </style>
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"ZAI REGPOINT","url":"https://dvlabyakar.onrender.com/","description":"Check any UK vehicle registration for MOT, tax, mileage, fuel cost, Clean Air Zone information and market price guidance with ZAI REGPOINT.","inLanguage":["ckb","en-GB"]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"ZAI RegPoint","url":"https://www.ukvehiclechecker.org/","description":"Check any UK vehicle registration for MOT, tax, mileage, fuel cost, Clean Air Zone information and market price guidance with ZAI RegPoint.","inLanguage":["ckb","en-GB"]}</script>
 </head>
 
 <body>
@@ -1489,6 +1440,11 @@ footer{border-top:1px solid rgba(255,211,105,.16)!important;background:#02060b!i
       <strong>ZAI REGPOINT</strong>
       <div id="printReportMeta"></div>
     </div>
+    <div id="vehicleImageWrap" class="vehicle-image-wrap">
+      <img id="vehicleImage" class="vehicle-image" alt="Vehicle image" loading="eager">
+      <div class="vehicle-image-note">Illustrative model image</div>
+    </div>
+
     <div class="summary">
       <div class="summary-main">
         <div id="تابلۆ" class="plate">—</div>
@@ -1755,11 +1711,11 @@ footer{border-top:1px solid rgba(255,211,105,.16)!important;background:#02060b!i
 
 <div id="pwaInstallHint" class="pwa-install-hint" role="status" aria-live="polite">
   <div>📱</div>
-  <div><strong>Install ZAI REGPOINT</strong><span>On iPhone: tap Share in Safari, then “Add to Home Screen”.</span></div>
+  <div><strong>Install ZAI RegPoint</strong><span>On iPhone: tap Share in Safari, then “Add to Home Screen”.</span></div>
   <button class="pwa-install-close" type="button" aria-label="Close" onclick="dismissPwaHint()">×</button>
 </div>
 
-<footer>© 2026 ZAI REGPOINT</footer>
+<footer>© 2026 ZAI RegPoint</footer>
 
 <script>
 
@@ -3225,12 +3181,32 @@ async function printVehicleReport(){
   }
 
   const oldTitle=document.title;
-  document.title=(reg?reg+" - ":"")+"ZAI REGPOINT";
+  document.title=(reg?reg+" - ":"")+"ZAI RegPoint";
   setTimeout(function(){window.print();setTimeout(function(){document.title=oldTitle;},500);},120);
 }
 
 function checkAnotherCar(){
   window.location.reload();
+}
+
+async function loadVehicleImage(d){
+  const wrap=document.getElementById("vehicleImageWrap");
+  const img=document.getElementById("vehicleImage");
+  if(!wrap||!img)return;
+  wrap.classList.remove("show");
+  img.removeAttribute("src");
+  const make=String(d?.make||"").trim();
+  const model=String(d?.model||"").trim();
+  const year=String(d?.yearOfManufacture||"").trim();
+  if(!make)return;
+  const qs=new URLSearchParams({make});
+  if(model)qs.set("model",model);
+  if(year)qs.set("year",year);
+  qs.set("view","front34");
+  img.onload=()=>wrap.classList.add("show");
+  img.onerror=()=>{wrap.classList.remove("show");img.removeAttribute("src");};
+  img.alt=[make,model,year].filter(Boolean).join(" ")+" vehicle image";
+  img.src="/api/car-image?"+qs.toString();
 }
 
 async function پشکنین(){
@@ -3261,6 +3237,7 @@ async function پشکنین(){
     }
 
     const d = result.data || {};
+    loadVehicleImage(d);
     const s = d.signals || {};
     const summary = d.summary || {};
 
@@ -3465,6 +3442,40 @@ async function پشکنین(){
 
 </body>
 </html>`);
+});
+
+// CarImages integration: keep the API key on the server and proxy the signed image.
+app.get("/api/car-image", async (req, res) => {
+  if (!CARIMAGES_API_KEY) return res.status(503).send("CarImages API is not configured");
+  const clean = value => String(value || "").trim().slice(0, 80);
+  const make = clean(req.query.make);
+  const model = clean(req.query.model);
+  const year = clean(req.query.year).replace(/[^0-9]/g, "").slice(0, 4);
+  const allowedViews = new Set(["front34","front34-r","front","side","side-r","rear34","rear34-r","rear"]);
+  const view = allowedViews.has(clean(req.query.view)) ? clean(req.query.view) : "front34";
+  if (!make) return res.status(400).send("Vehicle make is required");
+  try {
+    const params = new URLSearchParams({api_key:CARIMAGES_API_KEY,type:"car",make,view,width:"800",format:"webp"});
+    if (model) params.set("model", model);
+    if (year) params.set("year", year);
+    const signedResponse = await fetch("https://carimagesapi.com/api/v1/signed-url?" + params.toString(), {
+      headers:{"Accept":"application/json"}
+    });
+    if (!signedResponse.ok) return res.status(signedResponse.status).send("Vehicle image unavailable");
+    const signedData = await signedResponse.json();
+    if (!signedData?.url) return res.status(404).send("Vehicle image unavailable");
+    const imageResponse = await fetch(signedData.url, {redirect:"follow"});
+    if (!imageResponse.ok) return res.status(imageResponse.status).send("Vehicle image unavailable");
+    const contentType = imageResponse.headers.get("content-type") || "image/webp";
+    if (!contentType.startsWith("image/")) return res.status(502).send("Invalid image response");
+    const buffer = Buffer.from(await imageResponse.arrayBuffer());
+    res.set("Content-Type", contentType);
+    res.set("Cache-Control", "public, max-age=86400, stale-while-revalidate=604800");
+    res.send(buffer);
+  } catch (error) {
+    console.error("CarImages error:", error?.message || error);
+    res.status(502).send("Vehicle image unavailable");
+  }
 });
 
 app.post("/api/check", async (req, res) => {
@@ -4085,5 +4096,5 @@ app.post("/api/similar-listings", async (req, res) => {
 
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`ZAI REGPOINT لە پۆرتی ${PORT} کار دەکات`);
+  console.log(`ZAI RegPoint لە پۆرتی ${PORT} کار دەکات`);
 });
