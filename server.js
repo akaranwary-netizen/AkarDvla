@@ -113,7 +113,7 @@ const theoryQuestions = Array.from({length:700}, (_,i) => {
 
 function theoryPage(){ return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#070809"><title>Akar's Theory Learning</title>
+<meta name="theme-color" content="#070809"><title>ZAI RegPoint Theory Learning</title>
 <style>
 :root{--bg:#070809;--card:#111419;--card2:#171b21;--gold:#d7b36a;--gold2:#f1d394;--text:#f7f7f8;--muted:#aeb5bf;--line:#2a3038;--ok:#48c98b;--bad:#ef6666}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#18140c,#08090b 34%,#070809);color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
@@ -155,7 +155,7 @@ body.ui-selected-language .section .biTr{font-size:inherit;font-weight:inherit}
 @media(max-width:460px){.langOptions{grid-template-columns:1fr}}
 
 </style></head><body>
-<header class="top"><div class="topin"><a class="iconbtn" href="/">🚗 Car Check</a><div class="brand">AKAR'S <span>THEORY</span></div><button class="lang" id="langBtn">🌐 English</button></div></header>
+<header class="top"><div class="topin"><a class="iconbtn" href="/">🚗 Car Check</a><div class="brand">ZAI <span>REGPOINT THEORY</span></div><button class="lang" id="langBtn">🌐 English</button></div></header>
 <main class="wrap">
 <section id="home">
  <div class="hero"><div><span class="biEn">🇬🇧 UK Driving Theory Learning</span><span class="biTr rtl" id="heroTopTr"></span></div><h1><span class="biEn">Learn. Practise. <span>Pass.</span></span><span class="biTr rtl" id="heroTitleTr"></span></h1><p><span class="biEn">Choose your language for menus and learning pages. Theory questions keep the English wording with your translation.</span><span class="biTr rtl" id="heroSubTr"></span></p></div>
@@ -698,7 +698,7 @@ app.get("/robots.txt", (req, res) => {
   res.type("text/plain").send(`User-agent: *
 Allow: /
 
-Sitemap: https://dvlabyakar.onrender.com/sitemap.xml
+Sitemap: https://www.ukvehiclechecker.org/sitemap.xml
 `);
 });
 
@@ -706,7 +706,7 @@ app.get("/sitemap.xml", (req, res) => {
   res.type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://dvlabyakar.onrender.com/</loc>
+    <loc>https://www.ukvehiclechecker.org/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -778,20 +778,20 @@ app.get("/", (req, res) => {
 <meta name="theme-color" content="#070809">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Akar’s Car Check">
+<meta name="apple-mobile-web-app-title" content="ZAI RegPoint">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
-<meta name="description" content="Check any UK vehicle registration for MOT, tax, mileage, fuel cost, Clean Air Zone information and market price guidance with Akar's Car Check." />
+<meta name="description" content="Check any UK vehicle registration for MOT, tax, mileage, fuel cost, Clean Air Zone information and market price guidance with ZAI RegPoint." />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Akar's Car Check – Free UK MOT, Tax, Mileage & CAZ Check" />
-  <meta property="og:description" content="Check any UK vehicle registration for MOT, tax, mileage, fuel cost, Clean Air Zone information and market price guidance with Akar's Car Check." />
-  <meta property="og:url" content="https://dvlabyakar.onrender.com/" />
-  <meta property="og:site_name" content="Akar's Car Check" />
+  <meta property="og:title" content="ZAI RegPoint – Free UK MOT, Tax, Mileage & CAZ Check" />
+  <meta property="og:description" content="Check any UK vehicle registration for MOT, tax, mileage, fuel cost, Clean Air Zone information and market price guidance with ZAI RegPoint." />
+  <meta property="og:url" content="https://www.ukvehiclechecker.org/" />
+  <meta property="og:site_name" content="ZAI RegPoint" />
   <meta name="twitter:card" content="summary" />
   <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
-<link rel="canonical" href="https://dvlabyakar.onrender.com/">
-<title>Akar's Car Check – Free UK MOT, Tax, Mileage & CAZ Check</title>
+<link rel="canonical" href="https://www.ukvehiclechecker.org/">
+<title>ZAI RegPoint – Free UK MOT, Tax, Mileage & CAZ Check</title>
 
 <style>
 :root{
@@ -1327,7 +1327,7 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
 @media(display-mode:standalone){.pwa-install-hint{display:none!important}}
 
 </style>
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Akar's Car Check","url":"https://dvlabyakar.onrender.com/","description":"Check any UK vehicle registration for MOT, tax, mileage, fuel cost, Clean Air Zone information and market price guidance with Akar's Car Check.","inLanguage":["ckb","en-GB"]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"ZAI RegPoint","url":"https://www.ukvehiclechecker.org/","description":"Check any UK vehicle registration for MOT, tax, mileage, fuel cost, Clean Air Zone information and market price guidance with ZAI RegPoint.","inLanguage":["ckb","en-GB"]}</script>
 </head>
 
 <body>
@@ -1367,7 +1367,7 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
 
 <header class="topbar">
   <div class="topbar-inner">
-    <div class="brand">AKAR'S <span>CAR CHECK</span></div>
+    <div class="brand">ZAI <span>REGPOINT</span></div>
 <button id="languageSwitch" class="language-switch" type="button" onclick="openLanguageModal()">🌐 زمان</button>
     <div class="tag">پشکنینی ئۆتۆمبێلی بەریتانیا</div>
   </div>
@@ -1437,7 +1437,7 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
 
   <section id="ڕاپۆرت" class="report">
     <div id="printReportHeader" class="print-only">
-      <strong>AKAR'S CAR CHECK</strong>
+      <strong>ZAI REGPOINT</strong>
       <div id="printReportMeta"></div>
     </div>
     <div id="vehicleImageWrap" class="vehicle-image-wrap">
@@ -1711,11 +1711,11 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
 
 <div id="pwaInstallHint" class="pwa-install-hint" role="status" aria-live="polite">
   <div>📱</div>
-  <div><strong>Install Akar’s Car Check</strong><span>On iPhone: tap Share in Safari, then “Add to Home Screen”.</span></div>
+  <div><strong>Install ZAI RegPoint</strong><span>On iPhone: tap Share in Safari, then “Add to Home Screen”.</span></div>
   <button class="pwa-install-close" type="button" aria-label="Close" onclick="dismissPwaHint()">×</button>
 </div>
 
-<footer>© 2026 Akar's Car Check</footer>
+<footer>© 2026 ZAI RegPoint</footer>
 
 <script>
 
@@ -3181,7 +3181,7 @@ async function printVehicleReport(){
   }
 
   const oldTitle=document.title;
-  document.title=(reg?reg+" - ":"")+"Akar's Car Check";
+  document.title=(reg?reg+" - ":"")+"ZAI RegPoint";
   setTimeout(function(){window.print();setTimeout(function(){document.title=oldTitle;},500);},120);
 }
 
@@ -4096,5 +4096,5 @@ app.post("/api/similar-listings", async (req, res) => {
 
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Akar's Car Check لە پۆرتی ${PORT} کار دەکات`);
+  console.log(`ZAI RegPoint لە پۆرتی ${PORT} کار دەکات`);
 });
