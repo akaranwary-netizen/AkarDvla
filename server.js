@@ -488,15 +488,7 @@ const ZYFY_API_KEY = process.env.ZYFY_API_KEY;
 const ZYFY_BACKUP_API_KEY = process.env.ZYFY_BACKUP_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const CARIMAGES_API_KEY = process.env.CARIMAGES_API_KEY;
-
-// Developer / Vehicle Data Global test tools. Secrets stay server-side in Render.
-const VDG_API_KEY = process.env.VDG_API_KEY || process.env.VDG_APIKEY || process.env.VDG_KEY || "";
-function getDeveloperPassword(){
-  const direct = process.env.ADMIN_TEST_PASSWORD || process.env.DEVELOPER_PASSWORD || process.env.TEST_PASSWORD || process.env.API_TEST_PASSWORD || process.env.ONEAUTO_PASSWORD || process.env.ONEAPI_PASSWORD;
-  if (direct) return String(direct);
-  const dynamicKey = Object.keys(process.env).find(k => /(?:DEV|TEST|ONEA).*PASS|PASS.*(?:DEV|TEST|ONEA)/i.test(k));
-  return dynamicKey ? String(process.env[dynamicKey] || "") : "";
-}
+const ADMIN_TEST_PASSWORD = process.env.ADMIN_TEST_PASSWORD;
 
 // DVSA MOT History API credentials (keep these only in Render Environment)
 const DVSA_API_KEY = process.env.DVSA_API_KEY;
@@ -694,6 +686,7 @@ async function addSoraniToMotHistory(motHistory) {
 }
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(express.static("public"));
 
 function پاککردنەوەی_ژمارە(value) {
@@ -775,6 +768,47 @@ app.post("/api/road-sign-info", async (req,res)=>{
     }
     res.json({ok:true,title:'UK traffic sign',meaning:'Official UK traffic sign, diagram '+diagram+', in the '+category+' category.'});
   }catch(e){console.error('Road sign info:',e);res.status(500).json({ok:false,error:'Could not explain road sign'});}
+});
+
+// Private developer test — Step 1: password gate only. No VDG lookup is connected here yet.
+function developerTestPage({ error = "", unlocked = false } = {}) {
+  const safeError = String(error || "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>ZAI RegPoint — Developer Test</title>
+<style>
+:root{--bg:#070809;--panel:#12151a;--gold:#d7b36a;--gold2:#f4d99a;--text:#f7f7f7;--muted:#9da4ad;--line:#30353d;--bad:#ff8585;--ok:#70d6a3}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#1b160d,#070809 38%);color:var(--text);font-family:Arial,Tahoma,sans-serif;display:grid;place-items:center;padding:22px}
+.box{width:min(480px,100%);background:linear-gradient(145deg,#171a20,#0d0f12);border:1px solid rgba(215,179,106,.28);border-radius:22px;padding:24px;box-shadow:0 28px 90px #0008}
+.brand{font-size:18px;font-weight:900;margin-bottom:18px}.brand span{color:var(--gold2)}h1{font-size:25px;margin:0 0 8px}p{color:var(--muted);line-height:1.6;margin:0 0 18px}.lock{font-size:38px;margin-bottom:10px}
+label{display:block;font-weight:800;margin:0 0 8px}input{width:100%;border:1px solid var(--line);border-radius:12px;background:#090b0e;color:#fff;padding:14px 15px;font-size:17px;outline:none}input:focus{border-color:var(--gold)}
+button,.back{display:block;width:100%;margin-top:12px;border:0;border-radius:12px;padding:14px 16px;font-weight:900;font-size:15px;text-align:center;text-decoration:none;cursor:pointer}button{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#17120a}.back{border:1px solid var(--line);background:#111419;color:#fff}.error{color:var(--bad);background:#2a1518;border:1px solid #5a292f;border-radius:11px;padding:11px;margin-bottom:14px}.ok{color:var(--ok);background:#10251c;border:1px solid #28533f;border-radius:11px;padding:12px;margin-bottom:16px}.reg{background:#f7d33c;color:#111;text-transform:uppercase;text-align:center;letter-spacing:2px;font-weight:900}.disabled{opacity:.5;cursor:not-allowed}
+</style>
+</head>
+<body><main class="box"><div class="brand">ZAI <span>REGPOINT</span></div>
+${unlocked ? `<div class="lock">✅</div><h1>Developer access unlocked</h1><div class="ok">Password accepted. Step 1 is working correctly.</div><p>The Vehicle Data Global lookup is intentionally not connected yet. We will add that in the next step after you confirm this password screen works.</p><label for="testReg">Registration</label><input id="testReg" class="reg" placeholder="AB12 CDE" maxlength="8" disabled><button class="disabled" type="button" disabled>Check vehicle — next step</button>` : `<div class="lock">🔒</div><h1>Developer Test</h1><p>Enter your private admin password to continue.</p>${safeError ? `<div class="error">${safeError}</div>` : ""}<form method="post" action="/developer-test"><label for="password">Admin password</label><input id="password" name="password" type="password" autocomplete="current-password" required autofocus><button type="submit">Unlock Developer Test</button></form>`}
+<a class="back" href="/">← Back to ZAI RegPoint</a></main></body></html>`;
+}
+
+app.get("/developer-test", (req, res) => {
+  res.set("Cache-Control", "no-store");
+  res.type("html").send(developerTestPage());
+});
+
+app.post("/developer-test", (req, res) => {
+  res.set("Cache-Control", "no-store");
+  if (!ADMIN_TEST_PASSWORD) {
+    return res.status(503).type("html").send(developerTestPage({ error: "ADMIN_TEST_PASSWORD is not configured on the server." }));
+  }
+  const supplied = String(req.body?.password || "");
+  if (supplied !== String(ADMIN_TEST_PASSWORD)) {
+    return res.status(401).type("html").send(developerTestPage({ error: "Incorrect password." }));
+  }
+  return res.type("html").send(developerTestPage({ unlocked: true }));
 });
 
 app.get("/", (req, res) => {
@@ -1302,11 +1336,6 @@ body{
 }
 .language-progress-percent{direction:ltr;margin-top:9px;color:var(--gold2);font-weight:900;font-size:13px}
 
-.developer-btn{position:fixed!important;right:14px!important;bottom:calc(14px + env(safe-area-inset-bottom))!important;z-index:99990!important;margin:0!important;border:1px solid rgba(214,177,88,.65);background:#0b0d10;color:#e8c96f;border-radius:999px;padding:12px 16px;font-weight:900;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.55)}
-.dev-overlay{display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.82);padding:18px;align-items:center;justify-content:center}
-.dev-overlay.show{display:flex!important}.dev-box{width:min(720px,100%);max-height:88vh;overflow:auto;background:#050607;border:1px solid rgba(214,177,88,.35);border-radius:20px;padding:20px;box-shadow:0 28px 90px #000;color:#fff;text-align:left}
-.dev-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.dev-head h2{margin:0;color:#e0bf6b}.dev-close{background:transparent;border:0;color:#fff;font-size:28px;cursor:pointer}.dev-label{display:block;margin:12px 0 6px;color:#bfc5cc;font-size:13px;font-weight:800}.dev-input{box-sizing:border-box;width:100%;background:#111419;color:#fff;border:1px solid #303640;border-radius:12px;padding:14px;font-size:16px}.dev-run{width:100%;margin-top:14px;border:0;border-radius:12px;padding:14px;background:linear-gradient(135deg,#d5ad4e,#f0d889);color:#111;font-weight:900;font-size:15px;cursor:pointer}.dev-console{margin-top:16px;min-height:130px;max-height:420px;overflow:auto;white-space:pre-wrap;word-break:break-word;background:#000;border:1px solid #262b31;border-radius:12px;padding:14px;color:#cdd5dd;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}.dev-summary{margin-top:14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.dev-item{background:#0d1014;border:1px solid #242a31;border-radius:10px;padding:10px}.dev-item b{display:block;color:#d9b65e;font-size:11px;text-transform:uppercase;margin-bottom:4px}@media(max-width:600px){.dev-summary{grid-template-columns:1fr}}
-
 footer{
   border-top:1px solid rgba(255,255,255,.05);
   text-align:center;color:#717984;font-size:12px;padding:28px 22px 40px
@@ -1444,6 +1473,7 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
   <a class="quick-action" href="https://www.gov.uk/vehicle-tax" target="_blank" rel="noopener noreferrer">💷 باجی ڕێگاوبان بدە</a>
   <button type="button" class="quick-action compare-action" onclick="openCompareModal()">⚔️ بەراوردکردنی 2 ئۆتۆمبێل</button>
   <a class="quick-action" href="https://www.gov.uk/sold-bought-vehicle" target="_blank" rel="noopener noreferrer">🚗 لۆگ بووک بگۆڕە</a>
+  <a class="quick-action" href="/developer-test" rel="nofollow">🔒 Developer Test</a>
 </div>
 
 <main class="content">
@@ -1730,42 +1760,8 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
 </div>
 
 <footer>© 2026 ZAI RegPoint</footer>
-<button id="developerFloatingButton" type="button" class="developer-btn" onclick="openDeveloper()">⚙ Developer</button>
-
-<div id="developerOverlay" class="dev-overlay" onclick="if(event.target===this)closeDeveloper()">
-  <div class="dev-box" onclick="event.stopPropagation()">
-    <div class="dev-head"><h2>Developer API Test</h2><button type="button" class="dev-close" onclick="closeDeveloper()">×</button></div>
-    <div style="color:#8f98a3;font-size:13px">Private test area. Enter your Render test password, then a registration. Your API key is never shown here.</div>
-    <label class="dev-label" for="developerPassword">Test password</label>
-    <input id="developerPassword" class="dev-input" type="password" autocomplete="off" placeholder="Enter password">
-    <label class="dev-label" for="developerReg">Registration</label>
-    <input id="developerReg" class="dev-input" type="text" maxlength="8" autocapitalize="characters" placeholder="e.g. AB12CDE">
-    <button id="developerRun" type="button" class="dev-run" onclick="runDeveloperVdgTest()">Run Vehicle Data Global check</button>
-    <div id="developerSummary" class="dev-summary"></div>
-    <pre id="developerConsole" class="dev-console">Ready. This test runs VDICheck and shows previous keeper information plus other useful history returned by your API.</pre>
-  </div>
-</div>
 
 <script>
-
-function openDeveloper(){document.getElementById("developerOverlay")?.classList.add("show");setTimeout(()=>document.getElementById("developerPassword")?.focus(),80)}
-function closeDeveloper(){document.getElementById("developerOverlay")?.classList.remove("show")}
-function devValue(v){return (v===null||v===undefined||v==="")?"Not returned":String(v)}
-async function runDeveloperVdgTest(){
-  const pass=document.getElementById("developerPassword").value;
-  const reg=document.getElementById("developerReg").value.toUpperCase().replace(/[^A-Z0-9]/g,"");
-  const btn=document.getElementById("developerRun"), out=document.getElementById("developerConsole"), sum=document.getElementById("developerSummary");
-  if(!pass){out.textContent="Enter your test password first.";return} if(reg.length<2){out.textContent="Enter a valid registration.";return}
-  btn.disabled=true;btn.textContent="Checking API…";sum.innerHTML="";out.textContent="Connecting to Vehicle Data Global / VDICheck…";
-  try{
-    const r=await fetch("/api/developer/vdg-check",{method:"POST",headers:{"Content-Type":"application/json","x-developer-password":pass},body:JSON.stringify({registration:reg})});
-    const j=await r.json(); if(!r.ok||!j.ok)throw new Error(j.error+(j.detail?"\n"+j.detail:""));
-    const x=j.summary||{};
-    const rows=[["Registration",x.registration],["Make",x.make],["Model",x.model],["Year",x.year],["Previous keepers",x.previousKeepers],["Keeper acquired",x.currentKeeperAcquisitionDate],["Last V5C issue",x.lastV5CIssueDate],["Write-off category",x.writeOffCategory],["Stolen",x.stolen],["Finance",x.finance],["Colour",x.colour],["Fuel",x.fuelType]];
-    sum.innerHTML=rows.map(([k,v])=>'<div class="dev-item"><b>'+k+'</b><span>'+devValue(v).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))+'</span></div>').join("");
-    out.textContent=JSON.stringify(j,null,2);
-  }catch(e){out.textContent="ERROR\n"+e.message}finally{btn.disabled=false;btn.textContent="Run Vehicle Data Global check"}
-}
 
 // PWA / iPhone install support
 if ("serviceWorker" in navigator) {
@@ -3523,70 +3519,6 @@ app.get("/api/car-image", async (req, res) => {
   } catch (error) {
     console.error("CarImages error:", error?.message || error);
     res.status(502).send("Vehicle image unavailable");
-  }
-});
-
-// Password-protected developer VDG lookup. This does not change the public vehicle-check route.
-app.post("/api/developer/vdg-check", async (req, res) => {
-  const expected = getDeveloperPassword();
-  const supplied = String(req.headers["x-developer-password"] || "");
-  if (!expected) return res.status(503).json({ok:false,error:"Developer test password is not configured in Render."});
-  if (!supplied || supplied !== expected) return res.status(401).json({ok:false,error:"Incorrect developer password."});
-
-  const vrm = String(req.body?.registration || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0,8);
-  if (vrm.length < 2) return res.status(400).json({ok:false,error:"Enter a valid UK registration."});
-  if (!VDG_API_KEY) return res.status(503).json({ok:false,error:"VDG_API_KEY is not configured in Render."});
-
-  try {
-    // Vehicle Data Global OpenAPI VDICheck endpoint supplied by the account documentation.
-    const url = new URL("https://uk.api.vehicledataglobal.com/r2/lookup");
-    url.searchParams.set("ApiKey", VDG_API_KEY);
-    url.searchParams.set("PackageName", "VDICheck");
-    url.searchParams.set("Vrm", vrm);
-    const upstream = await fetch(url.toString(), {headers:{Accept:"application/json"}});
-    const text = await upstream.text();
-    let data; try { data = JSON.parse(text); } catch { data = {raw:text}; }
-    if (!upstream.ok) return res.status(upstream.status).json({ok:false,error:"VDG lookup failed ("+upstream.status+")",providerResponse:data});
-
-    // Search the provider response without assuming one exact casing/version of its field names.
-    const flat = {};
-    function walk(v, path=""){
-      if (v === null || v === undefined) return;
-      if (Array.isArray(v)) { v.forEach((x,i)=>walk(x,path+"["+i+"]")); return; }
-      if (typeof v === "object") { Object.entries(v).forEach(([k,x])=>walk(x,path ? path+"."+k : k)); return; }
-      flat[path] = v;
-    }
-    walk(data);
-    function pick(patterns){
-      const entries=Object.entries(flat);
-      for(const re of patterns){ const hit=entries.find(([k])=>re.test(k)); if(hit) return hit[1]; }
-      return null;
-    }
-    function collect(patterns, limit=20){
-      return Object.entries(flat).filter(([k])=>patterns.some(re=>re.test(k))).slice(0,limit).map(([field,value])=>({field,value}));
-    }
-    const summary = {
-      registration: vrm,
-      make: pick([/(^|\.)make$/i,/manufacturer/i]),
-      model: pick([/(^|\.)model$/i]),
-      year: pick([/yearofmanufacture/i,/manufactureyear/i,/(^|\.)year$/i]),
-      previousKeepers: pick([/numberofpreviouskeepers/i,/previouskeepers/i,/keepercount/i,/keeperchangescount/i,/numberofkeepers/i]),
-      currentKeeperAcquisitionDate: pick([/currentkeeper.*(?:acquisition|acquired|date)/i,/keeper.*startdate/i]),
-      lastV5CIssueDate: pick([/v5c.*(?:issue|issued).*date/i,/lastv5c/i]),
-      writeOffCategory: pick([/write.?off.*category/i,/insurance.*category/i,/damage.*category/i]),
-      stolen: pick([/(^|\.)(?:stolen|isStolen)$/i,/police.*stolen/i]),
-      finance: pick([/(^|\.)(?:finance|financeflag|outstandingfinance)$/i,/finance.*status/i]),
-      colour: pick([/(^|\.)colou?r$/i]),
-      fuelType: pick([/fueltype/i]),
-      engineSize: pick([/enginesize/i,/enginecapacity/i]),
-      firstRegistered: pick([/firstreg/i,/registrationdate/i]),
-      keeperRelatedFields: collect([/keeper/i,/v5c/i],30),
-      historyRelatedFields: collect([/write.?off/i,/stolen/i,/finance/i,/mileage/i],30)
-    };
-    return res.json({ok:true,source:"Vehicle Data Global / VDICheck",summary,raw:data});
-  } catch (error) {
-    console.error("VDG developer lookup error:", error);
-    return res.status(502).json({ok:false,error:"Could not connect to Vehicle Data Global.",detail:error.message});
   }
 });
 
