@@ -1886,7 +1886,7 @@ async function runAdminVehicleHistory(){
     const d=await r.json();
     if(r.status===401){setAdminTestAuthenticated(false);throw new Error("Admin session locked. Enter your password again.");}
     if(!r.ok||!d.ok) throw new Error((d.error||"Lookup failed.")+(d.provider?"\n"+JSON.stringify(d.provider,null,2):""));
-    const title=document.createElement("div"); title.style.fontWeight="900"; title.style.marginBottom="8px"; title.textContent=`${d.registration} — Vehicle Data Global response`;
+    const title=document.createElement("div"); title.style.fontWeight="900"; title.style.marginBottom="8px"; title.textContent=(d.registration || "Vehicle") + " — Vehicle Data Global response";
     const pre=document.createElement("pre"); pre.textContent=JSON.stringify(d.data,null,2);
     out.append(title,pre);
   }catch(e){if(err)err.textContent=e.message||"Lookup failed.";}
