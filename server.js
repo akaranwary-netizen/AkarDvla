@@ -488,7 +488,6 @@ const ZYFY_API_KEY = process.env.ZYFY_API_KEY;
 const ZYFY_BACKUP_API_KEY = process.env.ZYFY_BACKUP_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const CARIMAGES_API_KEY = process.env.CARIMAGES_API_KEY;
-const DEVELOPER_PASSWORD = process.env.DEVELOPER_PASSWORD || process.env.DEV_PASSWORD || "";
 
 // DVSA MOT History API credentials (keep these only in Render Environment)
 const DVSA_API_KEY = process.env.DVSA_API_KEY;
@@ -688,15 +687,9 @@ async function addSoraniToMotHistory(motHistory) {
 app.use(express.json());
 app.use(express.static("public"));
 
-// Password-protected developer diagnostics. Secrets are never returned to the browser.
-function requireDeveloper(req, res, next) {
-  if (!DEVELOPER_PASSWORD) return res.status(503).json({ok:false,error:"Developer password is not configured. Set DEVELOPER_PASSWORD in Render."});
-  const supplied = String(req.get("x-developer-password") || "");
-  if (supplied !== DEVELOPER_PASSWORD) return res.status(401).json({ok:false,error:"Wrong developer password."});
-  next();
-}
-
-app.post("/api/developer/test", requireDeveloper, async (req, res) => {
+// Developer diagnostics. No extra password is required.
+// The endpoint never returns API keys or secrets.
+app.post("/api/developer/test", async (req, res) => {
   const provider = String(req.body?.provider || "all").toLowerCase();
   const registration = String(req.body?.registration || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
   const results = {};
@@ -717,18 +710,18 @@ app.post("/api/developer/test", requireDeveloper, async (req, res) => {
     if (!DVSA_API_KEY) throw new Error("DVSA_API_KEY is not configured");
     const token = await getDvsaToken();
     if (!token) throw new Error("DVSA OAuth credentials are incomplete");
-    if (!registration) return "Authentication OK (enter a registration to test vehicle lookup)";
+    if (!registration) return "Authentication OK — enter a registration for a vehicle test";
     const data = await fetchDvsaMotHistory(registration);
-    return "Connected; MOT records returned: " + (Array.isArray(data?.motTests) ? data.motTests.length : 0);
+    return "Connected — MOT records: " + (Array.isArray(data?.motTests) ? data.motTests.length : 0);
   });
 
   if (provider === "all" || provider === "zyfy") await run("ZYFY", async () => {
     const key = ZYFY_API_KEY || ZYFY_BACKUP_API_KEY;
     if (!key) throw new Error("ZYFY API key is not configured");
-    if (!registration) return "Key configured (enter a registration for a live test)";
+    if (!registration) return "API key configured — enter a registration for a live test";
     const r = await fetch("https://zyfy.uk/v1/vehicle/" + encodeURIComponent(registration), {headers:{"X-Api-Key":key,"Accept":"application/json"}});
     if (!r.ok) throw new Error("HTTP " + r.status + ": " + (await r.text()).slice(0,160));
-    return "Connected; vehicle lookup succeeded";
+    return "Connected — vehicle lookup succeeded";
   });
 
   if (provider === "all" || provider === "carimages") await run("CarImages", async () => {
@@ -1780,8 +1773,8 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
 <div id="developerModal" class="modal-overlay" onclick="closeDeveloper(event)">
   <div class="dev-modal" onclick="event.stopPropagation()">
     <div class="modal-head"><h2>Developer API Test</h2><button type="button" class="modal-close" onclick="closeDeveloper()">×</button></div>
-    <div class="dev-note">Protected by your server-side DEVELOPER_PASSWORD. API keys are never displayed here.</div>
-    <div class="dev-grid"><input id="devPassword" class="dev-input" type="password" placeholder="Developer password" autocomplete="current-password"><select id="devProvider" class="dev-select"><option value="all">Test all APIs</option><option value="zyfy">ZYFY</option><option value="dvsa">DVSA MOT</option><option value="gemini">Gemini</option><option value="carimages">CarImages</option></select></div>
+    <div class="dev-note">Test your connected APIs. Secret keys are never displayed.</div>
+    <div class="dev-grid"><select id="devProvider" class="dev-select"><option value="all">Test all APIs</option><option value="zyfy">ZYFY</option><option value="dvsa">DVSA MOT</option><option value="gemini">Gemini</option><option value="carimages">CarImages</option></select></div>
     <input id="devRegistration" class="dev-input" maxlength="10" placeholder="Optional registration for live vehicle test (e.g. AB12CDE)" style="text-transform:uppercase">
     <button type="button" class="dev-run" style="margin-top:10px" onclick="runDeveloperTest()">Run API Test</button>
     <div id="devConsole" class="dev-console">Ready. Enter the developer password and choose a test.</div>
@@ -1791,14 +1784,13 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
 <script>
 
 
-function openDeveloper(){document.getElementById("developerModal").classList.add("show");document.getElementById("devPassword").focus()}
+function openDeveloper(){document.getElementById("developerModal").classList.add("show")}
 function closeDeveloper(e){if(e && e.target!==document.getElementById("developerModal"))return;document.getElementById("developerModal").classList.remove("show")}
 async function runDeveloperTest(){
  const out=document.getElementById("devConsole"),btn=document.querySelector(".dev-run");
- const password=document.getElementById("devPassword").value,provider=document.getElementById("devProvider").value,registration=document.getElementById("devRegistration").value.trim();
- if(!password){out.textContent="Enter your developer password first.";return}
+ const provider=document.getElementById("devProvider").value,registration=document.getElementById("devRegistration").value.trim();
  btn.disabled=true;out.textContent="Testing " + provider + "…";
- try{const r=await fetch("/api/developer/test",{method:"POST",headers:{"Content-Type":"application/json","x-developer-password":password},body:JSON.stringify({provider:provider,registration:registration})});const d=await r.json().catch(()=>({ok:false,error:"Invalid server response"}));if(!r.ok)throw new Error(d.error||("HTTP "+r.status));
+ try{const r=await fetch("/api/developer/test",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({provider:provider,registration:registration})});const d=await r.json().catch(()=>({ok:false,error:"Invalid server response"}));if(!r.ok)throw new Error(d.error||("HTTP "+r.status));
  const lines=["API TEST — "+new Date(d.testedAt).toLocaleString(),""];Object.entries(d.results||{}).forEach(function(entry){const name=entry[0],v=entry[1];lines.push((v.ok?"✓ ":"✕ ")+name+" — "+(v.ok?(v.detail||"OK"):(v.error||"Failed"))+" ["+v.ms+"ms]")});out.textContent=lines.join("\n");
  }catch(err){out.textContent="ERROR: "+err.message}finally{btn.disabled=false}
 }
