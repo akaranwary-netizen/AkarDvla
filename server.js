@@ -492,7 +492,7 @@ const CARIMAGES_API_KEY = process.env.CARIMAGES_API_KEY;
 // Developer / Vehicle Data Global test tools. Secrets stay server-side in Render.
 const VDG_API_KEY = process.env.VDG_API_KEY || process.env.VDG_APIKEY || process.env.VDG_KEY || "";
 function getDeveloperPassword(){
-  const direct = process.env.DEVELOPER_PASSWORD || process.env.TEST_PASSWORD || process.env.API_TEST_PASSWORD || process.env.ONEAUTO_PASSWORD || process.env.ONEAPI_PASSWORD;
+  const direct = process.env.ADMIN_TEST_PASSWORD || process.env.DEVELOPER_PASSWORD || process.env.TEST_PASSWORD || process.env.API_TEST_PASSWORD || process.env.ONEAUTO_PASSWORD || process.env.ONEAPI_PASSWORD;
   if (direct) return String(direct);
   const dynamicKey = Object.keys(process.env).find(k => /(?:DEV|TEST|ONEA).*PASS|PASS.*(?:DEV|TEST|ONEA)/i.test(k));
   return dynamicKey ? String(process.env[dynamicKey] || "") : "";
@@ -1302,7 +1302,7 @@ body{
 }
 .language-progress-percent{direction:ltr;margin-top:9px;color:var(--gold2);font-weight:900;font-size:13px}
 
-.developer-btn{margin-top:14px;border:1px solid rgba(214,177,88,.45);background:#0b0d10;color:#d8b765;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer}
+.developer-btn{position:fixed!important;right:14px!important;bottom:calc(14px + env(safe-area-inset-bottom))!important;z-index:99990!important;margin:0!important;border:1px solid rgba(214,177,88,.65);background:#0b0d10;color:#e8c96f;border-radius:999px;padding:12px 16px;font-weight:900;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.55)}
 .dev-overlay{display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.82);padding:18px;align-items:center;justify-content:center}
 .dev-overlay.show{display:flex!important}.dev-box{width:min(720px,100%);max-height:88vh;overflow:auto;background:#050607;border:1px solid rgba(214,177,88,.35);border-radius:20px;padding:20px;box-shadow:0 28px 90px #000;color:#fff;text-align:left}
 .dev-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.dev-head h2{margin:0;color:#e0bf6b}.dev-close{background:transparent;border:0;color:#fff;font-size:28px;cursor:pointer}.dev-label{display:block;margin:12px 0 6px;color:#bfc5cc;font-size:13px;font-weight:800}.dev-input{box-sizing:border-box;width:100%;background:#111419;color:#fff;border:1px solid #303640;border-radius:12px;padding:14px;font-size:16px}.dev-run{width:100%;margin-top:14px;border:0;border-radius:12px;padding:14px;background:linear-gradient(135deg,#d5ad4e,#f0d889);color:#111;font-weight:900;font-size:15px;cursor:pointer}.dev-console{margin-top:16px;min-height:130px;max-height:420px;overflow:auto;white-space:pre-wrap;word-break:break-word;background:#000;border:1px solid #262b31;border-radius:12px;padding:14px;color:#cdd5dd;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}.dev-summary{margin-top:14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.dev-item{background:#0d1014;border:1px solid #242a31;border-radius:10px;padding:10px}.dev-item b{display:block;color:#d9b65e;font-size:11px;text-transform:uppercase;margin-bottom:4px}@media(max-width:600px){.dev-summary{grid-template-columns:1fr}}
@@ -1729,7 +1729,8 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
   <button class="pwa-install-close" type="button" aria-label="Close" onclick="dismissPwaHint()">×</button>
 </div>
 
-<footer>© 2026 ZAI RegPoint<br><button type="button" class="developer-btn" onclick="openDeveloper()">⚙ Developer</button></footer>
+<footer>© 2026 ZAI RegPoint</footer>
+<button id="developerFloatingButton" type="button" class="developer-btn" onclick="openDeveloper()">⚙ Developer</button>
 
 <div id="developerOverlay" class="dev-overlay" onclick="if(event.target===this)closeDeveloper()">
   <div class="dev-box" onclick="event.stopPropagation()">
@@ -3537,11 +3538,11 @@ app.post("/api/developer/vdg-check", async (req, res) => {
   if (!VDG_API_KEY) return res.status(503).json({ok:false,error:"VDG_API_KEY is not configured in Render."});
 
   try {
-    const url = new URL("https://uk1.ukvehicledata.co.uk/api/datapackage/VDICheck");
-    url.searchParams.set("v", "2");
-    url.searchParams.set("api_nullitems", "1");
-    url.searchParams.set("auth_apikey", VDG_API_KEY);
-    url.searchParams.set("key_VRM", vrm);
+    // Vehicle Data Global OpenAPI VDICheck endpoint supplied by the account documentation.
+    const url = new URL("https://uk.api.vehicledataglobal.com/r2/lookup");
+    url.searchParams.set("ApiKey", VDG_API_KEY);
+    url.searchParams.set("PackageName", "VDICheck");
+    url.searchParams.set("Vrm", vrm);
     const upstream = await fetch(url.toString(), {headers:{Accept:"application/json"}});
     const text = await upstream.text();
     let data; try { data = JSON.parse(text); } catch { data = {raw:text}; }
