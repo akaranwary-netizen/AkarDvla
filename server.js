@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 
 // Built-in Theory Test module — kept inside server.js so one replacement is enough.
 const seeds = [
@@ -489,6 +490,7 @@ const ZYFY_BACKUP_API_KEY = process.env.ZYFY_BACKUP_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const CARIMAGES_API_KEY = process.env.CARIMAGES_API_KEY;
 const ADMIN_TEST_PASSWORD = process.env.ADMIN_TEST_PASSWORD;
+const VDG_API_KEY = process.env.VDG_API_KEY;
 
 // DVSA MOT History API credentials (keep these only in Render Environment)
 const DVSA_API_KEY = process.env.DVSA_API_KEY;
@@ -770,9 +772,44 @@ app.post("/api/road-sign-info", async (req,res)=>{
   }catch(e){console.error('Road sign info:',e);res.status(500).json({ok:false,error:'Could not explain road sign'});}
 });
 
-// Private developer test — Step 1: password gate only. No VDG lookup is connected here yet.
-function developerTestPage({ error = "", unlocked = false } = {}) {
-  const safeError = String(error || "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+// Private developer test — Step 2: password gate + raw Vehicle Data Global lookup.
+const developerSessions = new Map();
+const DEVELOPER_SESSION_MS = 30 * 60 * 1000;
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+}
+
+function parseCookies(req) {
+  const out = {};
+  String(req.headers.cookie || "").split(";").forEach(part => {
+    const i = part.indexOf("=");
+    if (i > 0) out[part.slice(0, i).trim()] = decodeURIComponent(part.slice(i + 1).trim());
+  });
+  return out;
+}
+
+function getDeveloperSession(req) {
+  const token = parseCookies(req).zai_dev_session;
+  if (!token) return null;
+  const expiresAt = developerSessions.get(token);
+  if (!expiresAt || expiresAt < Date.now()) {
+    developerSessions.delete(token);
+    return null;
+  }
+  return token;
+}
+
+function createDeveloperSession(res) {
+  const token = crypto.randomBytes(32).toString("hex");
+  developerSessions.set(token, Date.now() + DEVELOPER_SESSION_MS);
+  res.setHeader("Set-Cookie", `zai_dev_session=${token}; Path=/developer-test; HttpOnly; Secure; SameSite=Strict; Max-Age=1800`);
+}
+
+function developerTestPage({ error = "", unlocked = false, registration = "", rawResult = null, httpStatus = null } = {}) {
+  const safeError = escapeHtml(error);
+  const safeReg = escapeHtml(registration);
+  const rawText = rawResult === null ? "" : escapeHtml(JSON.stringify(rawResult, null, 2));
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -783,20 +820,21 @@ function developerTestPage({ error = "", unlocked = false } = {}) {
 <style>
 :root{--bg:#070809;--panel:#12151a;--gold:#d7b36a;--gold2:#f4d99a;--text:#f7f7f7;--muted:#9da4ad;--line:#30353d;--bad:#ff8585;--ok:#70d6a3}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#1b160d,#070809 38%);color:var(--text);font-family:Arial,Tahoma,sans-serif;display:grid;place-items:center;padding:22px}
-.box{width:min(480px,100%);background:linear-gradient(145deg,#171a20,#0d0f12);border:1px solid rgba(215,179,106,.28);border-radius:22px;padding:24px;box-shadow:0 28px 90px #0008}
+.box{width:min(760px,100%);background:linear-gradient(145deg,#171a20,#0d0f12);border:1px solid rgba(215,179,106,.28);border-radius:22px;padding:24px;box-shadow:0 28px 90px #0008}
 .brand{font-size:18px;font-weight:900;margin-bottom:18px}.brand span{color:var(--gold2)}h1{font-size:25px;margin:0 0 8px}p{color:var(--muted);line-height:1.6;margin:0 0 18px}.lock{font-size:38px;margin-bottom:10px}
 label{display:block;font-weight:800;margin:0 0 8px}input{width:100%;border:1px solid var(--line);border-radius:12px;background:#090b0e;color:#fff;padding:14px 15px;font-size:17px;outline:none}input:focus{border-color:var(--gold)}
-button,.back{display:block;width:100%;margin-top:12px;border:0;border-radius:12px;padding:14px 16px;font-weight:900;font-size:15px;text-align:center;text-decoration:none;cursor:pointer}button{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#17120a}.back{border:1px solid var(--line);background:#111419;color:#fff}.error{color:var(--bad);background:#2a1518;border:1px solid #5a292f;border-radius:11px;padding:11px;margin-bottom:14px}.ok{color:var(--ok);background:#10251c;border:1px solid #28533f;border-radius:11px;padding:12px;margin-bottom:16px}.reg{background:#f7d33c;color:#111;text-transform:uppercase;text-align:center;letter-spacing:2px;font-weight:900}.disabled{opacity:.5;cursor:not-allowed}
+button,.back{display:block;width:100%;margin-top:12px;border:0;border-radius:12px;padding:14px 16px;font-weight:900;font-size:15px;text-align:center;text-decoration:none;cursor:pointer}button{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#17120a}.back{border:1px solid var(--line);background:#111419;color:#fff}.error{color:var(--bad);background:#2a1518;border:1px solid #5a292f;border-radius:11px;padding:11px;margin-bottom:14px}.ok{color:var(--ok);background:#10251c;border:1px solid #28533f;border-radius:11px;padding:12px;margin-bottom:16px}.reg{background:#f7d33c;color:#111;text-transform:uppercase;text-align:center;letter-spacing:2px;font-weight:900}.raw{margin-top:18px;background:#07090c;border:1px solid var(--line);border-radius:14px;padding:14px;overflow:auto;max-height:55vh;white-space:pre-wrap;word-break:break-word;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;color:#dfe6ee}.meta{margin:14px 0 0;color:var(--muted);font-size:12px}
 </style>
 </head>
 <body><main class="box"><div class="brand">ZAI <span>REGPOINT</span></div>
-${unlocked ? `<div class="lock">✅</div><h1>Developer access unlocked</h1><div class="ok">Password accepted. Step 1 is working correctly.</div><p>The Vehicle Data Global lookup is intentionally not connected yet. We will add that in the next step after you confirm this password screen works.</p><label for="testReg">Registration</label><input id="testReg" class="reg" placeholder="AB12 CDE" maxlength="8" disabled><button class="disabled" type="button" disabled>Check vehicle — next step</button>` : `<div class="lock">🔒</div><h1>Developer Test</h1><p>Enter your private admin password to continue.</p>${safeError ? `<div class="error">${safeError}</div>` : ""}<form method="post" action="/developer-test"><label for="password">Admin password</label><input id="password" name="password" type="password" autocomplete="current-password" required autofocus><button type="submit">Unlock Developer Test</button></form>`}
+${unlocked ? `<div class="lock">✅</div><h1>Developer Test</h1><div class="ok">Private developer access unlocked.</div><p>Enter a registration. This will call the Vehicle Data Global <strong>VDICheck</strong> test API and show the raw response so we can verify exactly what your trial key returns.</p>${safeError ? `<div class="error">${safeError}</div>` : ""}<form method="post" action="/developer-test/lookup"><label for="testReg">Registration</label><input id="testReg" name="registration" class="reg" placeholder="AB12 CDE" maxlength="8" value="${safeReg}" required autofocus><button type="submit">Check with VDG</button></form>${httpStatus !== null ? `<div class="meta">VDG HTTP status: ${escapeHtml(httpStatus)}</div>` : ""}${rawText ? `<pre class="raw">${rawText}</pre>` : ""}` : `<div class="lock">🔒</div><h1>Developer Test</h1><p>Enter your private admin password to continue.</p>${safeError ? `<div class="error">${safeError}</div>` : ""}<form method="post" action="/developer-test"><label for="password">Admin password</label><input id="password" name="password" type="password" autocomplete="current-password" required autofocus><button type="submit">Unlock Developer Test</button></form>`}
 <a class="back" href="/">← Back to ZAI RegPoint</a></main></body></html>`;
 }
 
 app.get("/developer-test", (req, res) => {
   res.set("Cache-Control", "no-store");
-  res.type("html").send(developerTestPage());
+  const unlocked = Boolean(getDeveloperSession(req));
+  res.type("html").send(developerTestPage({ unlocked }));
 });
 
 app.post("/developer-test", (req, res) => {
@@ -805,10 +843,63 @@ app.post("/developer-test", (req, res) => {
     return res.status(503).type("html").send(developerTestPage({ error: "ADMIN_TEST_PASSWORD is not configured on the server." }));
   }
   const supplied = String(req.body?.password || "");
-  if (supplied !== String(ADMIN_TEST_PASSWORD)) {
+  const expected = String(ADMIN_TEST_PASSWORD);
+  const a = Buffer.from(supplied);
+  const b = Buffer.from(expected);
+  const matches = a.length === b.length && crypto.timingSafeEqual(a, b);
+  if (!matches) {
     return res.status(401).type("html").send(developerTestPage({ error: "Incorrect password." }));
   }
-  return res.type("html").send(developerTestPage({ unlocked: true }));
+  createDeveloperSession(res);
+  return res.redirect(303, "/developer-test");
+});
+
+app.post("/developer-test/lookup", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  if (!getDeveloperSession(req)) {
+    return res.status(401).type("html").send(developerTestPage({ error: "Developer session expired. Enter the password again." }));
+  }
+  if (!VDG_API_KEY) {
+    return res.status(503).type("html").send(developerTestPage({ unlocked: true, error: "VDG_API_KEY is not configured on Render." }));
+  }
+
+  const registration = String(req.body?.registration || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (!/^[A-Z0-9]{2,8}$/.test(registration)) {
+    return res.status(400).type("html").send(developerTestPage({ unlocked: true, registration, error: "Enter a valid UK registration." }));
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 45000);
+  try {
+    const url = new URL("https://uk.api.vehicledataglobal.com/r2/lookup");
+    url.searchParams.set("ApiKey", VDG_API_KEY);
+    url.searchParams.set("PackageName", "VDICheck");
+    url.searchParams.set("Vrm", registration);
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      signal: controller.signal
+    });
+
+    const text = await response.text();
+    let data;
+    try { data = JSON.parse(text); }
+    catch { data = { rawText: text.slice(0, 12000) }; }
+
+    return res.status(response.ok ? 200 : 502).type("html").send(developerTestPage({
+      unlocked: true,
+      registration,
+      rawResult: data,
+      httpStatus: response.status,
+      error: response.ok ? "" : `Vehicle Data Global returned HTTP ${response.status}.`
+    }));
+  } catch (error) {
+    const message = error?.name === "AbortError" ? "Vehicle Data Global request timed out after 45 seconds." : `VDG request failed: ${error?.message || error}`;
+    return res.status(502).type("html").send(developerTestPage({ unlocked: true, registration, error: message }));
+  } finally {
+    clearTimeout(timer);
+  }
 });
 
 app.get("/", (req, res) => {
