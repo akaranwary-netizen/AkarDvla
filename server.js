@@ -489,9 +489,11 @@ const ZYFY_API_KEY = process.env.ZYFY_API_KEY;
 const ZYFY_BACKUP_API_KEY = process.env.ZYFY_BACKUP_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const CARIMAGES_API_KEY = process.env.CARIMAGES_API_KEY;
+
+// Vehicle Data Global private trial tester (credentials stay in Render Environment)
 const VDG_API_KEY = process.env.VDG_API_KEY;
 const ADMIN_TEST_PASSWORD = process.env.ADMIN_TEST_PASSWORD;
-const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || ADMIN_TEST_PASSWORD;
+const VDG_API_BASE = "https://uk.api.vehicledataglobal.com";
 
 // DVSA MOT History API credentials (keep these only in Render Environment)
 const DVSA_API_KEY = process.env.DVSA_API_KEY;
@@ -698,6 +700,85 @@ function پاککردنەوەی_ژمارە(value) {
 }
 
 
+function parseCookies(req) {
+  const out = {};
+  String(req.headers.cookie || "").split(";").forEach(part => {
+    const i = part.indexOf("=");
+    if (i > 0) out[part.slice(0, i).trim()] = decodeURIComponent(part.slice(i + 1).trim());
+  });
+  return out;
+}
+
+function adminToken() {
+  if (!ADMIN_TEST_PASSWORD) return "";
+  return crypto.createHash("sha256").update("zai-vdg-admin|" + ADMIN_TEST_PASSWORD).digest("hex");
+}
+
+function isAdminRequest(req) {
+  const token = parseCookies(req).zai_admin_test || "";
+  const expected = adminToken();
+  if (!token || !expected || token.length !== expected.length) return false;
+  try { return crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expected)); } catch { return false; }
+}
+
+function redactVdg(value, keyName = "") {
+  if (Array.isArray(value)) return value.map(v => redactVdg(v));
+  if (value && typeof value === "object") {
+    const out = {};
+    for (const [k,v] of Object.entries(value)) {
+      if (/^(vin|chassis|chassisnumber)$/i.test(k) && v && !/last/i.test(k)) out[k] = "REDACTED";
+      else if (/apikey|api_key|authorization/i.test(k)) out[k] = "REDACTED";
+      else out[k] = redactVdg(v, k);
+    }
+    return out;
+  }
+  return value;
+}
+
+app.post("/api/admin-test/login", (req, res) => {
+  if (!ADMIN_TEST_PASSWORD) return res.status(503).json({ok:false,error:"ADMIN_TEST_PASSWORD is not configured on Render."});
+  const supplied = String(req.body?.password || "");
+  const a = Buffer.from(supplied);
+  const b = Buffer.from(String(ADMIN_TEST_PASSWORD));
+  if (a.length !== b.length || !crypto.timingSafeEqual(a,b)) return res.status(401).json({ok:false,error:"Incorrect password."});
+  res.setHeader("Set-Cookie", `zai_admin_test=${encodeURIComponent(adminToken())}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=14400`);
+  return res.json({ok:true});
+});
+
+app.post("/api/admin-test/logout", (req, res) => {
+  res.setHeader("Set-Cookie", "zai_admin_test=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0");
+  res.json({ok:true});
+});
+
+app.get("/api/admin-test/status", (req, res) => res.json({ok:true,authenticated:isAdminRequest(req)}));
+
+app.post("/api/admin-test/vehicle-history", async (req, res) => {
+  if (!isAdminRequest(req)) return res.status(401).json({ok:false,error:"Admin password required."});
+  if (!VDG_API_KEY) return res.status(503).json({ok:false,error:"VDG_API_KEY is not configured on Render."});
+  const vrm = پاککردنەوەی_ژمارە(req.body?.registration);
+  if (vrm.length < 2 || vrm.length > 8) return res.status(400).json({ok:false,error:"Enter a valid UK registration."});
+
+  try {
+    const url = new URL(VDG_API_BASE + "/r2/lookup");
+    url.searchParams.set("ApiKey", VDG_API_KEY);
+    url.searchParams.set("PackageName", "VDICheck");
+    url.searchParams.set("Vrm", vrm);
+    const response = await fetch(url, {
+      method:"GET",
+      headers:{ Accept:"application/json" }
+    });
+    const raw = await response.text();
+    let data = null;
+    try { data = JSON.parse(raw); } catch {}
+    if (!response.ok) return res.status(502).json({ok:false,error:`Vehicle Data Global returned HTTP ${response.status}.`,provider:data || raw.slice(0,800)});
+    if (!data) return res.status(502).json({ok:false,error:"Vehicle Data Global returned a non-JSON response."});
+    return res.json({ok:true,registration:vrm,provider:"Vehicle Data Global",data:redactVdg(data)});
+  } catch (error) {
+    console.error("VDG admin test error:", error.message);
+    return res.status(502).json({ok:false,error:"Could not contact Vehicle Data Global.",detail:error.message});
+  }
+});
+
 app.get("/robots.txt", (req, res) => {
   res.type("text/plain").send(`User-agent: *
 Allow: /
@@ -837,9 +918,6 @@ body{
   border:1px solid #2d3239;background:#111319;color:#d8dce1;
   border-radius:999px;padding:8px 12px;font-size:12px
 }
-
-.admin-only-btn{direction:ltr;border:1px solid rgba(215,179,106,.35);background:#111319;color:var(--gold2);border-radius:999px;padding:8px 12px;font-size:12px;font-weight:900;text-decoration:none;white-space:nowrap}
-.admin-only-btn:hover{border-color:rgba(215,179,106,.7)}
 .hero{
   min-height:590px;position:relative;overflow:hidden;display:flex;align-items:center
 }
@@ -1333,6 +1411,15 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
 .pwa-install-close{margin-left:auto;background:transparent;border:0;color:#fff;font-size:20px;cursor:pointer}
 @media(display-mode:standalone){.pwa-install-hint{display:none!important}}
 
+/* Private Vehicle Data Global trial tester */
+.admin-test-bar{position:relative;z-index:40;background:#090b0e;border-bottom:1px solid #252a31;padding:8px 14px;text-align:center;direction:ltr}
+.admin-test-open{border:1px solid rgba(215,179,106,.55);background:#15181d;color:#f4d99a;border-radius:10px;padding:8px 14px;font-weight:800;cursor:pointer}
+.admin-test-modal{display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.86);padding:18px;overflow:auto;direction:ltr}
+.admin-test-modal.show{display:flex;align-items:flex-start;justify-content:center}
+.admin-test-box{width:min(760px,100%);margin-top:5vh;background:#111419;border:1px solid #343a43;border-radius:18px;padding:20px;color:#f7f7f7;box-shadow:0 24px 70px rgba(0,0,0,.55)}
+.admin-test-head{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}.admin-test-head h2{margin:0;font-size:20px}.admin-test-close{border:0;background:#252a31;color:#fff;border-radius:9px;width:36px;height:36px;font-size:22px;cursor:pointer}
+.admin-test-field{width:100%;padding:14px;border-radius:11px;border:1px solid #343a43;background:#080a0d;color:#fff;font-size:16px;margin:7px 0}.admin-test-btn{width:100%;padding:13px;border:0;border-radius:11px;background:linear-gradient(135deg,#f4d99a,#d7b36a);color:#16120b;font-weight:900;cursor:pointer;margin-top:8px}.admin-test-btn.secondary{background:#252a31;color:#fff}.admin-test-note{font-size:12px;color:#9da4ad;line-height:1.5;margin:8px 0}.admin-test-error{color:#ff8c8c;margin-top:10px;white-space:pre-wrap}.admin-test-result{margin-top:15px}.admin-test-result pre{white-space:pre-wrap;word-break:break-word;background:#080a0d;border:1px solid #252a31;border-radius:12px;padding:14px;max-height:55vh;overflow:auto;color:#dfe5ec;font-size:12px;line-height:1.5}.admin-test-hidden{display:none!important}
+
 </style>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"ZAI RegPoint","url":"https://www.ukvehiclechecker.org/","description":"Check any UK vehicle registration for MOT, tax, mileage, fuel cost, Clean Air Zone information and market price guidance with ZAI RegPoint.","inLanguage":["ckb","en-GB"]}</script>
 </head>
@@ -1372,10 +1459,33 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
 </div>
 
 
+<div class="admin-test-bar">
+  <button type="button" class="admin-test-open" onclick="openAdminTest()">🔒 ADMIN ONLY</button>
+</div>
+
+<div id="adminTestModal" class="admin-test-modal" onclick="closeAdminTest(event)">
+  <div class="admin-test-box" onclick="event.stopPropagation()">
+    <div class="admin-test-head"><h2>🔒 Private Vehicle History Test</h2><button type="button" class="admin-test-close" onclick="closeAdminTest()">×</button></div>
+    <div id="adminLoginPanel">
+      <div class="admin-test-note">Private testing area. Enter the admin password stored in Render.</div>
+      <input id="adminTestPassword" class="admin-test-field" type="password" autocomplete="current-password" placeholder="Admin password">
+      <button type="button" class="admin-test-btn" onclick="adminTestLogin()">Unlock</button>
+      <div id="adminLoginError" class="admin-test-error"></div>
+    </div>
+    <div id="adminVehiclePanel" class="admin-test-hidden">
+      <div class="admin-test-note">Vehicle Data Global trial tester. Trial restrictions still apply. Full VIN/API credentials are never displayed.</div>
+      <input id="adminTestReg" class="admin-test-field" maxlength="8" placeholder="Registration e.g. YS05AUP" autocapitalize="characters">
+      <button id="adminRunBtn" type="button" class="admin-test-btn" onclick="runAdminVehicleHistory()">Run Vehicle History Test</button>
+      <button type="button" class="admin-test-btn secondary" onclick="adminTestLogout()">Lock Admin Area</button>
+      <div id="adminTestError" class="admin-test-error"></div>
+      <div id="adminTestResult" class="admin-test-result"></div>
+    </div>
+  </div>
+</div>
+
 <header class="topbar">
   <div class="topbar-inner">
     <div class="brand">ZAI <span>REGPOINT</span></div>
-    <a class="admin-only-btn" href="/admin-test">🔒 ADMIN ONLY</a>
 <button id="languageSwitch" class="language-switch" type="button" onclick="openLanguageModal()">🌐 زمان</button>
     <div class="tag">پشکنینی ئۆتۆمبێلی بەریتانیا</div>
   </div>
@@ -1726,6 +1836,63 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
 <footer>© 2026 ZAI RegPoint</footer>
 
 <script>
+
+// Private Vehicle Data Global admin tester
+async function openAdminTest(){
+  const modal=document.getElementById("adminTestModal");
+  modal?.classList.add("show");
+  document.body.style.overflow="hidden";
+  try{
+    const r=await fetch("/api/admin-test/status",{credentials:"same-origin"});
+    const d=await r.json();
+    setAdminTestAuthenticated(Boolean(d.authenticated));
+  }catch{ setAdminTestAuthenticated(false); }
+}
+function closeAdminTest(event){
+  if(event && event.target?.id!=="adminTestModal") return;
+  document.getElementById("adminTestModal")?.classList.remove("show");
+  document.body.style.overflow="";
+}
+function setAdminTestAuthenticated(yes){
+  document.getElementById("adminLoginPanel")?.classList.toggle("admin-test-hidden",yes);
+  document.getElementById("adminVehiclePanel")?.classList.toggle("admin-test-hidden",!yes);
+  if(yes) setTimeout(()=>document.getElementById("adminTestReg")?.focus(),50);
+  else setTimeout(()=>document.getElementById("adminTestPassword")?.focus(),50);
+}
+async function adminTestLogin(){
+  const password=document.getElementById("adminTestPassword")?.value||"";
+  const err=document.getElementById("adminLoginError"); if(err) err.textContent="";
+  try{
+    const r=await fetch("/api/admin-test/login",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({password})});
+    const d=await r.json();
+    if(!r.ok||!d.ok) throw new Error(d.error||"Login failed.");
+    document.getElementById("adminTestPassword").value="";
+    setAdminTestAuthenticated(true);
+  }catch(e){ if(err) err.textContent=e.message||"Login failed."; }
+}
+async function adminTestLogout(){
+  try{await fetch("/api/admin-test/logout",{method:"POST",credentials:"same-origin"});}catch{}
+  setAdminTestAuthenticated(false);
+  const out=document.getElementById("adminTestResult"); if(out) out.innerHTML="";
+}
+async function runAdminVehicleHistory(){
+  const reg=(document.getElementById("adminTestReg")?.value||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+  const btn=document.getElementById("adminRunBtn"), err=document.getElementById("adminTestError"), out=document.getElementById("adminTestResult");
+  if(err) err.textContent=""; if(out) out.innerHTML="";
+  if(reg.length<2){if(err)err.textContent="Enter a registration first.";return;}
+  if(btn){btn.disabled=true;btn.textContent="Checking…";}
+  try{
+    const r=await fetch("/api/admin-test/vehicle-history",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({registration:reg})});
+    const d=await r.json();
+    if(r.status===401){setAdminTestAuthenticated(false);throw new Error("Admin session locked. Enter your password again.");}
+    if(!r.ok||!d.ok) throw new Error((d.error||"Lookup failed.")+(d.provider?"\n"+JSON.stringify(d.provider,null,2):""));
+    const title=document.createElement("div"); title.style.fontWeight="900"; title.style.marginBottom="8px"; title.textContent=`${d.registration} — Vehicle Data Global response`;
+    const pre=document.createElement("pre"); pre.textContent=JSON.stringify(d.data,null,2);
+    out.append(title,pre);
+  }catch(e){if(err)err.textContent=e.message||"Lookup failed.";}
+  finally{if(btn){btn.disabled=false;btn.textContent="Run Vehicle History Test";}}
+}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeAdminTest();});
 
 // PWA / iPhone install support
 if ("serviceWorker" in navigator) {
@@ -4100,109 +4267,6 @@ app.post("/api/similar-listings", async (req, res) => {
       error:"Could not retrieve similar live vehicle listings."
     });
   }
-});
-
-
-// Private Vehicle Data Global integration test. API key and password remain server-side.
-const ADMIN_COOKIE = "zai_admin_test";
-const ADMIN_SESSION_MAX_AGE = 60 * 60 * 4; // 4 hours
-const adminLoginAttempts = new Map();
-
-function adminSignature(value) {
-  if (!ADMIN_SESSION_SECRET) return "";
-  return crypto.createHmac("sha256", ADMIN_SESSION_SECRET).update(value).digest("hex");
-}
-function makeAdminToken() {
-  const payload = `${Date.now()}.${crypto.randomBytes(16).toString("hex")}`;
-  return `${payload}.${adminSignature(payload)}`;
-}
-function readCookies(req) {
-  const out = {};
-  String(req.headers.cookie || "").split(";").forEach(part => {
-    const i = part.indexOf("="); if (i < 0) return;
-    out[part.slice(0,i).trim()] = decodeURIComponent(part.slice(i+1).trim());
-  });
-  return out;
-}
-function isAdmin(req) {
-  const token = readCookies(req)[ADMIN_COOKIE];
-  if (!token || !ADMIN_SESSION_SECRET) return false;
-  const parts = token.split("."); if (parts.length !== 3) return false;
-  const payload = `${parts[0]}.${parts[1]}`;
-  const expected = adminSignature(payload);
-  if (!expected || parts[2].length !== expected.length) return false;
-  try {
-    if (!crypto.timingSafeEqual(Buffer.from(parts[2]), Buffer.from(expected))) return false;
-  } catch { return false; }
-  const issued = Number(parts[0]);
-  return Number.isFinite(issued) && Date.now() - issued < ADMIN_SESSION_MAX_AGE * 1000;
-}
-function safeEqualText(a,b) {
-  const aa=Buffer.from(String(a||"")), bb=Buffer.from(String(b||""));
-  return aa.length===bb.length && crypto.timingSafeEqual(aa,bb);
-}
-function adminPage(loggedIn=false, message="") { return `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>ZAI REGPOINT Admin Test</title>
-<style>*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#1a150d,#070809 38%);color:#f7f7f7;font-family:Arial,sans-serif;min-height:100vh}.wrap{width:min(760px,calc(100% - 28px));margin:40px auto}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.brand{font-size:22px;font-weight:900}.brand span{color:#f1d394}.back{color:#ddd;text-decoration:none;border:1px solid #343a43;padding:9px 12px;border-radius:11px}.card{background:#111419;border:1px solid #2a3038;border-radius:20px;padding:22px;box-shadow:0 22px 70px #0008}h1{margin:0 0 8px}.muted{color:#aeb5bf;line-height:1.55}.field{display:block;margin:18px 0 8px;font-weight:800}input{width:100%;border:1px solid #3b4149;background:#171b20;color:#fff;border-radius:13px;padding:14px;font-size:17px;outline:none}.plate{background:#f7d33c;color:#111;text-align:center;font-weight:900;letter-spacing:3px;text-transform:uppercase;font-size:24px}button{width:100%;border:0;border-radius:13px;padding:14px;background:linear-gradient(135deg,#f1d394,#d7b36a);color:#17120a;font-weight:900;font-size:15px;cursor:pointer;margin-top:12px}.msg{margin:12px 0;padding:11px;border:1px solid #5d4d2d;background:#19150d;border-radius:12px;color:#e7d6ae}.result{display:none;margin-top:18px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.item{background:#171b20;border:1px solid #2a3038;border-radius:13px;padding:12px}.item small{display:block;color:#9da4ad;margin-bottom:5px}.item b{word-break:break-word}.raw{white-space:pre-wrap;overflow:auto;max-height:380px;background:#08090b;border:1px solid #2a3038;border-radius:13px;padding:12px;font:12px monospace;direction:ltr;text-align:left}.status{display:none;margin-top:12px;color:#f1d394}@media(max-width:560px){.grid{grid-template-columns:1fr}.wrap{margin-top:20px}}</style></head><body><div class="wrap"><div class="top"><div class="brand">ZAI <span>REGPOINT</span></div><a class="back" href="/">← Website</a></div><div class="card">
-${loggedIn ? `<h1>🔒 Admin Vehicle History Test</h1><p class="muted">Private test area. Vehicle Data Global requests are made by the server; your API key is never sent to the browser.</p><label class="field" for="vrm">Registration</label><input class="plate" id="vrm" maxlength="8" autocomplete="off" placeholder="YS05AUP"><button id="run">Run Vehicle Data Test</button><div class="status" id="status">Checking Vehicle Data Global…</div><div class="result" id="result"><h2>Returned data</h2><div class="grid" id="summary"></div><h3>Raw provider response</h3><div class="raw" id="raw"></div></div><form method="post" action="/admin-test/logout"><button type="submit" style="background:#20242a;color:#fff;border:1px solid #343a43">Log out</button></form>` : `<h1>🔒 Admin Only</h1><p class="muted">Enter the private admin password to open the Vehicle Data Global test area.</p>${message?`<div class="msg">${message}</div>`:""}<form method="post" action="/admin-test/login"><label class="field" for="password">Admin password</label><input id="password" name="password" type="password" required autocomplete="current-password"><button type="submit">Unlock Admin Test</button></form>`}
-</div></div>${loggedIn ? `<script>const $=id=>document.getElementById(id);$('run').onclick=async()=>{const vrm=$('vrm').value.toUpperCase().replace(/[^A-Z0-9]/g,'');if(vrm.length<2){alert('Enter a valid registration.');return}$('status').style.display='block';$('result').style.display='none';$('run').disabled=true;try{const r=await fetch('/api/admin/vdg-check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({registration:vrm})});const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||'Lookup failed');const x=d.summary||{};$('summary').innerHTML=Object.entries(x).filter(([,v])=>v!==null&&v!==undefined&&v!=='').map(([k,v])=>'<div class="item"><small>'+k.replace(/([A-Z])/g,' $1').replace(/^./,c=>c.toUpperCase())+'</small><b>'+String(v).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))+'</b></div>').join('')||'<div class="item">No summary fields were returned.</div>';$('raw').textContent=JSON.stringify(d.providerResponse,null,2);$('result').style.display='block'}catch(e){alert(e.message)}finally{$('status').style.display='none';$('run').disabled=false}};</script>`:""}</body></html>`; }
-
-app.get("/admin-test", (req,res)=>{
-  res.set("Cache-Control","no-store");
-  res.type("html").send(adminPage(isAdmin(req)));
-});
-app.post("/admin-test/login", express.urlencoded({extended:false}), (req,res)=>{
-  const ip=String(req.ip||req.socket?.remoteAddress||"unknown");
-  const now=Date.now(), state=adminLoginAttempts.get(ip)||{count:0,until:0};
-  if(state.until>now) return res.status(429).type("html").send(adminPage(false,"Too many attempts. Please try again in a few minutes."));
-  if(!ADMIN_TEST_PASSWORD || !safeEqualText(req.body?.password,ADMIN_TEST_PASSWORD)){
-    state.count++; if(state.count>=5){state.until=now+10*60*1000;state.count=0} adminLoginAttempts.set(ip,state);
-    return res.status(401).type("html").send(adminPage(false,"Incorrect password."));
-  }
-  adminLoginAttempts.delete(ip);
-  const token=makeAdminToken();
-  res.setHeader("Set-Cookie",`${ADMIN_COOKIE}=${encodeURIComponent(token)}; Max-Age=${ADMIN_SESSION_MAX_AGE}; Path=/; HttpOnly; Secure; SameSite=Strict`);
-  res.redirect(303,"/admin-test");
-});
-app.post("/admin-test/logout",(req,res)=>{res.setHeader("Set-Cookie",`${ADMIN_COOKIE}=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Strict`);res.redirect(303,"/admin-test")});
-
-function firstDefined(...vals){return vals.find(v=>v!==undefined&&v!==null&&v!=="")??null}
-function vdgSummary(data,vrm){
-  const root=data?.Response?.DataItems||data?.DataItems||data?.Response?.DataItems?.VehicleDetails||data||{};
-  const vehicle=data?.Response?.DataItems?.VehicleDetails||data?.VehicleDetails||root?.VehicleDetails||root;
-  const ident=vehicle?.VehicleIdentification||{}; const hist=vehicle?.VehicleHistory||{}; const status=vehicle?.VehicleStatus||{};
-  const keeper=Array.isArray(hist?.KeeperChangeList)?hist.KeeperChangeList.at(-1):null;
-  return {
-    registration:firstDefined(ident.Vrm,vehicle.Vrm,root.Vrm,data?.DataKeys?.Vrm,data?.Request?.DataKeys?.Vrm,vrm),
-    make:firstDefined(ident.DvlaMake,vehicle.Make,vehicle.DvlaMake,root.Make,root.DvlaMake),
-    model:firstDefined(ident.DvlaModel,vehicle.Model,vehicle.DvlaModel,root.Model,root.DvlaModel),
-    vehicleClass:firstDefined(vehicle.VehicleClass,root.VehicleClass,root.Category,root.Class),
-    previousKeepers:firstDefined(keeper?.NumberOfPreviousKeepers,hist?.NumberOfPreviousKeepers,vehicle.NumberOfPreviousKeepers,root.NumberOfPreviousKeepers,root.HistoryPreviousKeeperCount),
-    keeperStartDate:firstDefined(keeper?.KeeperStartDate,vehicle.CurrentKeeperStartDate,root.CurrentKeeperStartDate,root.KeeperStartDate),
-    plateTransfers:firstDefined(vehicle.NumberOfPlateTransfers,root.NumberOfPlateTransfers,Array.isArray(hist?.PlateChangeList)?hist.PlateChangeList.length:null),
-    previousRegistration:firstDefined(vehicle.PreviousVrm,root.PreviousVrm,Array.isArray(hist?.PlateChangeList)&&hist.PlateChangeList.length?hist.PlateChangeList.at(-1)?.PreviousVrm:null),
-    colour:firstDefined(hist?.ColourDetails?.CurrentColour,vehicle.CurrentColour,root.CurrentColour,root.Colour),
-    firstRegistered:firstDefined(ident.DateFirstRegistered,ident.DateFirstRegisteredInUk,vehicle.DateFirstRegistered,root.DateOfFirstRegistration,root.DateFirstRegistered),
-    scrapped:firstDefined(status.IsScrapped,vehicle.IsScrapped,root.IsScrapped,root.ConditionScrapped)
-  };
-}
-
-app.post("/api/admin/vdg-check", async (req,res)=>{
-  if(!isAdmin(req)) return res.status(401).json({ok:false,error:"Admin login required."});
-  if(!VDG_API_KEY) return res.status(500).json({ok:false,error:"VDG_API_KEY is not configured in Render."});
-  const vrm=پاککردنەوەی_ژمارە(req.body?.registration);
-  if(!vrm||vrm.length<2||vrm.length>8) return res.status(400).json({ok:false,error:"Enter a valid UK registration."});
-  try{
-    const url=`https://uk1.ukvehicledata.co.uk/api/datapackage/vehicledata?key_vrm=${encodeURIComponent(vrm)}`;
-    const response=await fetch(url,{headers:{Authorization:`ukvd-ipwhitelist ${VDG_API_KEY}`,Accept:"application/json"}});
-    const raw=await response.text(); let data=null; try{data=JSON.parse(raw)}catch{}
-    if(!response.ok) return res.status(502).json({ok:false,error:`Vehicle Data Global returned HTTP ${response.status}.`,providerResponse:data||raw.slice(0,1200)});
-    if(!data) return res.status(502).json({ok:false,error:"Vehicle Data Global returned a non-JSON response."});
-    // Do not expose a full VIN in this private test UI if the provider returns one.
-    const scrub=(obj)=>{if(!obj||typeof obj!=="object")return obj;for(const k of Object.keys(obj)){if(/^vin$|chassis/i.test(k)){obj[k]="REDACTED"}else if(obj[k]&&typeof obj[k]==="object")scrub(obj[k])}return obj};
-    const safe=scrub(structuredClone(data));
-    return res.json({ok:true,summary:vdgSummary(safe,vrm),providerResponse:safe});
-  }catch(error){console.error("VDG admin test error:",error?.message||error);return res.status(502).json({ok:false,error:"Could not reach Vehicle Data Global."})}
 });
 
 
