@@ -772,7 +772,7 @@ app.post("/api/road-sign-info", async (req,res)=>{
   }catch(e){console.error('Road sign info:',e);res.status(500).json({ok:false,error:'Could not explain road sign'});}
 });
 
-// Private developer test — Step 2: password gate + raw Vehicle Data Global lookup.
+// Private developer test — Step 3: password gate + designed VDG + DVSA report.
 const developerSessions = new Map();
 const DEVELOPER_SESSION_MS = 30 * 60 * 1000;
 
@@ -806,29 +806,168 @@ function createDeveloperSession(res) {
   res.setHeader("Set-Cookie", `zai_dev_session=${token}; Path=/developer-test; HttpOnly; Secure; SameSite=Strict; Max-Age=1800`);
 }
 
-function developerTestPage({ error = "", unlocked = false, registration = "", rawResult = null, httpStatus = null } = {}) {
+function developerDate(value) {
+  if (!value) return "Not available";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" });
+}
+
+function developerValue(value) {
+  if (value === null || value === undefined || value === "") return "Not available";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  return String(value);
+}
+
+function developerRow(label, value, cls = "") {
+  return `<div class="data-row"><span>${escapeHtml(label)}</span><b class="${escapeHtml(cls)}">${escapeHtml(developerValue(value))}</b></div>`;
+}
+
+function developerBadge(text, type = "neutral") {
+  return `<span class="badge ${escapeHtml(type)}">${escapeHtml(text)}</span>`;
+}
+
+function buildDeveloperReport(vdg, dvsaPayload, dvsaError = "") {
+  const results = vdg?.Results || {};
+  const vehicle = results.VehicleDetails || {};
+  const ident = vehicle.VehicleIdentification || {};
+  const status = vehicle.VehicleStatus || {};
+  const history = vehicle.VehicleHistory || {};
+  const tech = vehicle.DvlaTechnicalDetails || {};
+  const model = results.ModelDetails || {};
+  const modelId = model.ModelIdentification || {};
+  const modelClass = model.ModelClassification || {};
+  const body = model.BodyDetails || {};
+  const powertrain = model.Powertrain || {};
+  const ice = powertrain.IceDetails || {};
+  const transmission = powertrain.Transmission || {};
+  const performance = model.Performance || {};
+  const torque = performance.Torque || {};
+  const power = performance.Power || {};
+  const stats = performance.Statistics || {};
+  const fuelEconomy = performance.FuelEconomy || {};
+  const emissions = model.Emissions || {};
+  const keepers = Array.isArray(history.KeeperChangeList) ? history.KeeperChangeList : [];
+  const plates = Array.isArray(history.PlateChangeList) ? history.PlateChangeList : [];
+  const v5cs = Array.isArray(history.V5cCertificateList) ? history.V5cCertificateList : [];
+  const keeperCount = keepers.reduce((max, x) => Math.max(max, Number(x?.NumberOfPreviousKeepers) || 0), 0);
+
+  const miaftr = results.MiaftrDetails || {};
+  const writeOffs = Array.isArray(miaftr.WriteOffRecordList) ? miaftr.WriteOffRecordList : [];
+  const categories = [...new Set(writeOffs.map(x => x?.Category).filter(Boolean))];
+  const pnc = results.PncDetails || {};
+  const finance = results.FinanceDetails || {};
+  const financeRecords = Array.isArray(finance.FinanceRecordList) ? finance.FinanceRecordList : [];
+  const mileage = results.MileageCheckDetails || {};
+  const mileageRows = Array.isArray(mileage.MileageResultList) ? mileage.MileageResultList : [];
+  const vdgMot = results.MotHistoryDetails || {};
+
+  const dvsaTests = dvsaPayload ? normaliseDvsaMotTests(dvsaPayload) : [];
+  const latestDvsa = dvsaTests[0] || null;
+  const vdgStatus = vdg?.ResponseInformation || {};
+  const reg = ident.Vrm || vdg?.RequestInformation?.SearchTerm || "—";
+  const make = ident.DvlaMake || modelId.Make || dvsaPayload?.make || "—";
+  const modelName = ident.DvlaModel || modelId.Model || dvsaPayload?.model || "—";
+
+  const summaryBadges = [
+    developerBadge(`VDG: ${vdgStatus.StatusMessage || "Unknown"}`, vdgStatus.IsSuccessStatusCode ? "good" : "bad"),
+    developerBadge(`${keeperCount} previous keeper${keeperCount === 1 ? "" : "s"}`, "gold"),
+    developerBadge(categories.length ? `Write-off: ${categories.join(", ")}` : "No write-off category returned", categories.length ? "bad" : "good"),
+    developerBadge(pnc.IsStolen === true ? "Stolen marker: YES" : pnc.IsStolen === false ? "Stolen marker: No" : "Stolen marker: unavailable", pnc.IsStolen === true ? "bad" : "good"),
+    developerBadge(financeRecords.length ? `${financeRecords.length} finance record${financeRecords.length === 1 ? "" : "s"}` : "No finance record returned", financeRecords.length ? "warn" : "good")
+  ].join("");
+
+  const keeperHtml = keepers.length ? keepers.map((x, i) => `<div class="timeline-item"><div class="dot"></div><div><strong>${escapeHtml(String(x.NumberOfPreviousKeepers ?? "—"))} previous keepers</strong><small>Keeper start: ${escapeHtml(developerDate(x.KeeperStartDate))} • Previous disposal: ${escapeHtml(developerDate(x.PreviousKeeperDisposalDate))}</small></div></div>`).join("") : `<div class="empty">No keeper-change records returned.</div>`;
+
+  const plateHtml = plates.length ? plates.map(x => `<div class="timeline-item"><div class="dot"></div><div><strong>${escapeHtml(x.PreviousVrm || "Unknown")} → ${escapeHtml(x.CurrentVrm || reg)}</strong><small>${escapeHtml(developerDate(x.DateOfTransaction || x.DateOfReceipt))} • ${escapeHtml(x.TransferType || "Plate transfer")}</small></div></div>`).join("") : `<div class="empty">No plate-change records returned.</div>`;
+
+  const writeOffHtml = writeOffs.length ? writeOffs.map((x, i) => `<div class="record-card danger-card"><h4>Write-off / MIAFTR record ${i+1}</h4>${developerRow("Category", x.Category)}${developerRow("Status", x.Status)}${developerRow("Loss type", x.LossType)}${developerRow("Loss date", developerDate(x.LossDate))}${developerRow("MIAFTR entry date", developerDate(x.MiaftrEntryDate))}${developerRow("Theft indicator", x.TheftIndicatorLiteral || x.TheftIndicator)}${developerRow("Insurer", x.InsurerName)}${developerRow("Claim number", x.ClaimNumber)}</div>`).join("") : `<div class="empty good-empty">No MIAFTR write-off records returned by VDG.</div>`;
+
+  const financeHtml = financeRecords.length ? financeRecords.map((x, i) => `<div class="record-card warn-card"><h4>Finance record ${i+1}</h4>${developerRow("Finance company", x.FinanceCompany)}${developerRow("Agreement type", x.AgreementType)}${developerRow("Agreement date", developerDate(x.AgreementDate))}${developerRow("Agreement term", x.AgreementTerm ? `${x.AgreementTerm} months` : null)}${developerRow("Agreement number", x.AgreementNumber)}${developerRow("Contact number", x.ContactNumber)}${developerRow("Vehicle description", x.VehicleDescription)}</div>`).join("") : `<div class="empty good-empty">No finance records returned by VDG.</div>`;
+
+  const mileageHtml = mileageRows.length ? `<div class="table-wrap"><table><thead><tr><th>Date</th><th>Mileage</th><th>Source</th><th>Sequence</th></tr></thead><tbody>${mileageRows.map(x => `<tr><td>${escapeHtml(developerDate(x.DateRecorded))}</td><td>${escapeHtml(Number(x.Mileage || 0).toLocaleString("en-GB"))}</td><td>${escapeHtml(x.DataSource || "—")}</td><td>${x.InSequence === false ? `<span class="bad-text">Anomaly</span>` : `<span class="good-text">OK</span>`}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">No VDG mileage-history rows returned.</div>`;
+
+  const motHtml = dvsaTests.length ? dvsaTests.map((test, i) => {
+    const notes = Array.isArray(test.advisories) ? test.advisories : [];
+    return `<div class="mot-card"><div class="mot-head"><div><strong>${escapeHtml(developerDate(test.testDate))}</strong><small>${escapeHtml(test.odometer ? `${test.odometer} ${test.odometerUnit || ""}` : "Mileage unavailable")}</small></div>${developerBadge(test.result || "Unknown", String(test.result || "").toUpperCase().includes("PASS") ? "good" : "bad")}</div>${test.expiryDate ? developerRow("Expiry date", developerDate(test.expiryDate)) : ""}${notes.length ? `<div class="mot-notes">${notes.map(n => `<div class="mot-note ${escapeHtml(String(n.type || "").toLowerCase())}"><b>${escapeHtml(n.type || "Note")}</b><span>${escapeHtml(n.text || "")}</span>${n.dangerous ? `<em>Dangerous</em>` : ""}</div>`).join("")}</div>` : `<div class="empty compact">No defects/advisories recorded.</div>`}</div>`;
+  }).join("") : `<div class="empty">${escapeHtml(dvsaError || "No DVSA MOT tests returned.")}</div>`;
+
+  const v5cHtml = v5cs.length ? v5cs.map(x => `<span class="date-chip">${escapeHtml(developerDate(x.IssueDate))}</span>`).join("") : `<span class="muted">No V5C issue dates returned.</span>`;
+
+  return `
+  <section class="report-hero">
+    <div><div class="plate">${escapeHtml(reg)}</div><h2>${escapeHtml(make)} ${escapeHtml(modelName)}</h2><p>${escapeHtml(modelId.ModelVariant || modelId.Series || "Vehicle Data Global + DVSA private test report")}</p></div>
+    <div class="summary-badges">${summaryBadges}</div>
+  </section>
+
+  <div class="section-title"><h3>Vehicle identity</h3><span>VDG vehicle and model data</span></div>
+  <section class="grid two">
+    <div class="panel"><h4>🚘 Registration details</h4>${developerRow("Registration", reg)}${developerRow("Make", make)}${developerRow("Model", modelName)}${developerRow("Variant", modelId.ModelVariant)}${developerRow("Series", modelId.Series)}${developerRow("Year", ident.YearOfManufacture)}${developerRow("First registered UK", developerDate(ident.DateFirstRegisteredInUk))}${developerRow("Body type", ident.DvlaBodyType || body.BodyStyle)}${developerRow("Fuel", ident.DvlaFuelType || powertrain.FuelType)}${developerRow("Colour", history.ColourDetails?.CurrentColour)}${developerRow("VIN last 5", ident.VinLast5)}${developerRow("Engine number", ident.EngineNumber)}</div>
+    <div class="panel"><h4>⚙️ Technical / performance</h4>${developerRow("Engine capacity", tech.EngineCapacityCc ? `${tech.EngineCapacityCc} cc` : ice.EngineCapacityCc ? `${ice.EngineCapacityCc} cc` : null)}${developerRow("Cylinders", ice.NumberOfCylinders)}${developerRow("Aspiration", ice.Aspiration)}${developerRow("Power", power.Bhp ? `${power.Bhp} bhp` : null)}${developerRow("Torque", torque.Nm ? `${torque.Nm} Nm` : null)}${developerRow("Transmission", transmission.TransmissionType)}${developerRow("Gears", transmission.NumberOfGears)}${developerRow("Drive", transmission.DriveType || transmission.DrivingAxle)}${developerRow("0-60 mph", stats.ZeroToSixtyMph ? `${stats.ZeroToSixtyMph} sec` : null)}${developerRow("Top speed", stats.MaxSpeedMph ? `${stats.MaxSpeedMph} mph` : null)}${developerRow("Combined MPG", fuelEconomy.CombinedMpg)}${developerRow("Euro status", emissions.EuroStatus)}</div>
+  </section>
+
+  <div class="section-title"><h3>Keeper & registration history</h3><span>VDG private test data</span></div>
+  <section class="grid two">
+    <div class="panel"><h4>👤 Previous keepers</h4><div class="big-number">${escapeHtml(String(keeperCount))}<small>previous keepers</small></div><div class="timeline">${keeperHtml}</div></div>
+    <div class="panel"><h4>🔁 Plate changes</h4><div class="timeline">${plateHtml}</div><h4 class="subhead">V5C issue dates</h4><div class="chips">${v5cHtml}</div></div>
+  </section>
+
+  <div class="section-title"><h3>History checks</h3><span>MIAFTR, PNC and finance data from VDG</span></div>
+  <section class="grid three">
+    <div class="panel"><h4>🚨 Write-off / MIAFTR</h4>${writeOffHtml}</div>
+    <div class="panel"><h4>👮 Stolen / PNC</h4>${developerRow("Stolen marker", pnc.IsStolen)}${developerRow("Current PNC status", pnc.CurrentStatusOnRecord)}${developerRow("Reported stolen", developerDate(pnc.DateReportedStolen))}${developerRow("Police force", pnc.PoliceForceName)}${developerRow("PNC status", pnc.StatusMessage)}</div>
+    <div class="panel"><h4>💳 Finance</h4>${financeHtml}</div>
+  </section>
+
+  <div class="section-title"><h3>Vehicle status</h3><span>DVLA-linked VDG status fields</span></div>
+  <section class="grid two">
+    <div class="panel"><h4>📋 Status</h4>${developerRow("Imported", status.IsImported)}${developerRow("Imported from NI", status.IsImportedFromNi)}${developerRow("Imported from outside EU", status.IsImportedFromOutsideEu)}${developerRow("Exported", status.IsExported)}${developerRow("Scrapped", status.IsScrapped)}${developerRow("Certificate of destruction", status.CertificateOfDestructionIssued)}${developerRow("Cherished transfer marker", status.DvlaCherishedTransferMarker)}</div>
+    <div class="panel"><h4>🎨 Colour & tax-band data</h4>${developerRow("Current colour", history.ColourDetails?.CurrentColour)}${developerRow("Original colour", history.ColourDetails?.OriginalColour)}${developerRow("Colour changes", history.ColourDetails?.NumberOfColourChanges)}${developerRow("CO₂", status.VehicleExciseDutyDetails?.DvlaCo2 ? `${status.VehicleExciseDutyDetails.DvlaCo2} g/km` : null)}${developerRow("DVLA band", status.VehicleExciseDutyDetails?.DvlaBand)}${developerRow("6 month VED", status.VehicleExciseDutyDetails?.VedRate?.Standard?.SixMonths != null ? `£${status.VehicleExciseDutyDetails.VedRate.Standard.SixMonths}` : null)}${developerRow("12 month VED", status.VehicleExciseDutyDetails?.VedRate?.Standard?.TwelveMonths != null ? `£${status.VehicleExciseDutyDetails.VedRate.Standard.TwelveMonths}` : null)}</div>
+  </section>
+
+  <div class="section-title"><h3>Mileage checks</h3><span>VDG mileage database</span></div>
+  <section class="panel full"><div class="metric-strip"><div><small>Anomaly detected</small><b class="${mileage.MileageAnomalyDetected ? "bad-text" : "good-text"}">${escapeHtml(developerValue(mileage.MileageAnomalyDetected))}</b></div><div><small>Calculated annual mileage</small><b>${escapeHtml(developerValue(mileage.CalculatedAverageAnnualMileage))}</b></div><div><small>Average for age</small><b>${escapeHtml(developerValue(mileage.AverageMileageForAge))}</b></div></div>${mileageHtml}</section>
+
+  <div class="section-title"><h3>DVSA MOT history</h3><span>Fetched separately from your existing DVSA MOT integration</span></div>
+  <section class="panel full"><div class="metric-strip"><div><small>DVSA tests returned</small><b>${dvsaTests.length}</b></div><div><small>Latest test</small><b>${escapeHtml(latestDvsa ? developerDate(latestDvsa.testDate) : "Not available")}</b></div><div><small>Latest result</small><b>${escapeHtml(latestDvsa?.result || "Not available")}</b></div></div>${motHtml}</section>
+
+  <div class="section-title"><h3>VDG package status</h3><span>Useful while the API is still being tested</span></div>
+  <section class="panel full">${developerRow("HTTP/API success", vdgStatus.IsSuccessStatusCode)}${developerRow("VDG status code", vdgStatus.StatusCode)}${developerRow("VDG status message", vdgStatus.StatusMessage)}${developerRow("Query time", vdgStatus.QueryTimeMs != null ? `${vdgStatus.QueryTimeMs} ms` : null)}${developerRow("Response ID", vdgStatus.ResponseId)}${developerRow("Account type", vdg?.BillingInformation?.AccountType === 0 ? "Trial" : vdg?.BillingInformation?.AccountType)}${developerRow("Billing result", vdg?.BillingInformation?.BillingResultMessage)}</section>
+
+  <details class="raw-details"><summary>Show raw VDG JSON</summary><pre>${escapeHtml(JSON.stringify(vdg, null, 2))}</pre></details>
+  `;
+}
+
+function developerTestPage({ error = "", unlocked = false, registration = "", vdgResult = null, dvsaResult = null, dvsaError = "", httpStatus = null } = {}) {
   const safeError = escapeHtml(error);
   const safeReg = escapeHtml(registration);
-  const rawText = rawResult === null ? "" : escapeHtml(JSON.stringify(rawResult, null, 2));
+  const report = unlocked && vdgResult ? buildDeveloperReport(vdgResult, dvsaResult, dvsaError) : "";
   return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#070809">
 <title>ZAI RegPoint — Developer Test</title>
 <style>
-:root{--bg:#070809;--panel:#12151a;--gold:#d7b36a;--gold2:#f4d99a;--text:#f7f7f7;--muted:#9da4ad;--line:#30353d;--bad:#ff8585;--ok:#70d6a3}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#1b160d,#070809 38%);color:var(--text);font-family:Arial,Tahoma,sans-serif;display:grid;place-items:center;padding:22px}
-.box{width:min(760px,100%);background:linear-gradient(145deg,#171a20,#0d0f12);border:1px solid rgba(215,179,106,.28);border-radius:22px;padding:24px;box-shadow:0 28px 90px #0008}
-.brand{font-size:18px;font-weight:900;margin-bottom:18px}.brand span{color:var(--gold2)}h1{font-size:25px;margin:0 0 8px}p{color:var(--muted);line-height:1.6;margin:0 0 18px}.lock{font-size:38px;margin-bottom:10px}
-label{display:block;font-weight:800;margin:0 0 8px}input{width:100%;border:1px solid var(--line);border-radius:12px;background:#090b0e;color:#fff;padding:14px 15px;font-size:17px;outline:none}input:focus{border-color:var(--gold)}
-button,.back{display:block;width:100%;margin-top:12px;border:0;border-radius:12px;padding:14px 16px;font-weight:900;font-size:15px;text-align:center;text-decoration:none;cursor:pointer}button{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#17120a}.back{border:1px solid var(--line);background:#111419;color:#fff}.error{color:var(--bad);background:#2a1518;border:1px solid #5a292f;border-radius:11px;padding:11px;margin-bottom:14px}.ok{color:var(--ok);background:#10251c;border:1px solid #28533f;border-radius:11px;padding:12px;margin-bottom:16px}.reg{background:#f7d33c;color:#111;text-transform:uppercase;text-align:center;letter-spacing:2px;font-weight:900}.raw{margin-top:18px;background:#07090c;border:1px solid var(--line);border-radius:14px;padding:14px;overflow:auto;max-height:55vh;white-space:pre-wrap;word-break:break-word;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;color:#dfe6ee}.meta{margin:14px 0 0;color:var(--muted);font-size:12px}
+:root{--bg:#070809;--panel:#12151a;--panel2:#171b21;--gold:#d7b36a;--gold2:#f4d99a;--text:#f7f7f7;--muted:#9da4ad;--line:#2c323a;--bad:#ff7b7b;--ok:#70d6a3;--warn:#f5c86d}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;background:radial-gradient(circle at 80% 0%,rgba(215,179,106,.11),transparent 34%),linear-gradient(180deg,#070809,#0a0c0f);color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;padding-bottom:50px}
+.top{position:sticky;top:0;z-index:20;background:#070809e8;backdrop-filter:blur(16px);border-bottom:1px solid #242930}.topin{max-width:1180px;margin:auto;padding:14px 18px;display:flex;align-items:center;gap:12px}.brand{font-weight:950;letter-spacing:.4px}.brand span{color:var(--gold2)}.private{margin-left:auto;font-size:11px;color:var(--gold2);border:1px solid #5b4a2d;border-radius:99px;padding:6px 9px}
+.wrap{max-width:1180px;margin:auto;padding:24px 16px}.login{width:min(560px,100%);margin:7vh auto 0;background:linear-gradient(145deg,#171a20,#0d0f12);border:1px solid rgba(215,179,106,.28);border-radius:24px;padding:25px;box-shadow:0 28px 90px #0008}.lock{font-size:42px}.login h1{margin:8px 0}.login p,.muted{color:var(--muted);line-height:1.6}label{display:block;font-weight:800;margin:16px 0 8px}input{width:100%;border:1px solid var(--line);border-radius:12px;background:#090b0e;color:#fff;padding:14px 15px;font-size:17px;outline:none}input:focus{border-color:var(--gold)}.reg{background:#f7d33c;color:#111;text-transform:uppercase;text-align:center;letter-spacing:2px;font-weight:950;font-size:22px}
+button,.btn{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:12px;padding:13px 16px;font-weight:900;font-size:14px;text-decoration:none;cursor:pointer}.primary{width:100%;margin-top:12px;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#17120a}.secondary{background:#12151a;border:1px solid var(--line);color:#fff}.toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:18px}.toolbar form.search{display:flex;gap:9px;flex:1;min-width:min(540px,100%)}.toolbar .reg{flex:1;min-width:180px}.toolbar .primary{width:auto;margin:0}.error{color:#ffc1c1;background:#2a1518;border:1px solid #5a292f;border-radius:12px;padding:12px;margin-bottom:14px}.meta{color:var(--muted);font-size:12px;margin:8px 0}
+.report-hero{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;background:linear-gradient(145deg,#181b20,#0c0e11);border:1px solid rgba(215,179,106,.25);border-radius:22px;padding:22px;box-shadow:0 20px 60px #0004}.plate{display:inline-block;background:#f7d33c;color:#111;border-radius:8px;padding:9px 14px;font-weight:950;letter-spacing:2px;font-size:20px;box-shadow:inset 0 0 0 2px #111}.report-hero h2{font-size:28px;margin:12px 0 4px}.report-hero p{margin:0;color:var(--muted)}.summary-badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;max-width:520px}.badge{display:inline-flex;border-radius:99px;padding:7px 10px;font-size:11px;font-weight:900;border:1px solid #39414a;background:#15191e;color:#dfe3e8}.badge.good{color:var(--ok);border-color:#285a43;background:#10251c}.badge.bad{color:#ff9c9c;border-color:#663139;background:#291518}.badge.warn{color:var(--warn);border-color:#5c4c2a;background:#251f12}.badge.gold{color:var(--gold2);border-color:#5e4d2d;background:#211b10}
+.section-title{display:flex;justify-content:space-between;gap:12px;align-items:end;margin:28px 2px 12px}.section-title h3{font-size:22px;margin:0}.section-title span{color:var(--muted);font-size:12px}.grid{display:grid;gap:14px}.grid.two{grid-template-columns:1fr 1fr}.grid.three{grid-template-columns:repeat(3,1fr)}.panel{background:linear-gradient(180deg,#14171c,#0e1014);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:18px;overflow:hidden}.panel.full{width:100%}.panel h4{margin:0 0 12px;font-size:16px}.subhead{margin-top:18px!important}.data-row{display:flex;justify-content:space-between;gap:18px;padding:9px 0;border-bottom:1px solid var(--line);font-size:12px}.data-row:last-child{border-bottom:0}.data-row span{color:var(--muted)}.data-row b{text-align:right;word-break:break-word}.big-number{font-size:44px;font-weight:950;color:var(--gold2);line-height:1}.big-number small{display:block;font-size:12px;color:var(--muted);font-weight:700;margin-top:6px}.timeline{margin-top:14px}.timeline-item{position:relative;display:grid;grid-template-columns:14px 1fr;gap:10px;padding:8px 0}.timeline-item .dot{width:9px;height:9px;border-radius:50%;background:var(--gold);margin-top:5px;box-shadow:0 0 0 4px rgba(215,179,106,.09)}.timeline-item strong{display:block;font-size:12px}.timeline-item small{display:block;color:var(--muted);font-size:11px;margin-top:4px;line-height:1.45}.chips{display:flex;flex-wrap:wrap;gap:7px}.date-chip{font-size:11px;border:1px solid var(--line);border-radius:99px;padding:6px 8px;color:#d7dbe0;background:#101318}
+.record-card{border:1px solid var(--line);border-radius:13px;padding:12px;margin-top:10px;background:#101318}.record-card h4{margin:0 0 7px}.danger-card{border-color:#5c2c32;background:#211316}.warn-card{border-color:#554625;background:#1d190f}.empty{border:1px dashed #333a43;border-radius:12px;padding:14px;color:var(--muted);font-size:12px}.empty.compact{padding:10px;margin-top:8px}.good-empty{border-color:#28513d;color:#86d6ad;background:#0e1d16}.metric-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px}.metric-strip>div{border:1px solid var(--line);background:#101318;border-radius:12px;padding:12px;text-align:center}.metric-strip small{display:block;color:var(--muted);font-size:10px;margin-bottom:5px}.metric-strip b{font-size:15px;color:var(--gold2)}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}table{width:100%;border-collapse:collapse;min-width:620px;font-size:11px}th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left}th{background:#101318;color:var(--gold2)}tr:last-child td{border-bottom:0}.good-text{color:var(--ok)!important}.bad-text{color:var(--bad)!important}.mot-card{border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:10px;background:#101318}.mot-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.mot-head strong{display:block}.mot-head small{display:block;color:var(--muted);font-size:11px;margin-top:4px}.mot-notes{margin-top:10px}.mot-note{display:grid;grid-template-columns:75px 1fr auto;gap:8px;border-top:1px solid var(--line);padding:9px 0;font-size:11px}.mot-note b{color:var(--gold2)}.mot-note span{line-height:1.45}.mot-note em{color:var(--bad);font-style:normal;font-weight:900}.raw-details{margin-top:20px;border:1px solid var(--line);border-radius:14px;background:#0c0f12;overflow:hidden}.raw-details summary{padding:13px;cursor:pointer;font-weight:900;color:var(--gold2)}.raw-details pre{margin:0;border-top:1px solid var(--line);padding:14px;overflow:auto;max-height:65vh;white-space:pre-wrap;word-break:break-word;font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:#dfe6ee}.footnote{margin:18px 2px;color:var(--muted);font-size:11px;line-height:1.6}
+@media(max-width:900px){.grid.three{grid-template-columns:1fr}.grid.two{grid-template-columns:1fr}.report-hero{flex-direction:column}.summary-badges{justify-content:flex-start}.toolbar form.search{min-width:100%}}@media(max-width:560px){.wrap{padding:14px 10px}.toolbar form.search{flex-direction:column}.toolbar .primary{width:100%}.report-hero{padding:16px}.report-hero h2{font-size:23px}.metric-strip{grid-template-columns:1fr}.section-title{display:block}.section-title span{display:block;margin-top:4px}.mot-note{grid-template-columns:1fr}.data-row{font-size:11px}}
 </style>
 </head>
-<body><main class="box"><div class="brand">ZAI <span>REGPOINT</span></div>
-${unlocked ? `<div class="lock">✅</div><h1>Developer Test</h1><div class="ok">Private developer access unlocked.</div><p>Enter a registration. This will call the Vehicle Data Global <strong>VDICheck</strong> test API and show the raw response so we can verify exactly what your trial key returns.</p>${safeError ? `<div class="error">${safeError}</div>` : ""}<form method="post" action="/developer-test/lookup"><label for="testReg">Registration</label><input id="testReg" name="registration" class="reg" placeholder="AB12 CDE" maxlength="8" value="${safeReg}" required autofocus><button type="submit">Check with VDG</button></form>${httpStatus !== null ? `<div class="meta">VDG HTTP status: ${escapeHtml(httpStatus)}</div>` : ""}${rawText ? `<pre class="raw">${rawText}</pre>` : ""}` : `<div class="lock">🔒</div><h1>Developer Test</h1><p>Enter your private admin password to continue.</p>${safeError ? `<div class="error">${safeError}</div>` : ""}<form method="post" action="/developer-test"><label for="password">Admin password</label><input id="password" name="password" type="password" autocomplete="current-password" required autofocus><button type="submit">Unlock Developer Test</button></form>`}
-<a class="back" href="/">← Back to ZAI RegPoint</a></main></body></html>`;
+<body>
+<header class="top"><div class="topin"><div class="brand">ZAI <span>REGPOINT</span></div><div class="private">🔒 PRIVATE DEVELOPER TEST</div></div></header>
+<main class="wrap">
+${unlocked ? `<div class="toolbar"><form class="search" method="post" action="/developer-test/lookup"><input name="registration" class="reg" placeholder="AB12 CDE" maxlength="8" value="${safeReg}" required><button class="btn primary" type="submit">Run Full Test</button></form><a class="btn secondary" href="/">← Main site</a><form method="post" action="/developer-test/logout"><button class="btn secondary" type="submit">Lock</button></form></div>${safeError ? `<div class="error">${safeError}</div>` : ""}${httpStatus !== null ? `<div class="meta">VDG HTTP status: ${escapeHtml(httpStatus)}</div>` : ""}${report || `<section class="login"><div class="lock">✅</div><h1>Developer access unlocked</h1><p>Enter a registration above. This private test will combine the VDG test package with your existing DVSA MOT integration and show a designed full report.</p></section>`}<div class="footnote">Private testing only. VDG trial/sandbox data is kept inside this password-protected developer area and is not added to the public vehicle check.</div>` : `<section class="login"><div class="lock">🔒</div><h1>Developer Test</h1><p>Enter your private admin password to continue.</p>${safeError ? `<div class="error">${safeError}</div>` : ""}<form method="post" action="/developer-test"><label for="password">Admin password</label><input id="password" name="password" type="password" autocomplete="current-password" required autofocus><button class="btn primary" type="submit">Unlock Developer Test</button></form><a class="btn secondary" style="width:100%;margin-top:10px" href="/">← Back to ZAI RegPoint</a></section>`}
+</main></body></html>`;
 }
 
 app.get("/developer-test", (req, res) => {
@@ -854,6 +993,13 @@ app.post("/developer-test", (req, res) => {
   return res.redirect(303, "/developer-test");
 });
 
+app.post("/developer-test/logout", (req, res) => {
+  const token = getDeveloperSession(req);
+  if (token) developerSessions.delete(token);
+  res.setHeader("Set-Cookie", "zai_dev_session=; Path=/developer-test; HttpOnly; Secure; SameSite=Strict; Max-Age=0");
+  return res.redirect(303, "/developer-test");
+});
+
 app.post("/developer-test/lookup", async (req, res) => {
   res.set("Cache-Control", "no-store");
   if (!getDeveloperSession(req)) {
@@ -876,27 +1022,42 @@ app.post("/developer-test/lookup", async (req, res) => {
     url.searchParams.set("PackageName", "VDICheck");
     url.searchParams.set("Vrm", registration);
 
-    const response = await fetch(url, {
-      method: "GET",
-      headers: { Accept: "application/json" },
-      signal: controller.signal
-    });
+    const [vdgResponse, dvsaSettled] = await Promise.all([
+      fetch(url, { method:"GET", headers:{ Accept:"application/json" }, signal:controller.signal }),
+      fetchDvsaMotHistory(registration).then(data => ({ ok:true, data })).catch(error => ({ ok:false, error:error?.message || String(error) }))
+    ]);
 
-    const text = await response.text();
-    let data;
-    try { data = JSON.parse(text); }
-    catch { data = { rawText: text.slice(0, 12000) }; }
+    const text = await vdgResponse.text();
+    let vdgData;
+    try { vdgData = JSON.parse(text); }
+    catch { vdgData = { rawText: text.slice(0, 12000) }; }
 
-    return res.status(response.ok ? 200 : 502).type("html").send(developerTestPage({
-      unlocked: true,
+    if (!vdgResponse.ok) {
+      return res.status(502).type("html").send(developerTestPage({
+        unlocked:true,
+        registration,
+        vdgResult:vdgData,
+        dvsaResult:dvsaSettled.ok ? dvsaSettled.data : null,
+        dvsaError:dvsaSettled.ok ? "" : dvsaSettled.error,
+        httpStatus:vdgResponse.status,
+        error:`Vehicle Data Global returned HTTP ${vdgResponse.status}.`
+      }));
+    }
+
+    const apiSuccess = vdgData?.ResponseInformation?.IsSuccessStatusCode === true;
+    const apiMessage = vdgData?.ResponseInformation?.StatusMessage || "Unknown VDG status";
+    return res.status(200).type("html").send(developerTestPage({
+      unlocked:true,
       registration,
-      rawResult: data,
-      httpStatus: response.status,
-      error: response.ok ? "" : `Vehicle Data Global returned HTTP ${response.status}.`
+      vdgResult:vdgData,
+      dvsaResult:dvsaSettled.ok ? dvsaSettled.data : null,
+      dvsaError:dvsaSettled.ok ? "" : dvsaSettled.error,
+      httpStatus:vdgResponse.status,
+      error:apiSuccess ? "" : `VDG test result: ${apiMessage}`
     }));
   } catch (error) {
     const message = error?.name === "AbortError" ? "Vehicle Data Global request timed out after 45 seconds." : `VDG request failed: ${error?.message || error}`;
-    return res.status(502).type("html").send(developerTestPage({ unlocked: true, registration, error: message }));
+    return res.status(502).type("html").send(developerTestPage({ unlocked:true, registration, error:message }));
   } finally {
     clearTimeout(timer);
   }
