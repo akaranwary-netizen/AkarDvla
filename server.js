@@ -779,6 +779,25 @@ app.post("/api/admin-test/vehicle-history", async (req, res) => {
   }
 });
 
+app.get("/admin-test", (req, res) => {
+  res.type("html").send(`<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>ZAI RegPoint Admin Test</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#070809;color:#f7f7f7;font-family:Arial,Tahoma,sans-serif;min-height:100vh}.wrap{width:min(720px,100%);margin:auto;padding:24px 16px 70px}.back{display:inline-block;color:#f4d99a;text-decoration:none;margin-bottom:18px}.card{background:linear-gradient(145deg,#15181d,#0b0d10);border:1px solid #30353d;border-radius:22px;padding:20px;box-shadow:0 24px 70px #0007}.title{font-size:30px;margin:0 0 8px}.sub{color:#9da4ad;line-height:1.55;margin:0 0 20px}.field{width:100%;padding:15px;border-radius:12px;border:1px solid #343a43;background:#080a0d;color:#fff;font-size:17px;margin:7px 0}.plate{background:#f7d33c;color:#111;text-align:center;font-weight:900;letter-spacing:3px;font-size:24px;text-transform:uppercase}.btn{width:100%;padding:14px;border:0;border-radius:12px;background:linear-gradient(135deg,#f4d99a,#d7b36a);color:#16120b;font-weight:900;font-size:16px;cursor:pointer;margin-top:9px}.btn.secondary{background:#252a31;color:#fff}.btn:disabled{opacity:.6}.err{white-space:pre-wrap;color:#ff8c8c;margin-top:12px}.ok{color:#5dd39e}.hidden{display:none!important}.result{margin-top:18px}.result pre{white-space:pre-wrap;word-break:break-word;background:#050607;border:1px solid #252a31;border-radius:13px;padding:14px;max-height:58vh;overflow:auto;color:#dfe5ec;font-size:12px;line-height:1.5}.note{color:#9da4ad;font-size:12px;line-height:1.5;margin-top:10px}
+</style></head><body><main class="wrap"><a class="back" href="/">← Back to ZAI REGPOINT</a><section class="card"><h1 class="title">🔒 Admin Vehicle History Test</h1><p class="sub">Private Vehicle Data Global test area. Your API key stays on the server.</p>
+<div id="login"><label>Admin password</label><input id="pw" class="field" type="password" autocomplete="current-password" placeholder="Admin password"><button id="loginBtn" class="btn" type="button">Unlock</button><div id="loginErr" class="err"></div></div>
+<div id="tester" class="hidden"><label>Registration</label><input id="reg" class="field plate" maxlength="8" placeholder="YS05AUP" autocapitalize="characters"><button id="runBtn" class="btn" type="button">Run Vehicle History Test</button><button id="logoutBtn" class="btn secondary" type="button">Log out</button><div id="err" class="err"></div><div id="result" class="result"></div><div class="note">Trial/sandbox restrictions still apply. Full VIN and API credentials are not displayed.</div></div>
+</section></main><script>
+var login=document.getElementById("login"),tester=document.getElementById("tester"),loginErr=document.getElementById("loginErr"),err=document.getElementById("err"),result=document.getElementById("result");
+function authView(yes){login.classList.toggle("hidden",yes);tester.classList.toggle("hidden",!yes);if(yes){setTimeout(function(){document.getElementById("reg").focus()},30)}else{setTimeout(function(){document.getElementById("pw").focus()},30)}}
+async function status(){try{var r=await fetch("/api/admin-test/status",{credentials:"same-origin"});var d=await r.json();authView(Boolean(d.authenticated))}catch(e){authView(false)}}
+document.getElementById("loginBtn").onclick=async function(){loginErr.textContent="";var password=document.getElementById("pw").value||"";try{var r=await fetch("/api/admin-test/login",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({password:password})});var d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||"Login failed.");document.getElementById("pw").value="";authView(true)}catch(e){loginErr.textContent=e.message||"Login failed."}};
+document.getElementById("logoutBtn").onclick=async function(){try{await fetch("/api/admin-test/logout",{method:"POST",credentials:"same-origin"})}catch(e){}result.innerHTML="";err.textContent="";authView(false)};
+document.getElementById("runBtn").onclick=async function(){var reg=(document.getElementById("reg").value||"").toUpperCase().replace(/[^A-Z0-9]/g,"");var btn=this;err.textContent="";result.innerHTML="";if(reg.length<2){err.textContent="Enter a registration first.";return}btn.disabled=true;btn.textContent="Checking…";try{var r=await fetch("/api/admin-test/vehicle-history",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({registration:reg})});var d=await r.json();if(r.status===401){authView(false);throw new Error("Admin session locked. Enter your password again.")}if(!r.ok||!d.ok){var extra=d.provider?"\n"+JSON.stringify(d.provider,null,2):"";throw new Error((d.error||"Lookup failed.")+extra)}var h=document.createElement("div");h.className="ok";h.style.fontWeight="900";h.style.marginBottom="8px";h.textContent=(d.registration||reg)+" — Vehicle Data Global response";var pre=document.createElement("pre");pre.textContent=JSON.stringify(d.data,null,2);result.appendChild(h);result.appendChild(pre)}catch(e){err.textContent=e.message||"Lookup failed."}finally{btn.disabled=false;btn.textContent="Run Vehicle History Test"}};
+document.getElementById("pw").addEventListener("keydown",function(e){if(e.key==="Enter")document.getElementById("loginBtn").click()});document.getElementById("reg").addEventListener("keydown",function(e){if(e.key==="Enter")document.getElementById("runBtn").click()});status();
+</script></body></html>`);
+});
+
 app.get("/robots.txt", (req, res) => {
   res.type("text/plain").send(`User-agent: *
 Allow: /
@@ -1413,7 +1432,7 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
 
 /* Private Vehicle Data Global trial tester */
 .admin-test-bar{position:relative;z-index:40;background:#090b0e;border-bottom:1px solid #252a31;padding:8px 14px;text-align:center;direction:ltr}
-.admin-test-open{border:1px solid rgba(215,179,106,.55);background:#15181d;color:#f4d99a;border-radius:10px;padding:8px 14px;font-weight:800;cursor:pointer}
+.admin-test-open{display:inline-block;text-decoration:none;border:1px solid rgba(215,179,106,.55);background:#15181d;color:#f4d99a;border-radius:10px;padding:8px 14px;font-weight:800;cursor:pointer}
 .admin-test-modal{display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.86);padding:18px;overflow:auto;direction:ltr}
 .admin-test-modal.show{display:flex;align-items:flex-start;justify-content:center}
 .admin-test-box{width:min(760px,100%);margin-top:5vh;background:#111419;border:1px solid #343a43;border-radius:18px;padding:20px;color:#f7f7f7;box-shadow:0 24px 70px rgba(0,0,0,.55)}
@@ -1460,7 +1479,7 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
 
 
 <div class="admin-test-bar">
-  <button type="button" class="admin-test-open" onclick="openAdminTest()">🔒 ADMIN ONLY</button>
+  <a class="admin-test-open" href="/admin-test">🔒 ADMIN ONLY</a>
 </div>
 
 <div id="adminTestModal" class="admin-test-modal" onclick="closeAdminTest(event)">
