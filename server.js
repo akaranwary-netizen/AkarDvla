@@ -489,6 +489,15 @@ const ZYFY_BACKUP_API_KEY = process.env.ZYFY_BACKUP_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const CARIMAGES_API_KEY = process.env.CARIMAGES_API_KEY;
 
+// Developer / Vehicle Data Global test tools. Secrets stay server-side in Render.
+const VDG_API_KEY = process.env.VDG_API_KEY || process.env.VDG_APIKEY || process.env.VDG_KEY || "";
+function getDeveloperPassword(){
+  const direct = process.env.DEVELOPER_PASSWORD || process.env.TEST_PASSWORD || process.env.API_TEST_PASSWORD || process.env.ONEAUTO_PASSWORD || process.env.ONEAPI_PASSWORD;
+  if (direct) return String(direct);
+  const dynamicKey = Object.keys(process.env).find(k => /(?:DEV|TEST|ONEA).*PASS|PASS.*(?:DEV|TEST|ONEA)/i.test(k));
+  return dynamicKey ? String(process.env[dynamicKey] || "") : "";
+}
+
 // DVSA MOT History API credentials (keep these only in Render Environment)
 const DVSA_API_KEY = process.env.DVSA_API_KEY;
 const DVSA_CLIENT_ID = process.env.DVSA_CLIENT_ID;
@@ -686,55 +695,6 @@ async function addSoraniToMotHistory(motHistory) {
 
 app.use(express.json());
 app.use(express.static("public"));
-
-// Developer diagnostics. No extra password is required.
-// The endpoint never returns API keys or secrets.
-app.post("/api/developer/test", async (req, res) => {
-  const provider = String(req.body?.provider || "all").toLowerCase();
-  const registration = String(req.body?.registration || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
-  const results = {};
-  const run = async (name, fn) => {
-    const started = Date.now();
-    try { const detail = await fn(); results[name] = {ok:true, ms:Date.now()-started, detail}; }
-    catch (e) { results[name] = {ok:false, ms:Date.now()-started, error:String(e?.message || e).slice(0,300)}; }
-  };
-
-  if (provider === "all" || provider === "gemini") await run("Gemini", async () => {
-    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
-    const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent", {method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":GEMINI_API_KEY},body:JSON.stringify({contents:[{parts:[{text:"Reply with only OK"}]}],generationConfig:{maxOutputTokens:8}})});
-    if (!r.ok) throw new Error("HTTP " + r.status + ": " + (await r.text()).slice(0,160));
-    return "Connected";
-  });
-
-  if (provider === "all" || provider === "dvsa") await run("DVSA MOT", async () => {
-    if (!DVSA_API_KEY) throw new Error("DVSA_API_KEY is not configured");
-    const token = await getDvsaToken();
-    if (!token) throw new Error("DVSA OAuth credentials are incomplete");
-    if (!registration) return "Authentication OK — enter a registration for a vehicle test";
-    const data = await fetchDvsaMotHistory(registration);
-    return "Connected — MOT records: " + (Array.isArray(data?.motTests) ? data.motTests.length : 0);
-  });
-
-  if (provider === "all" || provider === "zyfy") await run("ZYFY", async () => {
-    const key = ZYFY_API_KEY || ZYFY_BACKUP_API_KEY;
-    if (!key) throw new Error("ZYFY API key is not configured");
-    if (!registration) return "API key configured — enter a registration for a live test";
-    const r = await fetch("https://zyfy.uk/v1/vehicle/" + encodeURIComponent(registration), {headers:{"X-Api-Key":key,"Accept":"application/json"}});
-    if (!r.ok) throw new Error("HTTP " + r.status + ": " + (await r.text()).slice(0,160));
-    return "Connected — vehicle lookup succeeded";
-  });
-
-  if (provider === "all" || provider === "carimages") await run("CarImages", async () => {
-    if (!CARIMAGES_API_KEY) throw new Error("CARIMAGES_API_KEY is not configured");
-    const params = new URLSearchParams({api_key:CARIMAGES_API_KEY,type:"car",make:"Audi",view:"front34",width:"320",format:"webp"});
-    const r = await fetch("https://carimagesapi.com/api/v1/signed-url?" + params.toString(), {headers:{Accept:"application/json"}});
-    if (!r.ok) throw new Error("HTTP " + r.status + ": " + (await r.text()).slice(0,160));
-    const d = await r.json(); if (!d?.url) throw new Error("No signed image URL returned");
-    return "Connected";
-  });
-
-  res.json({ok:true, testedAt:new Date().toISOString(), results});
-});
 
 function پاککردنەوەی_ژمارە(value) {
   return String(value || "")
@@ -1342,10 +1302,11 @@ body{
 }
 .language-progress-percent{direction:ltr;margin-top:9px;color:var(--gold2);font-weight:900;font-size:13px}
 
+.developer-btn{margin-top:14px;border:1px solid rgba(214,177,88,.45);background:#0b0d10;color:#d8b765;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer}
+.dev-overlay{display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.82);padding:18px;align-items:center;justify-content:center}
+.dev-overlay.show{display:flex!important}.dev-box{width:min(720px,100%);max-height:88vh;overflow:auto;background:#050607;border:1px solid rgba(214,177,88,.35);border-radius:20px;padding:20px;box-shadow:0 28px 90px #000;color:#fff;text-align:left}
+.dev-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.dev-head h2{margin:0;color:#e0bf6b}.dev-close{background:transparent;border:0;color:#fff;font-size:28px;cursor:pointer}.dev-label{display:block;margin:12px 0 6px;color:#bfc5cc;font-size:13px;font-weight:800}.dev-input{box-sizing:border-box;width:100%;background:#111419;color:#fff;border:1px solid #303640;border-radius:12px;padding:14px;font-size:16px}.dev-run{width:100%;margin-top:14px;border:0;border-radius:12px;padding:14px;background:linear-gradient(135deg,#d5ad4e,#f0d889);color:#111;font-weight:900;font-size:15px;cursor:pointer}.dev-console{margin-top:16px;min-height:130px;max-height:420px;overflow:auto;white-space:pre-wrap;word-break:break-word;background:#000;border:1px solid #262b31;border-radius:12px;padding:14px;color:#cdd5dd;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}.dev-summary{margin-top:14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.dev-item{background:#0d1014;border:1px solid #242a31;border-radius:10px;padding:10px}.dev-item b{display:block;color:#d9b65e;font-size:11px;text-transform:uppercase;margin-bottom:4px}@media(max-width:600px){.dev-summary{grid-template-columns:1fr}}
 
-.dev-footer-btn{margin-top:12px;border:1px solid #2d3239;background:#101216;color:#9da4ad;border-radius:999px;padding:8px 13px;font-size:11px;cursor:pointer}
-.dev-modal{width:min(720px,100%);background:#090b0e;border:1px solid rgba(215,179,106,.3);border-radius:22px;padding:20px;box-shadow:0 30px 100px rgba(0,0,0,.75);direction:ltr;text-align:left}
-.dev-grid{display:grid;grid-template-columns:1fr 180px;gap:10px;margin:14px 0}.dev-input,.dev-select{width:100%;background:#111419;border:1px solid #2b3038;color:#fff;border-radius:11px;padding:12px;outline:none}.dev-run{width:100%;border:0;border-radius:11px;padding:13px;font-weight:900;cursor:pointer;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#16120b}.dev-console{margin-top:14px;min-height:190px;max-height:360px;overflow:auto;white-space:pre-wrap;word-break:break-word;background:#020303;border:1px solid #242a31;border-radius:14px;padding:14px;color:#bde9c9;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace}.dev-note{color:#8e969f;font-size:11px;line-height:1.5;margin-top:9px}@media(max-width:640px){.dev-grid{grid-template-columns:1fr}}
 footer{
   border-top:1px solid rgba(255,255,255,.05);
   text-align:center;color:#717984;font-size:12px;padding:28px 22px 40px
@@ -1768,31 +1729,41 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
   <button class="pwa-install-close" type="button" aria-label="Close" onclick="dismissPwaHint()">×</button>
 </div>
 
-<footer>© 2026 ZAI RegPoint<br><button type="button" class="dev-footer-btn" onclick="openDeveloper()">Developer</button></footer>
+<footer>© 2026 ZAI RegPoint<br><button type="button" class="developer-btn" onclick="openDeveloper()">⚙ Developer</button></footer>
 
-<div id="developerModal" class="modal-overlay" onclick="closeDeveloper(event)">
-  <div class="dev-modal" onclick="event.stopPropagation()">
-    <div class="modal-head"><h2>Developer API Test</h2><button type="button" class="modal-close" onclick="closeDeveloper()">×</button></div>
-    <div class="dev-note">Test your connected APIs. Secret keys are never displayed.</div>
-    <div class="dev-grid"><select id="devProvider" class="dev-select"><option value="all">Test all APIs</option><option value="zyfy">ZYFY</option><option value="dvsa">DVSA MOT</option><option value="gemini">Gemini</option><option value="carimages">CarImages</option></select></div>
-    <input id="devRegistration" class="dev-input" maxlength="10" placeholder="Optional registration for live vehicle test (e.g. AB12CDE)" style="text-transform:uppercase">
-    <button type="button" class="dev-run" style="margin-top:10px" onclick="runDeveloperTest()">Run API Test</button>
-    <div id="devConsole" class="dev-console">Ready. Enter the developer password and choose a test.</div>
+<div id="developerOverlay" class="dev-overlay" onclick="if(event.target===this)closeDeveloper()">
+  <div class="dev-box" onclick="event.stopPropagation()">
+    <div class="dev-head"><h2>Developer API Test</h2><button type="button" class="dev-close" onclick="closeDeveloper()">×</button></div>
+    <div style="color:#8f98a3;font-size:13px">Private test area. Enter your Render test password, then a registration. Your API key is never shown here.</div>
+    <label class="dev-label" for="developerPassword">Test password</label>
+    <input id="developerPassword" class="dev-input" type="password" autocomplete="off" placeholder="Enter password">
+    <label class="dev-label" for="developerReg">Registration</label>
+    <input id="developerReg" class="dev-input" type="text" maxlength="8" autocapitalize="characters" placeholder="e.g. AB12CDE">
+    <button id="developerRun" type="button" class="dev-run" onclick="runDeveloperVdgTest()">Run Vehicle Data Global check</button>
+    <div id="developerSummary" class="dev-summary"></div>
+    <pre id="developerConsole" class="dev-console">Ready. This test runs VDICheck and shows previous keeper information plus other useful history returned by your API.</pre>
   </div>
 </div>
 
 <script>
 
-
-function openDeveloper(){document.getElementById("developerModal").classList.add("show")}
-function closeDeveloper(e){if(e && e.target!==document.getElementById("developerModal"))return;document.getElementById("developerModal").classList.remove("show")}
-async function runDeveloperTest(){
- const out=document.getElementById("devConsole"),btn=document.querySelector(".dev-run");
- const provider=document.getElementById("devProvider").value,registration=document.getElementById("devRegistration").value.trim();
- btn.disabled=true;out.textContent="Testing " + provider + "…";
- try{const r=await fetch("/api/developer/test",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({provider:provider,registration:registration})});const d=await r.json().catch(()=>({ok:false,error:"Invalid server response"}));if(!r.ok)throw new Error(d.error||("HTTP "+r.status));
- const lines=["API TEST — "+new Date(d.testedAt).toLocaleString(),""];Object.entries(d.results||{}).forEach(function(entry){const name=entry[0],v=entry[1];lines.push((v.ok?"✓ ":"✕ ")+name+" — "+(v.ok?(v.detail||"OK"):(v.error||"Failed"))+" ["+v.ms+"ms]")});out.textContent=lines.join("\n");
- }catch(err){out.textContent="ERROR: "+err.message}finally{btn.disabled=false}
+function openDeveloper(){document.getElementById("developerOverlay")?.classList.add("show");setTimeout(()=>document.getElementById("developerPassword")?.focus(),80)}
+function closeDeveloper(){document.getElementById("developerOverlay")?.classList.remove("show")}
+function devValue(v){return (v===null||v===undefined||v==="")?"Not returned":String(v)}
+async function runDeveloperVdgTest(){
+  const pass=document.getElementById("developerPassword").value;
+  const reg=document.getElementById("developerReg").value.toUpperCase().replace(/[^A-Z0-9]/g,"");
+  const btn=document.getElementById("developerRun"), out=document.getElementById("developerConsole"), sum=document.getElementById("developerSummary");
+  if(!pass){out.textContent="Enter your test password first.";return} if(reg.length<2){out.textContent="Enter a valid registration.";return}
+  btn.disabled=true;btn.textContent="Checking API…";sum.innerHTML="";out.textContent="Connecting to Vehicle Data Global / VDICheck…";
+  try{
+    const r=await fetch("/api/developer/vdg-check",{method:"POST",headers:{"Content-Type":"application/json","x-developer-password":pass},body:JSON.stringify({registration:reg})});
+    const j=await r.json(); if(!r.ok||!j.ok)throw new Error(j.error+(j.detail?"\n"+j.detail:""));
+    const x=j.summary||{};
+    const rows=[["Registration",x.registration],["Make",x.make],["Model",x.model],["Year",x.year],["Previous keepers",x.previousKeepers],["Keeper acquired",x.currentKeeperAcquisitionDate],["Last V5C issue",x.lastV5CIssueDate],["Write-off category",x.writeOffCategory],["Stolen",x.stolen],["Finance",x.finance],["Colour",x.colour],["Fuel",x.fuelType]];
+    sum.innerHTML=rows.map(([k,v])=>'<div class="dev-item"><b>'+k+'</b><span>'+devValue(v).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))+'</span></div>').join("");
+    out.textContent=JSON.stringify(j,null,2);
+  }catch(e){out.textContent="ERROR\n"+e.message}finally{btn.disabled=false;btn.textContent="Run Vehicle Data Global check"}
 }
 
 // PWA / iPhone install support
@@ -3551,6 +3522,70 @@ app.get("/api/car-image", async (req, res) => {
   } catch (error) {
     console.error("CarImages error:", error?.message || error);
     res.status(502).send("Vehicle image unavailable");
+  }
+});
+
+// Password-protected developer VDG lookup. This does not change the public vehicle-check route.
+app.post("/api/developer/vdg-check", async (req, res) => {
+  const expected = getDeveloperPassword();
+  const supplied = String(req.headers["x-developer-password"] || "");
+  if (!expected) return res.status(503).json({ok:false,error:"Developer test password is not configured in Render."});
+  if (!supplied || supplied !== expected) return res.status(401).json({ok:false,error:"Incorrect developer password."});
+
+  const vrm = String(req.body?.registration || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0,8);
+  if (vrm.length < 2) return res.status(400).json({ok:false,error:"Enter a valid UK registration."});
+  if (!VDG_API_KEY) return res.status(503).json({ok:false,error:"VDG_API_KEY is not configured in Render."});
+
+  try {
+    const url = new URL("https://uk1.ukvehicledata.co.uk/api/datapackage/VDICheck");
+    url.searchParams.set("v", "2");
+    url.searchParams.set("api_nullitems", "1");
+    url.searchParams.set("auth_apikey", VDG_API_KEY);
+    url.searchParams.set("key_VRM", vrm);
+    const upstream = await fetch(url.toString(), {headers:{Accept:"application/json"}});
+    const text = await upstream.text();
+    let data; try { data = JSON.parse(text); } catch { data = {raw:text}; }
+    if (!upstream.ok) return res.status(upstream.status).json({ok:false,error:"VDG lookup failed ("+upstream.status+")",providerResponse:data});
+
+    // Search the provider response without assuming one exact casing/version of its field names.
+    const flat = {};
+    function walk(v, path=""){
+      if (v === null || v === undefined) return;
+      if (Array.isArray(v)) { v.forEach((x,i)=>walk(x,path+"["+i+"]")); return; }
+      if (typeof v === "object") { Object.entries(v).forEach(([k,x])=>walk(x,path ? path+"."+k : k)); return; }
+      flat[path] = v;
+    }
+    walk(data);
+    function pick(patterns){
+      const entries=Object.entries(flat);
+      for(const re of patterns){ const hit=entries.find(([k])=>re.test(k)); if(hit) return hit[1]; }
+      return null;
+    }
+    function collect(patterns, limit=20){
+      return Object.entries(flat).filter(([k])=>patterns.some(re=>re.test(k))).slice(0,limit).map(([field,value])=>({field,value}));
+    }
+    const summary = {
+      registration: vrm,
+      make: pick([/(^|\.)make$/i,/manufacturer/i]),
+      model: pick([/(^|\.)model$/i]),
+      year: pick([/yearofmanufacture/i,/manufactureyear/i,/(^|\.)year$/i]),
+      previousKeepers: pick([/numberofpreviouskeepers/i,/previouskeepers/i,/keepercount/i,/keeperchangescount/i,/numberofkeepers/i]),
+      currentKeeperAcquisitionDate: pick([/currentkeeper.*(?:acquisition|acquired|date)/i,/keeper.*startdate/i]),
+      lastV5CIssueDate: pick([/v5c.*(?:issue|issued).*date/i,/lastv5c/i]),
+      writeOffCategory: pick([/write.?off.*category/i,/insurance.*category/i,/damage.*category/i]),
+      stolen: pick([/(^|\.)(?:stolen|isStolen)$/i,/police.*stolen/i]),
+      finance: pick([/(^|\.)(?:finance|financeflag|outstandingfinance)$/i,/finance.*status/i]),
+      colour: pick([/(^|\.)colou?r$/i]),
+      fuelType: pick([/fueltype/i]),
+      engineSize: pick([/enginesize/i,/enginecapacity/i]),
+      firstRegistered: pick([/firstreg/i,/registrationdate/i]),
+      keeperRelatedFields: collect([/keeper/i,/v5c/i],30),
+      historyRelatedFields: collect([/write.?off/i,/stolen/i,/finance/i,/mileage/i],30)
+    };
+    return res.json({ok:true,source:"Vehicle Data Global / VDICheck",summary,raw:data});
+  } catch (error) {
+    console.error("VDG developer lookup error:", error);
+    return res.status(502).json({ok:false,error:"Could not connect to Vehicle Data Global.",detail:error.message});
   }
 });
 
